@@ -2,12 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 
-const sampleEvents = [
-  { id: "1", title: "Consulta — Juan Pérez", start: addDays(0, 9), end: addDays(0, 10) },
-  { id: "2", title: "Revisión — María López", start: addDays(1, 11), end: addDays(1, 12) },
-  { id: "3", title: "Control — Pedro Ruiz", start: addDays(2, 16), end: addDays(2, 17) },
-];
-
 function addDays(daysFromToday: number, hour: number) {
   const d = new Date();
   d.setDate(d.getDate() + daysFromToday);
@@ -15,52 +9,49 @@ function addDays(daysFromToday: number, hour: number) {
   return d;
 }
 
+const sampleEvents = [
+  { id: "1", title: "Consulta — Juan Pérez", start: addDays(0, 9), end: addDays(0, 10) },
+  { id: "2", title: "Revisión — María López", start: addDays(1, 11), end: addDays(1, 12) },
+  { id: "3", title: "Control — Pedro Ruiz", start: addDays(2, 16), end: addDays(2, 17) },
+];
+
 function CalendarView() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let calendar: { destroy?: () => void } | undefined;
+    let ec: unknown;
     let cancelled = false;
 
     (async () => {
-      const [{ Calendar }, dayGrid, timeGrid, interaction] = await Promise.all([
-        import("@event-calendar/core"),
-        import("@event-calendar/day-grid"),
-        import("@event-calendar/time-grid"),
-        import("@event-calendar/interaction"),
-      ]);
+      const mod = await import("@event-calendar/core");
       await import("@event-calendar/core/index.css");
       if (cancelled || !ref.current) return;
 
-      calendar = new Calendar({
-        target: ref.current,
-        props: {
-          plugins: [dayGrid.default, timeGrid.default, interaction.default],
-          options: {
-            view: "timeGridWeek",
-            headerToolbar: {
-              start: "prev,next today",
-              center: "title",
-              end: "dayGridMonth,timeGridWeek,timeGridDay",
-            },
-            events: sampleEvents,
-            height: "100%",
-            locale: "es",
-            firstDay: 1,
-            buttonText: {
-              today: "Hoy",
-              dayGridMonth: "Mes",
-              timeGridWeek: "Semana",
-              timeGridDay: "Día",
-            },
-          },
+      ec = mod.createCalendar(ref.current, [mod.DayGrid, mod.TimeGrid, mod.Interaction], {
+        view: "timeGridWeek",
+        headerToolbar: {
+          start: "prev,next today",
+          center: "title",
+          end: "dayGridMonth,timeGridWeek,timeGridDay",
+        },
+        events: sampleEvents,
+        height: "100%",
+        locale: "es",
+        firstDay: 1,
+        buttonText: {
+          today: "Hoy",
+          dayGridMonth: "Mes",
+          timeGridWeek: "Semana",
+          timeGridDay: "Día",
         },
       });
     })();
 
     return () => {
       cancelled = true;
-      calendar?.destroy?.();
+      if (ec) {
+        void import("@event-calendar/core").then((m) => m.destroyCalendar(ec));
+      }
     };
   }, []);
 
