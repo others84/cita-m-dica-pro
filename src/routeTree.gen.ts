@@ -16,6 +16,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardRolesRouteImport } from './routes/dashboard.roles'
 import { Route as DashboardRestaurarRouteImport } from './routes/dashboard.restaurar'
 import { Route as DashboardMedicosRouteImport } from './routes/dashboard.medicos'
+import { Route as DashboardCalendarioRouteImport } from './routes/dashboard.calendario'
 import { Route as DashboardAsistentesRouteImport } from './routes/dashboard.asistentes'
 import { Route as DashboardReportesIngresosRouteImport } from './routes/dashboard.reportes.ingresos'
 import { Route as DashboardOpcionesCambiarPasswordRouteImport } from './routes/dashboard.opciones.cambiar-password'
@@ -57,6 +58,11 @@ const DashboardRestaurarRoute = DashboardRestaurarRouteImport.update({
 const DashboardMedicosRoute = DashboardMedicosRouteImport.update({
   id: '/medicos',
   path: '/medicos',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCalendarioRoute = DashboardCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAsistentesRoute = DashboardAsistentesRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/asistentes': typeof DashboardAsistentesRoute
+  '/dashboard/calendario': typeof DashboardCalendarioRoute
   '/dashboard/medicos': typeof DashboardMedicosRoute
   '/dashboard/restaurar': typeof DashboardRestaurarRoute
   '/dashboard/roles': typeof DashboardRolesRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/asistentes': typeof DashboardAsistentesRoute
+  '/dashboard/calendario': typeof DashboardCalendarioRoute
   '/dashboard/medicos': typeof DashboardMedicosRoute
   '/dashboard/restaurar': typeof DashboardRestaurarRoute
   '/dashboard/roles': typeof DashboardRolesRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/asistentes': typeof DashboardAsistentesRoute
+  '/dashboard/calendario': typeof DashboardCalendarioRoute
   '/dashboard/medicos': typeof DashboardMedicosRoute
   '/dashboard/restaurar': typeof DashboardRestaurarRoute
   '/dashboard/roles': typeof DashboardRolesRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/asistentes'
+    | '/dashboard/calendario'
     | '/dashboard/medicos'
     | '/dashboard/restaurar'
     | '/dashboard/roles'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/asistentes'
+    | '/dashboard/calendario'
     | '/dashboard/medicos'
     | '/dashboard/restaurar'
     | '/dashboard/roles'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/asistentes'
+    | '/dashboard/calendario'
     | '/dashboard/medicos'
     | '/dashboard/restaurar'
     | '/dashboard/roles'
@@ -253,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMedicosRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/calendario': {
+      id: '/dashboard/calendario'
+      path: '/calendario'
+      fullPath: '/dashboard/calendario'
+      preLoaderRoute: typeof DashboardCalendarioRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/asistentes': {
       id: '/dashboard/asistentes'
       path: '/asistentes'
@@ -307,6 +326,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAsistentesRoute: typeof DashboardAsistentesRoute
+  DashboardCalendarioRoute: typeof DashboardCalendarioRoute
   DashboardMedicosRoute: typeof DashboardMedicosRoute
   DashboardRestaurarRoute: typeof DashboardRestaurarRoute
   DashboardRolesRoute: typeof DashboardRolesRoute
@@ -321,6 +341,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAsistentesRoute: DashboardAsistentesRoute,
+  DashboardCalendarioRoute: DashboardCalendarioRoute,
   DashboardMedicosRoute: DashboardMedicosRoute,
   DashboardRestaurarRoute: DashboardRestaurarRoute,
   DashboardRolesRoute: DashboardRolesRoute,
