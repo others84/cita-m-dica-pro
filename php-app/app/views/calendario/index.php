@@ -9,8 +9,8 @@
   </main>
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@event-calendar/build@3/dist/event-calendar.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@event-calendar/build@3/dist/event-calendar.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@event-calendar/build@4.4.1/dist/event-calendar.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@event-calendar/build@4.4.1/dist/event-calendar.min.js"></script>
 <script>
   const hoy = new Date(); hoy.setHours(9,0,0,0);
   const m = (d,h)=>{const x=new Date(hoy);x.setDate(x.getDate()+d);x.setHours(h);return x;};
