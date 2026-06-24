@@ -72,7 +72,7 @@ require __DIR__ . '/../layouts/header.php';
       const hoy = new Date(); hoy.setHours(9,0,0,0);
       const m = (d,h)=>{const x=new Date(hoy);x.setDate(x.getDate()+d);x.setHours(h);return x;};
 
-      EventCalendarLib.create(ecEl, {
+      const calendarOptions = {
         view: 'timeGridWeek',
         headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
         locale: 'es',
@@ -83,7 +83,14 @@ require __DIR__ . '/../layouts/header.php';
           { id:'2', title:'Revisión — María López',  start:m(1,11), end:m(1,12) },
           { id:'3', title:'Control — Pedro Ruiz',    start:m(2,16), end:m(2,17) },
         ],
-      });
+      };
+
+      if (typeof EventCalendarLib.create === 'function') {
+        EventCalendarLib.create(ecEl, calendarOptions);
+        return;
+      }
+
+      new EventCalendarLib(ecEl, calendarOptions);
     }
 
     initCalendar();
