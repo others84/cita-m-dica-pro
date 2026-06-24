@@ -9,11 +9,15 @@
   </main>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/@event-calendar/build@5.7.1/dist/event-calendar.min.css">
-<script src="https://unpkg.com/@event-calendar/build@5.7.1/dist/event-calendar.min.js"></script>
+<link rel="stylesheet" href="/assets/vendor/event-calendar/event-calendar.min.css">
+<script src="/assets/vendor/event-calendar/event-calendar.min.js"></script>
 <script>
   const hoy = new Date(); hoy.setHours(9,0,0,0);
   const m = (d,h)=>{const x=new Date(hoy);x.setDate(x.getDate()+d);x.setHours(h);return x;};
+  if (!window.EventCalendar) {
+    document.getElementById('ec').innerHTML = '<p>No se pudo cargar el calendario.</p>';
+    throw new Error('EventCalendar no se cargó. Revisa que exista /assets/vendor/event-calendar/event-calendar.min.js');
+  }
   EventCalendar.create(document.getElementById('ec'), {
     view: 'timeGridWeek',
     headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
