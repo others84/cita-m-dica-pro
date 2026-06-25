@@ -9,227 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as DashboardRolesRouteImport } from './routes/dashboard.roles'
-import { Route as DashboardRestaurarRouteImport } from './routes/dashboard.restaurar'
-import { Route as DashboardMedicosRouteImport } from './routes/dashboard.medicos'
-import { Route as DashboardCalendarioRouteImport } from './routes/dashboard.calendario'
-import { Route as DashboardAsistentesRouteImport } from './routes/dashboard.asistentes'
-import { Route as DashboardReportesIngresosRouteImport } from './routes/dashboard.reportes.ingresos'
-import { Route as DashboardOpcionesCambiarPasswordRouteImport } from './routes/dashboard.opciones.cambiar-password'
-import { Route as DashboardOpcionesActualizarDatosRouteImport } from './routes/dashboard.opciones.actualizar-datos'
-import { Route as DashboardCitasModificarRouteImport } from './routes/dashboard.citas.modificar'
-import { Route as DashboardCitasCancelarRouteImport } from './routes/dashboard.citas.cancelar'
-import { Route as DashboardCitasAgendarRouteImport } from './routes/dashboard.citas.agendar'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRolesRoute = DashboardRolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRestaurarRoute = DashboardRestaurarRouteImport.update({
-  id: '/restaurar',
-  path: '/restaurar',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMedicosRoute = DashboardMedicosRouteImport.update({
-  id: '/medicos',
-  path: '/medicos',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCalendarioRoute = DashboardCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAsistentesRoute = DashboardAsistentesRouteImport.update({
-  id: '/asistentes',
-  path: '/asistentes',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardReportesIngresosRoute =
-  DashboardReportesIngresosRouteImport.update({
-    id: '/reportes/ingresos',
-    path: '/reportes/ingresos',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardOpcionesCambiarPasswordRoute =
-  DashboardOpcionesCambiarPasswordRouteImport.update({
-    id: '/opciones/cambiar-password',
-    path: '/opciones/cambiar-password',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardOpcionesActualizarDatosRoute =
-  DashboardOpcionesActualizarDatosRouteImport.update({
-    id: '/opciones/actualizar-datos',
-    path: '/opciones/actualizar-datos',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardCitasModificarRoute = DashboardCitasModificarRouteImport.update({
-  id: '/citas/modificar',
-  path: '/citas/modificar',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCitasCancelarRoute = DashboardCitasCancelarRouteImport.update({
-  id: '/citas/cancelar',
-  path: '/citas/cancelar',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCitasAgendarRoute = DashboardCitasAgendarRouteImport.update({
-  id: '/citas/agendar',
-  path: '/citas/agendar',
-  getParentRoute: () => DashboardRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
-  '/login': typeof LoginRoute
-  '/dashboard/asistentes': typeof DashboardAsistentesRoute
-  '/dashboard/calendario': typeof DashboardCalendarioRoute
-  '/dashboard/medicos': typeof DashboardMedicosRoute
-  '/dashboard/restaurar': typeof DashboardRestaurarRoute
-  '/dashboard/roles': typeof DashboardRolesRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/citas/agendar': typeof DashboardCitasAgendarRoute
-  '/dashboard/citas/cancelar': typeof DashboardCitasCancelarRoute
-  '/dashboard/citas/modificar': typeof DashboardCitasModificarRoute
-  '/dashboard/opciones/actualizar-datos': typeof DashboardOpcionesActualizarDatosRoute
-  '/dashboard/opciones/cambiar-password': typeof DashboardOpcionesCambiarPasswordRoute
-  '/dashboard/reportes/ingresos': typeof DashboardReportesIngresosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/dashboard/asistentes': typeof DashboardAsistentesRoute
-  '/dashboard/calendario': typeof DashboardCalendarioRoute
-  '/dashboard/medicos': typeof DashboardMedicosRoute
-  '/dashboard/restaurar': typeof DashboardRestaurarRoute
-  '/dashboard/roles': typeof DashboardRolesRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/citas/agendar': typeof DashboardCitasAgendarRoute
-  '/dashboard/citas/cancelar': typeof DashboardCitasCancelarRoute
-  '/dashboard/citas/modificar': typeof DashboardCitasModificarRoute
-  '/dashboard/opciones/actualizar-datos': typeof DashboardOpcionesActualizarDatosRoute
-  '/dashboard/opciones/cambiar-password': typeof DashboardOpcionesCambiarPasswordRoute
-  '/dashboard/reportes/ingresos': typeof DashboardReportesIngresosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
-  '/login': typeof LoginRoute
-  '/dashboard/asistentes': typeof DashboardAsistentesRoute
-  '/dashboard/calendario': typeof DashboardCalendarioRoute
-  '/dashboard/medicos': typeof DashboardMedicosRoute
-  '/dashboard/restaurar': typeof DashboardRestaurarRoute
-  '/dashboard/roles': typeof DashboardRolesRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/citas/agendar': typeof DashboardCitasAgendarRoute
-  '/dashboard/citas/cancelar': typeof DashboardCitasCancelarRoute
-  '/dashboard/citas/modificar': typeof DashboardCitasModificarRoute
-  '/dashboard/opciones/actualizar-datos': typeof DashboardOpcionesActualizarDatosRoute
-  '/dashboard/opciones/cambiar-password': typeof DashboardOpcionesCambiarPasswordRoute
-  '/dashboard/reportes/ingresos': typeof DashboardReportesIngresosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/dashboard'
-    | '/login'
-    | '/dashboard/asistentes'
-    | '/dashboard/calendario'
-    | '/dashboard/medicos'
-    | '/dashboard/restaurar'
-    | '/dashboard/roles'
-    | '/dashboard/'
-    | '/dashboard/citas/agendar'
-    | '/dashboard/citas/cancelar'
-    | '/dashboard/citas/modificar'
-    | '/dashboard/opciones/actualizar-datos'
-    | '/dashboard/opciones/cambiar-password'
-    | '/dashboard/reportes/ingresos'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/login'
-    | '/dashboard/asistentes'
-    | '/dashboard/calendario'
-    | '/dashboard/medicos'
-    | '/dashboard/restaurar'
-    | '/dashboard/roles'
-    | '/dashboard'
-    | '/dashboard/citas/agendar'
-    | '/dashboard/citas/cancelar'
-    | '/dashboard/citas/modificar'
-    | '/dashboard/opciones/actualizar-datos'
-    | '/dashboard/opciones/cambiar-password'
-    | '/dashboard/reportes/ingresos'
-  id:
-    | '__root__'
-    | '/'
-    | '/dashboard'
-    | '/login'
-    | '/dashboard/asistentes'
-    | '/dashboard/calendario'
-    | '/dashboard/medicos'
-    | '/dashboard/restaurar'
-    | '/dashboard/roles'
-    | '/dashboard/'
-    | '/dashboard/citas/agendar'
-    | '/dashboard/citas/cancelar'
-    | '/dashboard/citas/modificar'
-    | '/dashboard/opciones/actualizar-datos'
-    | '/dashboard/opciones/cambiar-password'
-    | '/dashboard/reportes/ingresos'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
-  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -237,131 +48,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/roles': {
-      id: '/dashboard/roles'
-      path: '/roles'
-      fullPath: '/dashboard/roles'
-      preLoaderRoute: typeof DashboardRolesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/restaurar': {
-      id: '/dashboard/restaurar'
-      path: '/restaurar'
-      fullPath: '/dashboard/restaurar'
-      preLoaderRoute: typeof DashboardRestaurarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/medicos': {
-      id: '/dashboard/medicos'
-      path: '/medicos'
-      fullPath: '/dashboard/medicos'
-      preLoaderRoute: typeof DashboardMedicosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/calendario': {
-      id: '/dashboard/calendario'
-      path: '/calendario'
-      fullPath: '/dashboard/calendario'
-      preLoaderRoute: typeof DashboardCalendarioRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/asistentes': {
-      id: '/dashboard/asistentes'
-      path: '/asistentes'
-      fullPath: '/dashboard/asistentes'
-      preLoaderRoute: typeof DashboardAsistentesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/reportes/ingresos': {
-      id: '/dashboard/reportes/ingresos'
-      path: '/reportes/ingresos'
-      fullPath: '/dashboard/reportes/ingresos'
-      preLoaderRoute: typeof DashboardReportesIngresosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/opciones/cambiar-password': {
-      id: '/dashboard/opciones/cambiar-password'
-      path: '/opciones/cambiar-password'
-      fullPath: '/dashboard/opciones/cambiar-password'
-      preLoaderRoute: typeof DashboardOpcionesCambiarPasswordRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/opciones/actualizar-datos': {
-      id: '/dashboard/opciones/actualizar-datos'
-      path: '/opciones/actualizar-datos'
-      fullPath: '/dashboard/opciones/actualizar-datos'
-      preLoaderRoute: typeof DashboardOpcionesActualizarDatosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/citas/modificar': {
-      id: '/dashboard/citas/modificar'
-      path: '/citas/modificar'
-      fullPath: '/dashboard/citas/modificar'
-      preLoaderRoute: typeof DashboardCitasModificarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/citas/cancelar': {
-      id: '/dashboard/citas/cancelar'
-      path: '/citas/cancelar'
-      fullPath: '/dashboard/citas/cancelar'
-      preLoaderRoute: typeof DashboardCitasCancelarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/citas/agendar': {
-      id: '/dashboard/citas/agendar'
-      path: '/citas/agendar'
-      fullPath: '/dashboard/citas/agendar'
-      preLoaderRoute: typeof DashboardCitasAgendarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
   }
 }
 
-interface DashboardRouteChildren {
-  DashboardAsistentesRoute: typeof DashboardAsistentesRoute
-  DashboardCalendarioRoute: typeof DashboardCalendarioRoute
-  DashboardMedicosRoute: typeof DashboardMedicosRoute
-  DashboardRestaurarRoute: typeof DashboardRestaurarRoute
-  DashboardRolesRoute: typeof DashboardRolesRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardCitasAgendarRoute: typeof DashboardCitasAgendarRoute
-  DashboardCitasCancelarRoute: typeof DashboardCitasCancelarRoute
-  DashboardCitasModificarRoute: typeof DashboardCitasModificarRoute
-  DashboardOpcionesActualizarDatosRoute: typeof DashboardOpcionesActualizarDatosRoute
-  DashboardOpcionesCambiarPasswordRoute: typeof DashboardOpcionesCambiarPasswordRoute
-  DashboardReportesIngresosRoute: typeof DashboardReportesIngresosRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAsistentesRoute: DashboardAsistentesRoute,
-  DashboardCalendarioRoute: DashboardCalendarioRoute,
-  DashboardMedicosRoute: DashboardMedicosRoute,
-  DashboardRestaurarRoute: DashboardRestaurarRoute,
-  DashboardRolesRoute: DashboardRolesRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
-  DashboardCitasAgendarRoute: DashboardCitasAgendarRoute,
-  DashboardCitasCancelarRoute: DashboardCitasCancelarRoute,
-  DashboardCitasModificarRoute: DashboardCitasModificarRoute,
-  DashboardOpcionesActualizarDatosRoute: DashboardOpcionesActualizarDatosRoute,
-  DashboardOpcionesCambiarPasswordRoute: DashboardOpcionesCambiarPasswordRoute,
-  DashboardReportesIngresosRoute: DashboardReportesIngresosRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRouteWithChildren,
-  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
