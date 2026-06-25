@@ -1,0 +1,1 @@
+<div class="card"><p>Catálogos (pendiente).</p></div>

@@ -1,0 +1,1 @@
+<div class="card"><p>Reporte de ingresos (pendiente).</p></div>
