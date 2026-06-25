@@ -1,0 +1,1 @@
+<div class="card"><p>CRUD de estado de citas (pendiente).</p></div>

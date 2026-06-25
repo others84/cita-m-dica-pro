@@ -1,0 +1,1 @@
+<div class="card"><p>CRUD de consultorios (pendiente).</p></div>

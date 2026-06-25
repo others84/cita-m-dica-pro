@@ -1,0 +1,1 @@
+<div class="card"><p>CRUD de clínicas (pendiente).</p></div>

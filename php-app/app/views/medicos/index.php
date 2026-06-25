@@ -1,0 +1,1 @@
+<div class="card"><p>CRUD de médicos (pendiente).</p></div>

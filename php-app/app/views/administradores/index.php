@@ -1,0 +1,1 @@
+<div class="card"><p>CRUD de administradores de clínica (pendiente).</p></div>

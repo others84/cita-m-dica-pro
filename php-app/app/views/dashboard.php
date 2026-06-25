@@ -1,0 +1,1 @@
+<div class="card"><p>Bienvenido al sistema.</p></div>

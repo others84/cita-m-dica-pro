@@ -1,0 +1,1 @@
+<div class="card"><p>Bloquear acceso a clínicas (pendiente).</p></div>
