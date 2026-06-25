@@ -27,6 +27,20 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .sidebar nav .group{margin-top:.75rem;color:var(--c3);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:0 .6rem}
 .sidebar nav .logout{margin-top:auto;background:var(--c4)}
 
+/* Grupos colapsables */
+.sidebar nav .menu-group{margin-top:.25rem}
+.sidebar nav .menu-group > summary{
+  list-style:none;cursor:pointer;padding:.5rem .6rem;border-radius:6px;
+  font-size:.9rem;color:#fff;display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar nav .menu-group > summary::-webkit-details-marker{display:none}
+.sidebar nav .menu-group > summary::after{
+  content:'▸';font-size:.7rem;color:var(--c3);transition:transform .15s ease;
+}
+.sidebar nav .menu-group[open] > summary::after{transform:rotate(90deg)}
+.sidebar nav .menu-group > summary:hover{background:var(--c4)}
+.sidebar nav .menu-group > a{padding-left:1.5rem;font-size:.85rem;display:block}
+
 .content{flex:1;display:flex;flex-direction:column;background:var(--c1)}
 .topbar{background:#fff;padding:1rem 1.5rem;border-bottom:1px solid var(--c2)}
 .topbar h1{margin:0;font-size:1.2rem;color:var(--c5)}
