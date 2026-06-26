@@ -1,5 +1,5 @@
 <?php
-if (empty($_SESSION['user'])) { header('Location: /auth/login'); exit; }
+if (empty($_SESSION['user'])) { header('Location: ' . url('auth/login')); exit; }
 $user = $_SESSION['user'];
 $rol  = $user['rol'];
 ?>
@@ -9,7 +9,7 @@ $rol  = $user['rol'];
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= htmlspecialchars($title ?? 'Citas Médicas') ?></title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body>
 <div class="app">
@@ -20,52 +20,52 @@ $rol  = $user['rol'];
       <small><?= htmlspecialchars($rol) ?></small>
     </div>
     <nav>
-      <a href="/dashboard">Inicio</a>
+      <a href="<?= url('dashboard') ?>">Inicio</a>
 
       <?php if (in_array($rol, ['asistente','medico','administrador','admin_sistema'], true)): ?>
-        <a href="/citas">CRUD Citas</a>
-        <a href="/calendario">Calendario</a>
-        <a href="/pacientes">CRUD Pacientes</a>
+        <a href="<?= url('citas') ?>">CRUD Citas</a>
+        <a href="<?= url('calendario') ?>">Calendario</a>
+        <a href="<?= url('pacientes') ?>">CRUD Pacientes</a>
         <details class="menu-group">
           <summary>Opciones</summary>
-          <a href="/opciones/cambiarPassword">Cambiar contraseña</a>
-          <a href="/opciones/actualizarDatos">Actualizar datos</a>
+          <a href="<?= url('opciones/cambiarPassword') ?>">Cambiar contraseña</a>
+          <a href="<?= url('opciones/actualizarDatos') ?>">Actualizar datos</a>
         </details>
       <?php endif; ?>
 
       <?php if (in_array($rol, ['medico','administrador','admin_sistema'], true)): ?>
-        <a href="/asistentes">CRUD Asistentes</a>
+        <a href="<?= url('asistentes') ?>">CRUD Asistentes</a>
         <details class="menu-group">
           <summary>Reportes</summary>
-          <a href="/reportes/ingresos">Ingresos</a>
+          <a href="<?= url('reportes/ingresos') ?>">Ingresos</a>
         </details>
       <?php endif; ?>
 
       <?php if (in_array($rol, ['administrador','admin_sistema'], true)): ?>
-        <a href="/medicos">CRUD Médicos</a>
-        <a href="/especialidades">CRUD Especialidades</a>
-        <a href="/consultorios">CRUD Consultorios</a>
+        <a href="<?= url('medicos') ?>">CRUD Médicos</a>
+        <a href="<?= url('especialidades') ?>">CRUD Especialidades</a>
+        <a href="<?= url('consultorios') ?>">CRUD Consultorios</a>
         <details class="menu-group">
           <summary>Catálogos</summary>
-          <a href="/catalogos/paises">Países</a>
-          <a href="/catalogos/estados">Estados</a>
-          <a href="/catalogos/generos">Géneros</a>
-          <a href="/catalogos/usuarios">Usuarios de clínica</a>
-          <a href="/catalogos/estadosCita">Estado de citas</a>
-          <a href="/catalogos/respaldo">Respaldo de BD</a>
+          <a href="<?= url('catalogos/paises') ?>">Países</a>
+          <a href="<?= url('catalogos/estados') ?>">Estados</a>
+          <a href="<?= url('catalogos/generos') ?>">Géneros</a>
+          <a href="<?= url('catalogos/usuarios') ?>">Usuarios de clínica</a>
+          <a href="<?= url('catalogos/estadosCita') ?>">Estado de citas</a>
+          <a href="<?= url('catalogos/respaldo') ?>">Respaldo de BD</a>
         </details>
       <?php endif; ?>
 
       <?php if ($rol === 'admin_sistema'): ?>
         <details class="menu-group">
           <summary>Sistema</summary>
-          <a href="/clinicas">CRUD Clínicas</a>
-          <a href="/administradores">CRUD Administradores</a>
-          <a href="/sistema/bloquearClinicas">Bloquear clínicas</a>
+          <a href="<?= url('clinicas') ?>">CRUD Clínicas</a>
+          <a href="<?= url('administradores') ?>">CRUD Administradores</a>
+          <a href="<?= url('sistema/bloquearClinicas') ?>">Bloquear clínicas</a>
         </details>
       <?php endif; ?>
 
-      <a class="logout" href="/auth/logout">Cerrar sesión</a>
+      <a class="logout" href="<?= url('auth/logout') ?>">Cerrar sesión</a>
     </nav>
   </aside>
   <main class="content">

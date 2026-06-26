@@ -1,14 +1,19 @@
-<link rel="stylesheet" href="/assets/vendor/event-calendar/event-calendar.min.css">
+<link rel="stylesheet" href="<?= asset('vendor/event-calendar/event-calendar.min.css') ?>">
 
 <div class="card calendar-card">
   <div id="ec"></div>
 </div>
 
-<script src="/assets/vendor/event-calendar/event-calendar.min.js"></script>
+<script src="<?= asset('vendor/event-calendar/event-calendar.min.js') ?>"></script>
 <script>
   (function () {
     const target = document.getElementById('ec');
-    if (!target || typeof EventCalendar === 'undefined') {
+    if (!target) {
+      return;
+    }
+
+    if (typeof EventCalendar === 'undefined') {
+      target.innerHTML = '<div class="calendar-error">No se pudo cargar la librería del calendario.</div>';
       return;
     }
 
@@ -22,6 +27,11 @@
       ]
     };
 
-    new EventCalendar(target, options);
+    try {
+      new EventCalendar(target, options);
+    } catch (error) {
+      target.innerHTML = '<div class="calendar-error">No se pudo inicializar el calendario.</div>';
+      console.error(error);
+    }
   })();
 </script>
