@@ -28,7 +28,11 @@
     };
 
     try {
-      new EventCalendar(target, options);
+      if (typeof EventCalendar.create === 'function') {
+        EventCalendar.create(target, options);
+      } else {
+        new EventCalendar({ target: target, props: options });
+      }
     } catch (error) {
       target.innerHTML = '<div class="calendar-error">No se pudo inicializar el calendario.</div>';
       console.error(error);
