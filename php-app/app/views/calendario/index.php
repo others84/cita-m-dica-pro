@@ -1,75 +1,81 @@
-<div class="card">
-  <div id="ec" style="height:700px"></div>
+<link rel="stylesheet" href="<?= asset('vendor/event-calendar/event-calendar.min.css') ?>?v=372">
+
+<div class="card calendar-card">
+  <div id="ec" class="calendar-box">
+    <div class="calendar-loading">Cargando calendario...</div>
+  </div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@event-calendar/build@5.7.1/dist/event-calendar.min.css">
+<script src="<?= asset('vendor/event-calendar/event-calendar.min.js') ?>?v=372"></script>
 <script>
   (function () {
-    const ecEl = document.getElementById('ec');
-    const assetBase = <?= json_encode(asset('')) ?>;
-    const scriptUrls = [
-      assetBase + 'vendor/event-calendar/event-calendar.min.js',
-      'https://unpkg.com/@event-calendar/build@5.7.1/dist/event-calendar.min.js',
-      'https://cdn.jsdelivr.net/npm/@event-calendar/build@5.7.1/dist/event-calendar.min.js'
-    ];
-
-    function loadScript(src) {
-      return new Promise(function (resolve, reject) {
-        const url = new URL(src, window.location.href).href;
-        const existing = Array.from(document.scripts).find(function (s) { return s.src === url; });
-        if (existing) {
-          existing.addEventListener('load', resolve, { once: true });
-          existing.addEventListener('error', reject, { once: true });
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = function () { reject(new Error('No se pudo cargar ' + src)); };
-        document.head.appendChild(script);
-      });
+    function showCalendarError(message) {
+      const ecEl = document.getElementById('ec');
+      if (!ecEl) return;
+      ecEl.innerHTML = '<div class="calendar-error">' + message + '</div>';
     }
 
-    async function getEventCalendar() {
-      if (window.EventCalendar) return window.EventCalendar;
-      for (const url of scriptUrls) {
-        try {
-          await loadScript(url);
-          if (window.EventCalendar) return window.EventCalendar;
-        } catch (e) { console.warn(e.message); }
-      }
-      return null;
-    }
+    function initCalendar() {
+      const ecEl = document.getElementById('ec');
+      if (!ecEl) return;
 
-    async function initCalendar() {
-      const EC = await getEventCalendar();
-      if (!EC) {
-        ecEl.innerHTML = '<p>No se pudo cargar el calendario.</p>';
+      if (typeof EventCalendar !== 'function') {
+        showCalendarError('No se cargó la librería EventCalendar. Revisa que exista public/assets/vendor/event-calendar/event-calendar.min.js');
         return;
       }
-      const hoy = new Date(); hoy.setHours(9,0,0,0);
-      const m = (d,h)=>{const x=new Date(hoy);x.setDate(x.getDate()+d);x.setHours(h);return x;};
 
-      const options = {
-        view: 'timeGridWeek',
-        headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
-        locale: 'es',
-        firstDay: 1,
-        buttonText: { today:'Hoy', dayGridMonth:'Mes', timeGridWeek:'Semana', timeGridDay:'Día' },
-        events: [
-          { id:'1', title:'Consulta — Juan Pérez',  start:m(0,9),  end:m(0,10) },
-          { id:'2', title:'Revisión — María López', start:m(1,11), end:m(1,12) },
-          { id:'3', title:'Control — Pedro Ruiz',   start:m(2,16), end:m(2,17) },
-        ],
-      };
+      const baseDate = new Date();
+      baseDate.setHours(9, 0, 0, 0);
 
-      if (typeof EC.create === 'function') {
-        EC.create(ecEl, options);
-        return;
+      function appointment(daysFromToday, startHour, durationHours) {
+        const start = new Date(baseDate);
+        start.setDate(start.getDate() + daysFromToday);
+        start.setHours(startHour, 0, 0, 0);
+
+        const end = new Date(start);
+        end.setHours(start.getHours() + durationHours);
+
+        return { start: start, end: end };
       }
-      new EC(ecEl, options);
+
+      const cita1 = appointment(0, 9, 1);
+      const cita2 = appointment(1, 11, 1);
+      const cita3 = appointment(2, 16, 1);
+
+      try {
+        new EventCalendar(ecEl, {
+          view: 'timeGridWeek',
+          locale: 'es',
+          firstDay: 1,
+          height: '700px',
+          slotMinTime: '07:00:00',
+          slotMaxTime: '21:00:00',
+          headerToolbar: {
+            start: 'prev,next today',
+            center: 'title',
+            end: 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          buttonText: {
+            today: 'Hoy',
+            dayGridMonth: 'Mes',
+            timeGridWeek: 'Semana',
+            timeGridDay: 'Día'
+          },
+          events: [
+            { id: '1', title: 'Consulta — Juan Pérez', start: cita1.start, end: cita1.end },
+            { id: '2', title: 'Revisión — María López', start: cita2.start, end: cita2.end },
+            { id: '3', title: 'Control — Pedro Ruiz', start: cita3.start, end: cita3.end }
+          ]
+        });
+      } catch (error) {
+        showCalendarError('No se pudo inicializar el calendario: ' + error.message);
+      }
     }
 
-    initCalendar();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCalendar);
+    } else {
+      initCalendar();
+    }
   })();
 </script>
