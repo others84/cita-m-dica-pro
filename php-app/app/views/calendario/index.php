@@ -12,10 +12,18 @@
       return;
     }
 
+    function showCalendarError(message) {
+      target.innerHTML = '<div class="calendar-error">' + message + '</div>';
+    }
+
     if (typeof EventCalendar === 'undefined') {
-      target.innerHTML = '<div class="calendar-error">No se pudo cargar la librería del calendario.</div>';
+      showCalendarError('No se pudo cargar la librería del calendario.');
       return;
     }
+
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0);
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 30);
 
     const options = {
       view: 'timeGridWeek',
@@ -23,18 +31,20 @@
       height: 700,
       headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
       events: [
-        { title: 'Cita demo', start: new Date().toISOString().slice(0, 10) + ' 10:00', end: new Date().toISOString().slice(0, 10) + ' 10:30' }
+        { title: 'Cita demo', start: start, end: end }
       ]
     };
 
     try {
-      if (typeof EventCalendar.create === 'function') {
+      if (typeof EventCalendar === 'function') {
+        new EventCalendar(target, options);
+      } else if (typeof EventCalendar.create === 'function') {
         EventCalendar.create(target, options);
       } else {
-        new EventCalendar({ target: target, props: options });
+        showCalendarError('La versión del calendario no es compatible.');
       }
     } catch (error) {
-      target.innerHTML = '<div class="calendar-error">No se pudo inicializar el calendario.</div>';
+      showCalendarError('No se pudo inicializar el calendario.');
       console.error(error);
     }
   })();
