@@ -5,10 +5,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= htmlspecialchars($title) ?></title>
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body class="login-body">
-  <form class="login-card" method="post" action="/auth/login">
+  <form class="login-card" method="post" action="<?= url('auth/login') ?>">
     <h1>Citas Médicas</h1>
     <p class="subtitle">Inicia sesión</p>
     <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>

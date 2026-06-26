@@ -13,7 +13,7 @@ class AuthController extends Controller {
             $user = Auth::attempt($usuario, $password);
             if ($user) {
                 $_SESSION['user'] = $user;
-                $destino = $user['rol'] === 'admin_sistema' ? '/administradores' : '/calendario';
+                $destino = $user['rol'] === 'admin_sistema' ? url('administradores') : url('calendario');
                 header('Location: ' . $destino);
                 exit;
             }
@@ -24,7 +24,7 @@ class AuthController extends Controller {
 
     public function logout(): void {
         session_destroy();
-        header('Location: /auth/login');
+        header('Location: ' . url('auth/login'));
         exit;
     }
 }
