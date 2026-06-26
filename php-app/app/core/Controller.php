@@ -14,7 +14,7 @@ class Controller {
 
     protected function requireLogin(array $roles = []): void {
         if (empty($_SESSION['user'])) {
-            header('Location: /auth/login');
+            header('Location: ' . url('auth/login'));
             exit;
         }
         if (!empty($roles) && !in_array($_SESSION['user']['rol'], $roles, true)) {
