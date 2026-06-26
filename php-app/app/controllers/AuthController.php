@@ -13,7 +13,8 @@ class AuthController extends Controller {
             $user = Auth::attempt($usuario, $password);
             if ($user) {
                 $_SESSION['user'] = $user;
-                header('Location: /dashboard');
+                $destino = $user['rol'] === 'admin_sistema' ? '/administradores' : '/calendario';
+                header('Location: ' . $destino);
                 exit;
             }
             $error = 'Usuario o contraseña incorrectos';
