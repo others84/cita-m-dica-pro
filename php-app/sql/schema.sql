@@ -414,7 +414,7 @@ BEGIN
         VALUES(@nombre, @descripcion, 1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaRol', 'ROLES',
-             CONCAT('Alta rol ', @nombre, ' id=', @id), @id_usuario;
+             ('Alta rol ' + CONVERT(NVARCHAR(50), @nombre) + ' id=' + CONVERT(NVARCHAR(50), @id)), @id_usuario;
         COMMIT;
         SELECT @id AS id_roles;
     END TRY
@@ -435,7 +435,7 @@ BEGIN
                id_usuario_modificacion = @id_usuario, fecha_modificacion = GETDATE()
          WHERE id_roles = @id_roles;
         EXEC citas.spInsertaLog @modulo, 'spCambioRol', 'ROLES',
-             CONCAT('Cambio rol id=', @id_roles), @id_usuario;
+             ('Cambio rol id=' + CONVERT(NVARCHAR(50), @id_roles)), @id_usuario;
         COMMIT;
     END TRY
     BEGIN CATCH ROLLBACK; THROW; END CATCH
@@ -449,7 +449,7 @@ BEGIN
     SET NOCOUNT ON;
     UPDATE citas.ROLES SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_roles = @id_roles;
-    EXEC citas.spInsertaLog @modulo, 'spActivaRol', 'ROLES', CONCAT('Activa rol id=', @id_roles), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaRol', 'ROLES', ('Activa rol id=' + CONVERT(NVARCHAR(50), @id_roles)), @id_usuario;
 END
 GO
 
@@ -460,7 +460,7 @@ BEGIN
     SET NOCOUNT ON;
     UPDATE citas.ROLES SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_roles = @id_roles;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaRol', 'ROLES', CONCAT('Desactiva rol id=', @id_roles), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaRol', 'ROLES', ('Desactiva rol id=' + CONVERT(NVARCHAR(50), @id_roles)), @id_usuario;
 END
 GO
 
@@ -507,7 +507,7 @@ BEGIN
                @nombre_completo, @email, 1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaUsuario', 'USUARIOS',
-             CONCAT('Alta usuario ', @usuario, ' id=', @id), @id_usuario;
+             ('Alta usuario ' + CONVERT(NVARCHAR(50), @usuario) + ' id=' + CONVERT(NVARCHAR(50), @id)), @id_usuario;
         COMMIT;
         SELECT @id AS id_usuarios;
     END TRY
@@ -530,7 +530,7 @@ BEGIN
                id_usuario_modificacion = @id_usuario, fecha_modificacion = GETDATE()
          WHERE id_usuarios = @id_usuarios;
         EXEC citas.spInsertaLog @modulo, 'spCambioUsuario', 'USUARIOS',
-             CONCAT('Cambio usuario id=', @id_usuarios), @id_usuario;
+             ('Cambio usuario id=' + CONVERT(NVARCHAR(50), @id_usuarios)), @id_usuario;
         COMMIT;
     END TRY
     BEGIN CATCH ROLLBACK; THROW; END CATCH
@@ -550,7 +550,7 @@ BEGIN
            id_usuario_modificacion = @id_usuario, fecha_modificacion = GETDATE()
      WHERE id_usuarios = @id_usuarios;
     EXEC citas.spInsertaLog @modulo, 'spCambioPasswordUsuario', 'USUARIOS',
-         CONCAT('Cambio password usuario id=', @id_usuarios), @id_usuario;
+         ('Cambio password usuario id=' + CONVERT(NVARCHAR(50), @id_usuarios)), @id_usuario;
 END
 GO
 
@@ -561,7 +561,7 @@ BEGIN
     SET NOCOUNT ON;
     UPDATE citas.USUARIOS SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_usuarios = @id_usuarios;
-    EXEC citas.spInsertaLog @modulo, 'spActivaUsuario', 'USUARIOS', CONCAT('Activa usuario id=', @id_usuarios), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaUsuario', 'USUARIOS', ('Activa usuario id=' + CONVERT(NVARCHAR(50), @id_usuarios)), @id_usuario;
 END
 GO
 
@@ -572,7 +572,7 @@ BEGIN
     SET NOCOUNT ON;
     UPDATE citas.USUARIOS SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_usuarios = @id_usuarios;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaUsuario', 'USUARIOS', CONCAT('Desactiva usuario id=', @id_usuarios), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaUsuario', 'USUARIOS', ('Desactiva usuario id=' + CONVERT(NVARCHAR(50), @id_usuarios)), @id_usuario;
 END
 GO
 
@@ -650,7 +650,7 @@ BEGIN
         VALUES(@nombre, @direccion, @email, @telefono, @municipio, @id_catalogo_estados, 1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaClinica', 'CLINICA',
-             CONCAT('Alta clinica ', @nombre, ' id=', @id), @id_usuario;
+             ('Alta clinica ' + CONVERT(NVARCHAR(50), @nombre) + ' id=' + CONVERT(NVARCHAR(50), @id)), @id_usuario;
         COMMIT;
         SELECT @id AS id_clinica;
     END TRY
@@ -671,20 +671,20 @@ BEGIN
            municipio=@municipio, id_catalogo_estados=@id_catalogo_estados,
            id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_clinica = @id_clinica;
-    EXEC citas.spInsertaLog @modulo, 'spCambioClinica', 'CLINICA', CONCAT('Cambio clinica id=', @id_clinica), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioClinica', 'CLINICA', ('Cambio clinica id=' + CONVERT(NVARCHAR(50), @id_clinica)), @id_usuario;
 END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spActivaClinica @modulo VARCHAR(30), @id_usuario TINYINT, @id_clinica INT
 AS BEGIN
     UPDATE citas.CLINICA SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_clinica=@id_clinica;
-    EXEC citas.spInsertaLog @modulo, 'spActivaClinica', 'CLINICA', CONCAT('Activa clinica id=', @id_clinica), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaClinica', 'CLINICA', ('Activa clinica id=' + CONVERT(NVARCHAR(50), @id_clinica)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spDesactivaClinica @modulo VARCHAR(30), @id_usuario TINYINT, @id_clinica INT
 AS BEGIN
     UPDATE citas.CLINICA SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_clinica=@id_clinica;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaClinica', 'CLINICA', CONCAT('Desactiva clinica id=', @id_clinica), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaClinica', 'CLINICA', ('Desactiva clinica id=' + CONVERT(NVARCHAR(50), @id_clinica)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaClinica @modulo VARCHAR(30), @id_usuario TINYINT, @id_clinica INT
@@ -718,7 +718,7 @@ AS BEGIN
         VALUES(@id_clinica, @nombre, 1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaConsultorio', 'CONSULTORIO',
-             CONCAT('Alta consultorio ', @nombre, ' clinica=', @id_clinica, ' id=', @id), @id_usuario;
+             ('Alta consultorio ' + CONVERT(NVARCHAR(50), @nombre) + ' clinica=' + CONVERT(NVARCHAR(50), @id_clinica) + ' id=' + CONVERT(NVARCHAR(50), @id)), @id_usuario;
         COMMIT; SELECT @id AS id_consultorio;
     END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH
 END GO
@@ -730,19 +730,19 @@ AS BEGIN
     UPDATE citas.CONSULTORIO SET id_clinica=@id_clinica, nombre=@nombre,
         id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_consultorio=@id_consultorio;
-    EXEC citas.spInsertaLog @modulo, 'spCambioConsultorio', 'CONSULTORIO', CONCAT('Cambio consultorio id=', @id_consultorio), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioConsultorio', 'CONSULTORIO', ('Cambio consultorio id=' + CONVERT(NVARCHAR(50), @id_consultorio)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spActivaConsultorio @modulo VARCHAR(30), @id_usuario TINYINT, @id_consultorio INT
 AS BEGIN
     UPDATE citas.CONSULTORIO SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_consultorio=@id_consultorio;
-    EXEC citas.spInsertaLog @modulo, 'spActivaConsultorio', 'CONSULTORIO', CONCAT('Activa consultorio id=', @id_consultorio), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaConsultorio', 'CONSULTORIO', ('Activa consultorio id=' + CONVERT(NVARCHAR(50), @id_consultorio)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spDesactivaConsultorio @modulo VARCHAR(30), @id_usuario TINYINT, @id_consultorio INT
 AS BEGIN
     UPDATE citas.CONSULTORIO SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_consultorio=@id_consultorio;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaConsultorio', 'CONSULTORIO', CONCAT('Desactiva consultorio id=', @id_consultorio), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaConsultorio', 'CONSULTORIO', ('Desactiva consultorio id=' + CONVERT(NVARCHAR(50), @id_consultorio)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaConsultorio @modulo VARCHAR(30), @id_usuario TINYINT, @id_consultorio INT
@@ -772,7 +772,7 @@ AS BEGIN
         INSERT INTO citas.MEDICO(nombre_completo, activo, id_usuario_creacion, fecha_creacion)
         VALUES(@nombre_completo, 1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
-        EXEC citas.spInsertaLog @modulo, 'spAltaMedico', 'MEDICO', CONCAT('Alta medico ', @nombre_completo, ' id=', @id), @id_usuario;
+        EXEC citas.spInsertaLog @modulo, 'spAltaMedico', 'MEDICO', ('Alta medico ' + CONVERT(NVARCHAR(50), @nombre_completo) + ' id=' + CONVERT(NVARCHAR(50), @id)), @id_usuario;
         COMMIT; SELECT @id AS id_medico;
     END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH
 END GO
@@ -783,19 +783,19 @@ AS BEGIN
     UPDATE citas.MEDICO SET nombre_completo=@nombre_completo,
         id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_medico=@id_medico;
-    EXEC citas.spInsertaLog @modulo, 'spCambioMedico', 'MEDICO', CONCAT('Cambio medico id=', @id_medico), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioMedico', 'MEDICO', ('Cambio medico id=' + CONVERT(NVARCHAR(50), @id_medico)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spActivaMedico @modulo VARCHAR(30), @id_usuario TINYINT, @id_medico INT
 AS BEGIN
     UPDATE citas.MEDICO SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_medico=@id_medico;
-    EXEC citas.spInsertaLog @modulo, 'spActivaMedico', 'MEDICO', CONCAT('Activa medico id=', @id_medico), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaMedico', 'MEDICO', ('Activa medico id=' + CONVERT(NVARCHAR(50), @id_medico)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spDesactivaMedico @modulo VARCHAR(30), @id_usuario TINYINT, @id_medico INT
 AS BEGIN
     UPDATE citas.MEDICO SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_medico=@id_medico;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaMedico', 'MEDICO', CONCAT('Desactiva medico id=', @id_medico), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaMedico', 'MEDICO', ('Desactiva medico id=' + CONVERT(NVARCHAR(50), @id_medico)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaMedico @modulo VARCHAR(30), @id_usuario TINYINT, @id_medico INT
@@ -817,7 +817,7 @@ AS BEGIN
     INSERT INTO citas.MEDICO_ESPECIALIDAD(id_medico, id_catalogo_especialidad, id_usuario_creacion, fecha_creacion)
     VALUES(@id_medico, @id_catalogo_especialidad, @id_usuario, GETDATE());
     EXEC citas.spInsertaLog @modulo, 'spAltaMedicoEspecialidad', 'MEDICO_ESPECIALIDAD',
-         CONCAT('Asocia medico=', @id_medico, ' especialidad=', @id_catalogo_especialidad), @id_usuario;
+         ('Asocia medico=' + CONVERT(NVARCHAR(50), @id_medico) + ' especialidad=' + CONVERT(NVARCHAR(50), @id_catalogo_especialidad)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaMedicoEspecialidad
@@ -825,7 +825,7 @@ CREATE OR ALTER PROCEDURE citas.spBajaMedicoEspecialidad
 AS BEGIN
     DELETE FROM citas.MEDICO_ESPECIALIDAD WHERE id_medico_especialidad = @id_medico_especialidad;
     EXEC citas.spInsertaLog @modulo, 'spBajaMedicoEspecialidad', 'MEDICO_ESPECIALIDAD',
-         CONCAT('Baja id=', @id_medico_especialidad), @id_usuario;
+         ('Baja id=' + CONVERT(NVARCHAR(50), @id_medico_especialidad)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidadesPorMedico @id_medico INT
@@ -842,7 +842,7 @@ AS BEGIN
     INSERT INTO citas.MEDICO_CONSULTORIO(id_medico, id_consultorio, id_usuario_creacion, fecha_creacion)
     VALUES(@id_medico, @id_consultorio, @id_usuario, GETDATE());
     EXEC citas.spInsertaLog @modulo, 'spAltaMedicoConsultorio', 'MEDICO_CONSULTORIO',
-         CONCAT('Asocia medico=', @id_medico, ' consultorio=', @id_consultorio), @id_usuario;
+         ('Asocia medico=' + CONVERT(NVARCHAR(50), @id_medico) + ' consultorio=' + CONVERT(NVARCHAR(50), @id_consultorio)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaMedicoConsultorio
@@ -850,7 +850,7 @@ CREATE OR ALTER PROCEDURE citas.spBajaMedicoConsultorio
 AS BEGIN
     DELETE FROM citas.MEDICO_CONSULTORIO WHERE id_medico_consultorio = @id_medico_consultorio;
     EXEC citas.spInsertaLog @modulo, 'spBajaMedicoConsultorio', 'MEDICO_CONSULTORIO',
-         CONCAT('Baja id=', @id_medico_consultorio), @id_usuario;
+         ('Baja id=' + CONVERT(NVARCHAR(50), @id_medico_consultorio)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spRegresaConsultoriosPorMedico @id_medico INT
@@ -881,7 +881,7 @@ AS BEGIN
                1, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaPaciente', 'PACIENTE',
-             CONCAT('Alta paciente id=', @id, ' clinica=', @id_clinica), @id_usuario;
+             ('Alta paciente id=' + CONVERT(NVARCHAR(50), @id) + ' clinica=' + CONVERT(NVARCHAR(50), @id_clinica)), @id_usuario;
         COMMIT; SELECT @id AS id_paciente;
     END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH
 END GO
@@ -899,19 +899,19 @@ AS BEGIN
            id_catalogo_genero=@id_catalogo_genero, municipio=@municipio, id_catalogo_estados=@id_catalogo_estados,
            id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_paciente=@id_paciente;
-    EXEC citas.spInsertaLog @modulo, 'spCambioPaciente', 'PACIENTE', CONCAT('Cambio paciente id=', @id_paciente), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioPaciente', 'PACIENTE', ('Cambio paciente id=' + CONVERT(NVARCHAR(50), @id_paciente)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spActivaPaciente @modulo VARCHAR(30), @id_usuario TINYINT, @id_paciente INT
 AS BEGIN
     UPDATE citas.PACIENTE SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_paciente=@id_paciente;
-    EXEC citas.spInsertaLog @modulo, 'spActivaPaciente', 'PACIENTE', CONCAT('Activa paciente id=', @id_paciente), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spActivaPaciente', 'PACIENTE', ('Activa paciente id=' + CONVERT(NVARCHAR(50), @id_paciente)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spDesactivaPaciente @modulo VARCHAR(30), @id_usuario TINYINT, @id_paciente INT
 AS BEGIN
     UPDATE citas.PACIENTE SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_paciente=@id_paciente;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaPaciente', 'PACIENTE', CONCAT('Desactiva paciente id=', @id_paciente), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaPaciente', 'PACIENTE', ('Desactiva paciente id=' + CONVERT(NVARCHAR(50), @id_paciente)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaPaciente @modulo VARCHAR(30), @id_usuario TINYINT, @id_paciente INT
@@ -968,8 +968,7 @@ AS BEGIN
                @email, @cel, @precio, @id_usuario, GETDATE());
         DECLARE @id INT = SCOPE_IDENTITY();
         EXEC citas.spInsertaLog @modulo, 'spAltaCita', 'CITA',
-             CONCAT('Alta cita id=', @id, ' paciente=', @id_paciente, ' medico=', @id_medico,
-                    ' fecha=', CONVERT(VARCHAR(10), @fecha_cita, 120)), @id_usuario;
+             ('Alta cita id=' + CONVERT(NVARCHAR(50), @id) + ' paciente=' + CONVERT(NVARCHAR(50), @id_paciente) + ' medico=' + CONVERT(NVARCHAR(50), @id_medico) + ' fecha=' + CONVERT(NVARCHAR(50), CONVERT(VARCHAR(10), @fecha_cita, 120))), @id_usuario;
         COMMIT; SELECT @id AS id_cita;
     END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH
 END GO
@@ -1005,7 +1004,7 @@ AS BEGIN
                email_notif=@email, celular_notif=@cel, precio=@precio,
                id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
          WHERE id_cita=@id_cita;
-        EXEC citas.spInsertaLog @modulo, 'spCambioCita', 'CITA', CONCAT('Cambio cita id=', @id_cita), @id_usuario;
+        EXEC citas.spInsertaLog @modulo, 'spCambioCita', 'CITA', ('Cambio cita id=' + CONVERT(NVARCHAR(50), @id_cita)), @id_usuario;
         COMMIT;
     END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH
 END GO
@@ -1017,7 +1016,7 @@ AS BEGIN
     UPDATE citas.CITA SET id_catalogo_estado_citas=@idEstado,
         id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
      WHERE id_cita=@id_cita;
-    EXEC citas.spInsertaLog @modulo, 'spCancelaCita', 'CITA', CONCAT('Cancela cita id=', @id_cita), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCancelaCita', 'CITA', ('Cancela cita id=' + CONVERT(NVARCHAR(50), @id_cita)), @id_usuario;
 END GO
 
 CREATE OR ALTER PROCEDURE citas.spBajaCita @modulo VARCHAR(30), @id_usuario TINYINT, @id_cita INT
@@ -1029,7 +1028,7 @@ CREATE OR ALTER PROCEDURE citas.spRegresaCitasPorMedicoFecha
 AS BEGIN
     SET NOCOUNT ON;
     SELECT c.id_cita, c.fecha_cita, c.hora_inicio, c.hora_fin, c.precio,
-           p.id_paciente, CONCAT(p.apellido_paterno, ' ', ISNULL(p.apellido_materno,''), ' ', p.nombre) AS paciente,
+           p.id_paciente, (CONVERT(NVARCHAR(50), p.apellido_paterno) + ' ' + CONVERT(NVARCHAR(50), ISNULL(p.apellido_materno,'')) + ' ' + CONVERT(NVARCHAR(50), p.nombre)) AS paciente,
            e.nombre AS especialidad, ec.nombre AS estado,
            co.nombre AS consultorio, cl.nombre AS clinica
       FROM citas.CITA c
@@ -1048,7 +1047,7 @@ CREATE OR ALTER PROCEDURE citas.spRegresaCitasPorClinicaFecha
 AS BEGIN
     SET NOCOUNT ON;
     SELECT c.id_cita, c.fecha_cita, c.hora_inicio, c.hora_fin, c.precio,
-           p.id_paciente, CONCAT(p.apellido_paterno, ' ', ISNULL(p.apellido_materno,''), ' ', p.nombre) AS paciente,
+           p.id_paciente, (CONVERT(NVARCHAR(50), p.apellido_paterno) + ' ' + CONVERT(NVARCHAR(50), ISNULL(p.apellido_materno,'')) + ' ' + CONVERT(NVARCHAR(50), p.nombre)) AS paciente,
            m.id_medico, m.nombre_completo AS medico,
            e.nombre AS especialidad, ec.nombre AS estado, co.nombre AS consultorio
       FROM citas.CITA c
@@ -1104,20 +1103,20 @@ AS BEGIN
     INSERT INTO citas.CATALOGO_PAIS(nombre, activo, id_usuario_creacion, fecha_creacion)
     VALUES(@nombre, 1, @id_usuario, GETDATE());
     DECLARE @id INT = SCOPE_IDENTITY();
-    EXEC citas.spInsertaLog @modulo, 'spAltaPais', 'CATALOGO_PAIS', CONCAT('Alta pais ', @nombre), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spAltaPais', 'CATALOGO_PAIS', ('Alta pais ' + CONVERT(NVARCHAR(50), @nombre)), @id_usuario;
     SELECT @id AS id_catalogo_pais;
 END GO
 CREATE OR ALTER PROCEDURE citas.spCambioPais @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_pais INT, @nombre VARCHAR(80)
 AS BEGIN
     UPDATE citas.CATALOGO_PAIS SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_pais=@id_catalogo_pais;
-    EXEC citas.spInsertaLog @modulo, 'spCambioPais', 'CATALOGO_PAIS', CONCAT('Cambio pais id=', @id_catalogo_pais), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioPais', 'CATALOGO_PAIS', ('Cambio pais id=' + CONVERT(NVARCHAR(50), @id_catalogo_pais)), @id_usuario;
 END GO
 CREATE OR ALTER PROCEDURE citas.spActivaPais @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_pais INT
 AS BEGIN UPDATE citas.CATALOGO_PAIS SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_pais=@id_catalogo_pais;
-    EXEC citas.spInsertaLog @modulo, 'spActivaPais', 'CATALOGO_PAIS', CONCAT('Activa pais id=', @id_catalogo_pais), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spActivaPais', 'CATALOGO_PAIS', ('Activa pais id=' + CONVERT(NVARCHAR(50), @id_catalogo_pais)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spDesactivaPais @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_pais INT
 AS BEGIN UPDATE citas.CATALOGO_PAIS SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_pais=@id_catalogo_pais;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaPais', 'CATALOGO_PAIS', CONCAT('Desactiva pais id=', @id_catalogo_pais), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaPais', 'CATALOGO_PAIS', ('Desactiva pais id=' + CONVERT(NVARCHAR(50), @id_catalogo_pais)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spBajaPais @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_pais INT
 AS BEGIN EXEC citas.spDesactivaPais @modulo, @id_usuario, @id_catalogo_pais; END GO
 CREATE OR ALTER PROCEDURE citas.spRegresaPaises AS BEGIN SELECT * FROM citas.CATALOGO_PAIS ORDER BY nombre; END GO
@@ -1128,20 +1127,20 @@ AS BEGIN
     INSERT INTO citas.CATALOGO_ESTADOS(nombre, id_catalogo_pais, activo, id_usuario_creacion, fecha_creacion)
     VALUES(@nombre, @id_catalogo_pais, 1, @id_usuario, GETDATE());
     DECLARE @id INT = SCOPE_IDENTITY();
-    EXEC citas.spInsertaLog @modulo, 'spAltaEstado', 'CATALOGO_ESTADOS', CONCAT('Alta estado ', @nombre), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spAltaEstado', 'CATALOGO_ESTADOS', ('Alta estado ' + CONVERT(NVARCHAR(50), @nombre)), @id_usuario;
     SELECT @id AS id_catalogo_estados;
 END GO
 CREATE OR ALTER PROCEDURE citas.spCambioEstado @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estados INT, @nombre VARCHAR(80), @id_catalogo_pais INT
 AS BEGIN
     UPDATE citas.CATALOGO_ESTADOS SET nombre=@nombre, id_catalogo_pais=@id_catalogo_pais, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estados=@id_catalogo_estados;
-    EXEC citas.spInsertaLog @modulo, 'spCambioEstado', 'CATALOGO_ESTADOS', CONCAT('Cambio estado id=', @id_catalogo_estados), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioEstado', 'CATALOGO_ESTADOS', ('Cambio estado id=' + CONVERT(NVARCHAR(50), @id_catalogo_estados)), @id_usuario;
 END GO
 CREATE OR ALTER PROCEDURE citas.spActivaEstado @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estados INT
 AS BEGIN UPDATE citas.CATALOGO_ESTADOS SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estados=@id_catalogo_estados;
-    EXEC citas.spInsertaLog @modulo, 'spActivaEstado', 'CATALOGO_ESTADOS', CONCAT('Activa estado id=', @id_catalogo_estados), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spActivaEstado', 'CATALOGO_ESTADOS', ('Activa estado id=' + CONVERT(NVARCHAR(50), @id_catalogo_estados)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spDesactivaEstado @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estados INT
 AS BEGIN UPDATE citas.CATALOGO_ESTADOS SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estados=@id_catalogo_estados;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaEstado', 'CATALOGO_ESTADOS', CONCAT('Desactiva estado id=', @id_catalogo_estados), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaEstado', 'CATALOGO_ESTADOS', ('Desactiva estado id=' + CONVERT(NVARCHAR(50), @id_catalogo_estados)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spBajaEstado @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estados INT
 AS BEGIN EXEC citas.spDesactivaEstado @modulo, @id_usuario, @id_catalogo_estados; END GO
 CREATE OR ALTER PROCEDURE citas.spRegresaEstados @id_catalogo_pais INT = NULL
@@ -1158,20 +1157,20 @@ AS BEGIN
     INSERT INTO citas.CATALOGO_ESTADO_CITAS(nombre, activo, id_usuario_creacion, fecha_creacion)
     VALUES(@nombre, 1, @id_usuario, GETDATE());
     DECLARE @id INT = SCOPE_IDENTITY();
-    EXEC citas.spInsertaLog @modulo, 'spAltaEstadoCita', 'CATALOGO_ESTADO_CITAS', CONCAT('Alta estado cita ', @nombre), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spAltaEstadoCita', 'CATALOGO_ESTADO_CITAS', ('Alta estado cita ' + CONVERT(NVARCHAR(50), @nombre)), @id_usuario;
     SELECT @id AS id_catalogo_estado_citas;
 END GO
 CREATE OR ALTER PROCEDURE citas.spCambioEstadoCita @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estado_citas INT, @nombre VARCHAR(50)
 AS BEGIN
     UPDATE citas.CATALOGO_ESTADO_CITAS SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estado_citas=@id_catalogo_estado_citas;
-    EXEC citas.spInsertaLog @modulo, 'spCambioEstadoCita', 'CATALOGO_ESTADO_CITAS', CONCAT('Cambio estado cita id=', @id_catalogo_estado_citas), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spCambioEstadoCita', 'CATALOGO_ESTADO_CITAS', ('Cambio estado cita id=' + CONVERT(NVARCHAR(50), @id_catalogo_estado_citas)), @id_usuario;
 END GO
 CREATE OR ALTER PROCEDURE citas.spActivaEstadoCita @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estado_citas INT
 AS BEGIN UPDATE citas.CATALOGO_ESTADO_CITAS SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estado_citas=@id_catalogo_estado_citas;
-    EXEC citas.spInsertaLog @modulo, 'spActivaEstadoCita', 'CATALOGO_ESTADO_CITAS', CONCAT('Activa id=', @id_catalogo_estado_citas), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spActivaEstadoCita', 'CATALOGO_ESTADO_CITAS', ('Activa id=' + CONVERT(NVARCHAR(50), @id_catalogo_estado_citas)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spDesactivaEstadoCita @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estado_citas INT
 AS BEGIN UPDATE citas.CATALOGO_ESTADO_CITAS SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_estado_citas=@id_catalogo_estado_citas;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaEstadoCita', 'CATALOGO_ESTADO_CITAS', CONCAT('Desactiva id=', @id_catalogo_estado_citas), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaEstadoCita', 'CATALOGO_ESTADO_CITAS', ('Desactiva id=' + CONVERT(NVARCHAR(50), @id_catalogo_estado_citas)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spBajaEstadoCita @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_estado_citas INT
 AS BEGIN EXEC citas.spDesactivaEstadoCita @modulo, @id_usuario, @id_catalogo_estado_citas; END GO
 CREATE OR ALTER PROCEDURE citas.spRegresaEstadosCita AS BEGIN SELECT * FROM citas.CATALOGO_ESTADO_CITAS ORDER BY nombre; END GO
@@ -1181,18 +1180,18 @@ CREATE OR ALTER PROCEDURE citas.spAltaGenero @modulo VARCHAR(30), @id_usuario TI
 AS BEGIN
     INSERT INTO citas.CATALOGO_GENERO(nombre, activo, id_usuario_creacion, fecha_creacion) VALUES(@nombre, 1, @id_usuario, GETDATE());
     DECLARE @id INT = SCOPE_IDENTITY();
-    EXEC citas.spInsertaLog @modulo, 'spAltaGenero', 'CATALOGO_GENERO', CONCAT('Alta genero ', @nombre), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spAltaGenero', 'CATALOGO_GENERO', ('Alta genero ' + CONVERT(NVARCHAR(50), @nombre)), @id_usuario;
     SELECT @id AS id_catalogo_genero;
 END GO
 CREATE OR ALTER PROCEDURE citas.spCambioGenero @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_genero INT, @nombre VARCHAR(30)
 AS BEGIN UPDATE citas.CATALOGO_GENERO SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_genero=@id_catalogo_genero;
-    EXEC citas.spInsertaLog @modulo, 'spCambioGenero', 'CATALOGO_GENERO', CONCAT('Cambio genero id=', @id_catalogo_genero), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spCambioGenero', 'CATALOGO_GENERO', ('Cambio genero id=' + CONVERT(NVARCHAR(50), @id_catalogo_genero)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spActivaGenero @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_genero INT
 AS BEGIN UPDATE citas.CATALOGO_GENERO SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_genero=@id_catalogo_genero;
-    EXEC citas.spInsertaLog @modulo, 'spActivaGenero', 'CATALOGO_GENERO', CONCAT('Activa id=', @id_catalogo_genero), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spActivaGenero', 'CATALOGO_GENERO', ('Activa id=' + CONVERT(NVARCHAR(50), @id_catalogo_genero)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spDesactivaGenero @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_genero INT
 AS BEGIN UPDATE citas.CATALOGO_GENERO SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_genero=@id_catalogo_genero;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaGenero', 'CATALOGO_GENERO', CONCAT('Desactiva id=', @id_catalogo_genero), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaGenero', 'CATALOGO_GENERO', ('Desactiva id=' + CONVERT(NVARCHAR(50), @id_catalogo_genero)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spBajaGenero @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_genero INT
 AS BEGIN EXEC citas.spDesactivaGenero @modulo, @id_usuario, @id_catalogo_genero; END GO
 CREATE OR ALTER PROCEDURE citas.spRegresaGeneros AS BEGIN SELECT * FROM citas.CATALOGO_GENERO ORDER BY nombre; END GO
@@ -1202,18 +1201,18 @@ CREATE OR ALTER PROCEDURE citas.spAltaEspecialidad @modulo VARCHAR(30), @id_usua
 AS BEGIN
     INSERT INTO citas.CATALOGO_ESPECIALIDAD(nombre, activo, id_usuario_creacion, fecha_creacion) VALUES(@nombre, 1, @id_usuario, GETDATE());
     DECLARE @id INT = SCOPE_IDENTITY();
-    EXEC citas.spInsertaLog @modulo, 'spAltaEspecialidad', 'CATALOGO_ESPECIALIDAD', CONCAT('Alta especialidad ', @nombre), @id_usuario;
+    EXEC citas.spInsertaLog @modulo, 'spAltaEspecialidad', 'CATALOGO_ESPECIALIDAD', ('Alta especialidad ' + CONVERT(NVARCHAR(50), @nombre)), @id_usuario;
     SELECT @id AS id_catalogo_especialidad;
 END GO
 CREATE OR ALTER PROCEDURE citas.spCambioEspecialidad @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_especialidad INT, @nombre VARCHAR(100)
 AS BEGIN UPDATE citas.CATALOGO_ESPECIALIDAD SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_especialidad=@id_catalogo_especialidad;
-    EXEC citas.spInsertaLog @modulo, 'spCambioEspecialidad', 'CATALOGO_ESPECIALIDAD', CONCAT('Cambio especialidad id=', @id_catalogo_especialidad), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spCambioEspecialidad', 'CATALOGO_ESPECIALIDAD', ('Cambio especialidad id=' + CONVERT(NVARCHAR(50), @id_catalogo_especialidad)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spActivaEspecialidad @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_especialidad INT
 AS BEGIN UPDATE citas.CATALOGO_ESPECIALIDAD SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_especialidad=@id_catalogo_especialidad;
-    EXEC citas.spInsertaLog @modulo, 'spActivaEspecialidad', 'CATALOGO_ESPECIALIDAD', CONCAT('Activa id=', @id_catalogo_especialidad), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spActivaEspecialidad', 'CATALOGO_ESPECIALIDAD', ('Activa id=' + CONVERT(NVARCHAR(50), @id_catalogo_especialidad)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spDesactivaEspecialidad @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_especialidad INT
 AS BEGIN UPDATE citas.CATALOGO_ESPECIALIDAD SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE() WHERE id_catalogo_especialidad=@id_catalogo_especialidad;
-    EXEC citas.spInsertaLog @modulo, 'spDesactivaEspecialidad', 'CATALOGO_ESPECIALIDAD', CONCAT('Desactiva id=', @id_catalogo_especialidad), @id_usuario; END GO
+    EXEC citas.spInsertaLog @modulo, 'spDesactivaEspecialidad', 'CATALOGO_ESPECIALIDAD', ('Desactiva id=' + CONVERT(NVARCHAR(50), @id_catalogo_especialidad)), @id_usuario; END GO
 CREATE OR ALTER PROCEDURE citas.spBajaEspecialidad @modulo VARCHAR(30), @id_usuario TINYINT, @id_catalogo_especialidad INT
 AS BEGIN EXEC citas.spDesactivaEspecialidad @modulo, @id_usuario, @id_catalogo_especialidad; END GO
 CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidades AS BEGIN SELECT * FROM citas.CATALOGO_ESPECIALIDAD ORDER BY nombre; END GO
@@ -1224,7 +1223,7 @@ CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidades AS BEGIN SELECT * FROM c
 CREATE OR ALTER VIEW citas.vwCitasDelDia AS
 SELECT c.id_cita, c.fecha_cita, c.hora_inicio, c.hora_fin, c.precio,
        m.id_medico, m.nombre_completo AS medico,
-       CONCAT(p.apellido_paterno, ' ', ISNULL(p.apellido_materno,''), ' ', p.nombre) AS paciente,
+       (CONVERT(NVARCHAR(50), p.apellido_paterno) + ' ' + CONVERT(NVARCHAR(50), ISNULL(p.apellido_materno,'')) + ' ' + CONVERT(NVARCHAR(50), p.nombre)) AS paciente,
        e.nombre AS especialidad, ec.nombre AS estado,
        co.nombre AS consultorio, cl.id_clinica, cl.nombre AS clinica
   FROM citas.CITA c
