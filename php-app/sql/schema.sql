@@ -96,7 +96,7 @@ CREATE TABLE citas.USUARIOS(
     id_CLINICA               INT           NULL,   -- FK se agrega despues
     usuario                  VARCHAR(50)   NOT NULL,
     password_hash            VARBINARY(64) NOT NULL,   -- SHA2_512(password + salt)
-    password_salt            VARCHAR(32)   NOT NULL,
+    password_salt            VARCHAR(36)   NOT NULL,
     nombre_completo          VARCHAR(150)  NOT NULL,
     email                    VARCHAR(150)  NULL,
     activo                   BIT           NOT NULL CONSTRAINT DF_USUARIOS_activo DEFAULT(1),
@@ -555,7 +555,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     DECLARE @evento VARCHAR(2000);
-    DECLARE @salt   VARCHAR(32) = CONVERT(VARCHAR(32), NEWID());
+    DECLARE @salt   VARCHAR(36) = CONVERT(VARCHAR(36), NEWID());
     BEGIN TRY
         BEGIN TRAN;
         INSERT INTO citas.USUARIOS(id_ROLES, id_CLINICA, usuario, password_hash, password_salt,
@@ -615,7 +615,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     DECLARE @evento VARCHAR(2000);
-    DECLARE @salt   VARCHAR(32) = CONVERT(VARCHAR(32), NEWID());
+    DECLARE @salt   VARCHAR(36) = CONVERT(VARCHAR(36), NEWID());
     BEGIN TRY
         BEGIN TRAN;
         UPDATE citas.USUARIOS
