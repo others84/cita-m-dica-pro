@@ -22,22 +22,30 @@ class UsuarioModel extends Model {
         return self::query('EXEC citas.spRegresaUsuarios');
     }
 
-    public static function alta(int $idRol, ?int $idClinica, string $usuario, string $password, string $nombre, ?string $email): int {
-        return self::executeWithOutput('spAltaUsuario', [
+    public static function alta(int $idRol, ?int $idClinica, string $usuario, string $password, string $nombre, string $email): int {
+        $idNuevo = self::executeWithOutput('spAltaUsuario', [
             '@id_ROLES'        => $idRol,
-            '@id_CLINICA'      => $idClinica,
             '@usuario'         => $usuario,
             '@password'        => $password,
             '@nombre_completo' => $nombre,
             '@email'           => $email,
             '@id_usuario'      => self::currentUserId(),
         ]);
+        if ($idClinica) {
+            self::executeWithOutput('spAltaUsuarioClinica', [
+                '@id_USUARIOS' => $idNuevo,
+                '@id_CLINICA'  => $idClinica,
+                '@id_usuario'  => self::currentUserId(),
+            ]);
+        }
+        return $idNuevo;
     }
 
-    public static function cambio(int $id, int $idRol, ?int $idClinica, string $nombre, ?string $email): void {
-        self::execute('EXEC citas.spCambioUsuario @id_USUARIOS=:id, @id_ROLES=:r, @id_CLINICA=:c, @nombre_completo=:n, @email=:e, @id_usuario=:u', [
-            ':id' => $id, ':r' => $idRol, ':c' => $idClinica, ':n' => $nombre, ':e' => $email, ':u' => self::currentUserId(),
+    public static function cambio(int $id, int $idRol, ?int $idClinica, string $nombre, string $email): void {
+        self::execute('EXEC citas.spCambioUsuario @id_USUARIOS=:id, @id_ROLES=:r, @nombre_completo=:n, @email=:e, @id_usuario=:u', [
+            ':id' => $id, ':r' => $idRol, ':n' => $nombre, ':e' => $email, ':u' => self::currentUserId(),
         ]);
+        // La relacion con clinica se mantiene via spAltaUsuarioClinica / spBajaUsuarioClinica.
     }
 
     public static function cambioPassword(int $id, string $password): void {
