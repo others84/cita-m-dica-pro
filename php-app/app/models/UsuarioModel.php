@@ -3,11 +3,19 @@ require_once __DIR__ . '/../core/Model.php';
 
 class UsuarioModel extends Model {
     public static function login(string $usuario, string $password): ?array {
-        $rows = self::query(
-            'EXEC citas.spLoginUsuario @usuario=:u, @password=:p',
-            [':u' => $usuario, ':p' => $password]
-        );
-        return $rows[0] ?? null;
+        try {
+            $pdo  = Database::pdo();
+            $stmt = $pdo->prepare('{call citas.spLoginUsuario(?, ?)}');
+            $stmt->bindValue(1, $usuario, PDO::PARAM_STR);
+            $stmt->bindValue(2, $password, PDO::PARAM_STR);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            Database::log('login intento usuario=' . $usuario . ' resultado=' . ($row ? 'OK' : 'NO_MATCH'));
+            return $row ?: null;
+        } catch (Throwable $e) {
+            Database::log('login EXC usuario=' . $usuario . ' err=' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public static function listar(): array {
