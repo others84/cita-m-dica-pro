@@ -1,1 +1,20 @@
-<div class="card"><p>Reporte de ingresos (pendiente).</p></div>
+<div class="card">
+  <h2 style="margin-top:0">Ingresos por medico (mensual)</h2>
+  <table class="data">
+    <thead><tr><th>Periodo</th><th>Medico</th><th style="text-align:right">Total</th></tr></thead>
+    <tbody>
+      <?php $tot=0; if (empty($rows)): ?>
+        <tr><td colspan="3" style="text-align:center;color:var(--c4);padding:1rem">Sin datos</td></tr>
+      <?php else: foreach ($rows as $r): $tot += (float)$r['total']; ?>
+        <tr>
+          <td><?= htmlspecialchars($r['periodo']) ?></td>
+          <td><?= htmlspecialchars($r['medico']) ?></td>
+          <td style="text-align:right">$<?= number_format((float)$r['total'], 2) ?></td>
+        </tr>
+      <?php endforeach; endif; ?>
+    </tbody>
+    <?php if (!empty($rows)): ?>
+      <tfoot><tr><th colspan="2" style="text-align:right">Total general</th><th style="text-align:right">$<?= number_format($tot,2) ?></th></tr></tfoot>
+    <?php endif; ?>
+  </table>
+</div>

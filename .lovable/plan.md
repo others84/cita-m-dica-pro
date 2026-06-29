@@ -1,89 +1,101 @@
 ## Objetivo
 
-Generar el script completo de base de datos para **SQL Server 2022 Express** del sistema POLICLÍNICA, siguiendo las convenciones de DBA senior solicitadas, y actualizar `config.properties` con los nuevos datos de conexión.
+Conectar la aplicación PHP MVC a SQL Server 2022 (BD `CitasMedicas`, esquema `citas`, usuario `citasadmin`) ejecutando los Stored Procedures del `schema.sql` final, generar todos los CRUDs y mejorar el preview de cada cita en el calendario para mostrar **paciente, médico y especialidad**.
+
+## Capa de acceso a datos
+
+Crear `php-app/app/core/Database.php` (singleton PDO `sqlsrv`):
+- Lee `config/config.properties` (instancia, puerto 1435, BD, usuario, password).
+- DSN: `sqlsrv:Server=DESKTOP-2QTU4NO\SQLEXPRESS2019,1435;Database=CitasMedicas;Encrypt=yes;TrustServerCertificate=yes`.
+- Modo error excepción, manejo de mensajes informativos para capturar `RAISERROR`/`THROW` del catch de cada SP.
+
+Crear `php-app/app/core/Model.php` con helpers:
+- `call(string $sp, array $params)` → ejecuta SP y devuelve filas.
+- `exec(string $sp, array $params, array $outParams = [])` → ejecuta SP sin resultset, devolviendo parámetros OUTPUT (vía `bindParam` + `PDO::PARAM_INPUT_OUTPUT`).
+- Manejo central de excepciones con log a `php-app/storage/logs/app.log`.
+
+## Modelos (uno por entidad, todos en `php-app/app/models/`)
+
+Cada modelo invoca exclusivamente los SPs del schema, sin SQL embebido:
+
+| Modelo | SPs |
+|---|---|
+| `UsuarioModel` | `spLoginUsuario`, `spAltaUsuario`, `spCambioUsuario`, `spCambioPassword`, `spBajaUsuario`, `spActivaUsuario`, `spDesactivaUsuario`, `spRegresaUsuarios` |
+| `RolModel` | `spAltaRol`, `spCambioRol`, `spBajaRol`, `spActivaRol`, `spDesactivaRol`, `spRegresaRoles` |
+| `PaisModel` | `spAltaPais`, `spCambioPais`, `spRegresaPaises` |
+| `EstadoModel` | `spAltaEstado`, `spCambioEstado`, `spRegresaEstados` |
+| `EstadoCitaModel` | `spAltaEstadoCita`, `spCambioEstadoCita`, `spRegresaEstadosCita` |
+| `GeneroModel` | `spAltaGenero`, `spCambioGenero`, `spRegresaGeneros` |
+| `EspecialidadModel` | `spAltaEspecialidad`, `spCambioEspecialidad`, `spRegresaEspecialidades` |
+| `ClinicaModel` | `spAltaClinica`, `spCambioClinica`, `spBajaClinica`, `spActivaClinica`, `spDesactivaClinica`, `spRegresaClinicas` |
+| `ConsultorioModel` | `spAltaConsultorio`, `spCambioConsultorio`, `spBajaConsultorio`, `spRegresaConsultorios` |
+| `MedicoModel` | `spAltaMedico`, `spCambioMedico`, `spBajaMedico`, `spRegresaMedicos` |
+| `PacienteModel` | `spAltaPaciente`, `spCambioPaciente`, `spBajaPaciente`, `spRegresaPacientes` |
+| `CitaModel` | `spAltaCita`, `spCambioCita`, `spCancelaCita`, `spRegresaCitas` |
+
+## Autenticación real
+
+Reemplazar `Auth::attempt` mock por `UsuarioModel::login($usuario, $password)` que llame a `citas.spLoginUsuario`. La sesión guardará: `id_USUARIOS`, `usuario`, `nombre_completo`, `id_ROLES`, `rol`, `id_CLINICA`. El mapeo de rol → menú usará el nombre devuelto por la tabla `ROLES` (`asistente`, `medico`, `administrador`, `admin_sistema`).
+
+## CRUDs (controladores + vistas)
+
+Patrón uniforme para cada entidad (`index`, `crear`, `guardar`, `editar`, `actualizar`, `eliminar` cuando aplique):
+
+- **Citas** (`CitasController`): listado filtrable por médico y rango de fechas; alta/modificación con selects dependientes (clínica→pacientes/consultorios, médico→especialidades); cancelar usa `spCancelaCita`.
+- **Pacientes** (`PacientesController`): ámbito por `id_CLINICA` de la sesión.
+- **Médicos** (`MedicosController`): CRUD + asignación de especialidades y consultorios (insertando vía SPs auxiliares; si faltan, se documentan como pendientes y se gestionan desde la BD).
+- **Especialidades, Consultorios, Clínicas, Países, Estados, Géneros, Estado de citas, Roles, Usuarios**: CRUDs estándar.
+- **Reportes / Ingresos**: leer vista `vwIngresosPorMedico` mediante SP wrapper o `SELECT` directo (se añadirá `spRegresaIngresos` si el usuario lo aprueba; mientras tanto se consume la vista desde el modelo).
+- **Respaldo de BD**: ejecuta `BACKUP DATABASE` (sólo `admin_sistema`).
+
+Vistas: tablas con acciones (Editar, Activar/Desactivar, Eliminar) y formularios usando la paleta existente (`#EAF6FF` → `#1E3A5F`). Mensajes flash en sesión.
+
+Restricciones de rol existentes en `Controller::requireLogin([...])` se conservan.
+
+## Calendario con preview enriquecido
+
+`CalendarioController::index` cargará las citas reales:
+- Llama a `CitaModel::listar(null, hoy-30, hoy+90)` (rango configurable).
+- Mapea cada fila a un evento con:
+  - `start`: `fecha_cita + 'T' + hora_inicio`
+  - `end`: `fecha_cita + 'T' + hora_fin`
+  - `title`: `paciente` (corto)
+  - `extendedProps`: `{ paciente, medico, especialidad, consultorio, estado, precio }`
+- Envía los eventos al view como JSON.
+
+`app/views/calendario/index.php`:
+- Eliminar los eventos hardcodeados; usar el JSON inyectado.
+- Configurar `eventContent` (callback de Event Calendar v5) para renderizar dentro del evento:
+  ```
+  <strong>{paciente}</strong>
+  Dr. {medico}
+  {especialidad}
+  ```
+- Agregar `eventClick` que abre un modal/tooltip con los mismos 3 datos + consultorio, estado y precio.
+- Estilos para que el bloque sea legible en `timeGridWeek` y `dayGridMonth` (truncado con CSS).
+
+## Configuración
+
+- `config/config.properties` ya tiene los datos; verificar y documentar en `php-app/README.md` cómo habilitar `php_sqlsrv` y `php_pdo_sqlsrv` en XAMPP.
+- `schema.sql` actual del proyecto se reemplaza con el aprobado por el usuario (`/mnt/user-uploads/schema.sql`).
+- No se tocará el ZIP `con_calendario_funcionando_25062026.zip`; sólo se usa como referencia de que el calendario ya funcionaba.
+
+## Detalles técnicos
+
+- Parámetros OUTPUT con `sqlsrv` requieren `PDO::PARAM_INPUT_OUTPUT` + longitud explícita.
+- Para `id_usuario` (TINYINT) usar el `id_USUARIOS` de sesión, truncado al rango 0–255 (los SPs reciben TINYINT; se valida en modelo).
+- Errores de SPs (`;THROW`) se capturan en `try/catch`, se loguean y se muestran como `flash error` en la UI.
+- Sin cambios en `src/` (proyecto React/TanStack del workspace).
 
 ## Entregables
 
-1. **`php-app/sql/schema.sql`** — script idempotente (DROP IF EXISTS + CREATE) que contiene:
-   - Creación de la BD `CitasMedicas`
-   - Login y usuario `citasadmin` con password `admin01$`
-   - Esquema `citas` enlazado como default a `citasadmin`
-   - Tablas, PKs, FKs, índices únicos, CHECKs
-   - Tabla `citas.LOG`
-   - Procedimientos almacenados parametrizados (sp...)
-   - Vista(s) base (vw...)
-   - Datos semilla de catálogos y roles/usuarios de prueba
+1. `Database.php`, `Model.php`, 12 modelos.
+2. Controladores y vistas CRUD completos (formularios + listados).
+3. `Auth.php` conectado a `spLoginUsuario`.
+4. Calendario poblado con datos reales y preview enriquecido (paciente, médico, especialidad).
+5. `schema.sql` del proyecto actualizado al adjunto del usuario.
+6. README breve con pasos de habilitación de drivers en XAMPP.
 
-2. **`php-app/config/config.properties`** — actualizado con la instancia, puerto 1435 y nombre de BD pedidos.
+## Confirmación pendiente
 
-## Estructura de tablas (esquema `citas`)
-
-Todas con `id_<tabla> INT IDENTITY(1,1) PK` al inicio y los 4 campos de auditoría al final (`id_usuario_creacion TINYINT NOT NULL`, `fecha_creacion SMALLDATETIME NOT NULL`, `id_usuario_modificacion TINYINT NULL`, `fecha_modificacion SMALLDATETIME NULL`), excepto `citas.LOG`.
-
-**Seguridad / usuarios**
-- `ROLES` (nombre, descripcion, activo)
-- `USUARIOS` (id_rol FK, id_clinica FK NULL, usuario UNIQUE, password VARBINARY cifrada con `HASHBYTES('SHA2_512', password+salt)`, salt, nombre_completo, email, activo)
-
-**Catálogos**
-- `CATALOGO_PAIS` (nombre)
-- `CATALOGO_ESTADOS` (nombre, id_pais FK)
-- `CATALOGO_ESTADO_CITAS` (nombre)
-- `CATALOGO_GENERO` (nombre)
-- `CATALOGO_ESPECIALIDAD` (nombre)
-
-**Operativas**
-- `CLINICA` (nombre, direccion, email, telefono, municipio, id_estado FK, activo)
-- `CONSULTORIO` (id_clinica FK, nombre, activo)
-- `MEDICO` (nombre_completo, activo)
-- `MEDICO_ESPECIALIDAD` (id_medico FK, id_especialidad FK) — relación N:M
-- `MEDICO_CONSULTORIO` (id_medico FK, id_consultorio FK) — un médico puede atender en varios consultorios
-- `PACIENTE` (id_clinica FK, ap_paterno, ap_materno, nombre, direccion, telefono, email, fecha_nacimiento, id_genero FK, municipio, id_estado FK) — UNIQUE por clínica
-- `CITA` (id_paciente FK, id_medico FK, id_consultorio FK, id_especialidad FK, fecha_cita, hora_inicio, hora_fin, id_estado_cita FK, observaciones, notifica_email BIT, notifica_wa BIT, horas_anticipacion_notif TINYINT, email_notif, celular_notif, precio DECIMAL(10,2))
-
-**Auditoría**
-- `LOG` (id_log, modulo, procedimiento, tabla, evento, fecha, id_usuario)
-
-## Convenciones aplicadas
-
-- PK: `PK_id_<tabla>`
-- FK: `FK_<col_pk>_<TABLA_PK>_<col_fk>_<TABLA_FK>`
-- CHK: `CHK_<campo>_<TABLA>` (ej. hora_fin > hora_inicio, precio >= 0, email regex básica, activo 0/1)
-- IX único: `IX_<campo(s)>_<TABLA>` (usuario, nombre de catálogos, paciente+clinica, etc.)
-- SP: `spAlta…`, `spBaja…` (baja lógica vía `activo=0` donde aplica), `spCambio…`, `spRegresa…`, `spActiva…`, `spDesactiva…`
-- Vistas: `vwCitasDelDia`, `vwMedicosPorClinica`, `vwIngresosPorMedico`
-
-## Procedimientos almacenados (parametrizados)
-
-Para cada entidad principal: Alta, Cambio, Baja (lógica), Activa, Desactiva, Regresa (lista) y RegresaPorId. Más:
-- `spLoginUsuario` (valida usuario/password contra HASHBYTES)
-- `spAltaCita`, `spCambioCita`, `spCancelaCita`, `spRegresaCitasPorMedicoFecha`, `spRegresaCitasPorClinicaFecha`
-- `spRegresaIngresosPorMedico`, `spRegresaIngresosPorClinica`
-
-Cada SP escribe en `citas.LOG` el módulo, nombre del SP, tabla afectada, evento (JSON corto con los parámetros), fecha y usuario. Todos usan `BEGIN TRY/CATCH` + `TRANSACTION` y devuelven `id` generado o código de error.
-
-## Seguridad de acceso
-
-- `GRANT EXECUTE ON SCHEMA::citas TO citasadmin`
-- `DENY SELECT, INSERT, UPDATE, DELETE ON SCHEMA::citas TO citasadmin` (acceso solo vía SP)
-- Default schema del usuario = `citas`
-
-## Datos semilla
-
-- 4 roles: `admin_sistema`, `administrador`, `medico`, `asistente`
-- 4 usuarios de prueba (los mismos del mock actual) con password cifrada
-- Catálogos base: países (México), estados de Puebla, géneros, estados de cita (Agendada, Confirmada, Cancelada, Atendida, No asistió)
-
-## Cambios en `config.properties`
-
-```
-db.driver=sqlsrv
-db.instance=DESKTOP-2QTU4NO\SQLEXPRESS2019
-db.name=CitasMedicas
-db.user=citasadmin
-db.password=admin01$
-db.port=1435
-```
-
-## Fuera de alcance
-
-- No se modifica todavía el `Database.php` ni los controladores PHP para consumir los SPs; eso queda para una siguiente iteración una vez validado el script.
+¿Quieres que el calendario muestre las citas de **todos los médicos de la clínica del usuario logueado**, o sólo las del médico cuando el rol sea `medico` (y todas para asistente / administrador)?

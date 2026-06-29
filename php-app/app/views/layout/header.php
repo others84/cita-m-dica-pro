@@ -71,3 +71,6 @@ $rol  = $user['rol'];
   <main class="content">
     <header class="topbar"><h1><?= htmlspecialchars($title ?? '') ?></h1></header>
     <section class="page">
+      <?php if (!empty($_SESSION['flash'])): foreach ($_SESSION['flash'] as $f): ?>
+        <div class="flash flash-<?= htmlspecialchars($f['type']) ?>"><?= htmlspecialchars($f['msg']) ?></div>
+      <?php endforeach; $_SESSION['flash'] = []; endif; ?>

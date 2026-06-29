@@ -23,4 +23,27 @@ class Controller {
             exit;
         }
     }
+
+    protected function flash(string $type, string $msg): void {
+        $_SESSION['flash'][] = ['type' => $type, 'msg' => $msg];
+    }
+
+    protected function redirect(string $path): void {
+        header('Location: ' . url($path));
+        exit;
+    }
+
+    protected function input(string $key, $default = null) {
+        $v = $_POST[$key] ?? $_GET[$key] ?? $default;
+        if (is_string($v)) {
+            $v = trim($v);
+            if ($v === '') return $default;
+        }
+        return $v;
+    }
+
+    protected function intOrNull($v): ?int {
+        if ($v === null || $v === '') return null;
+        return (int)$v;
+    }
 }
