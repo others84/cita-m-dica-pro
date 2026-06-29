@@ -50,3 +50,40 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .calendar-card #ec,.calendar-box{height:700px;min-height:700px;width:100%}
 .calendar-loading{height:700px;display:flex;align-items:center;justify-content:center;color:var(--c4);font-weight:600}
 .calendar-error{padding:1rem;border:1px solid #c0392b;background:#fdecea;color:#7f1d1d;border-radius:8px}
+/* CRUD */
+.flash{padding:.6rem .8rem;border-radius:6px;margin-bottom:.75rem;font-size:.9rem}
+.flash-ok{background:#e7f5ec;color:#1b6b3a;border:1px solid #b5dec1}
+.flash-error{background:#fde2e2;color:#a4232b;border:1px solid #f3b8bc}
+.flash-info{background:#e4f0fb;color:#1E3A5F;border:1px solid var(--c2)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap}
+.btn{display:inline-block;padding:.45rem .8rem;border-radius:6px;text-decoration:none;font-size:.85rem;border:none;cursor:pointer;background:var(--c4);color:#fff}
+.btn:hover{background:var(--c5)}
+.btn-sec{background:var(--c2);color:var(--c5)}
+.btn-sec:hover{background:var(--c3)}
+.btn-danger{background:#c0392b}
+.btn-danger:hover{background:#922d22}
+table.data{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
+table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1)}
+table.data thead{background:var(--c2);color:var(--c5)}
+table.data tr:last-child td{border-bottom:none}
+table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
+.form-grid label{display:flex;flex-direction:column;font-size:.8rem;color:var(--c5);gap:.2rem}
+.form-grid input,.form-grid select,.form-grid textarea{padding:.5rem;border:1px solid var(--c3);border-radius:6px;font-size:.9rem;font-family:inherit}
+.form-actions{display:flex;gap:.5rem;margin-top:1rem}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.75rem;background:var(--c2);color:var(--c5)}
+.badge.off{background:#eee;color:#666}
+
+/* Calendar event preview */
+.ec-event-body{padding:2px 4px;font-size:.72rem;line-height:1.15}
+.ec-event-body .ev-pac{font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ec-event-body .ev-med,.ec-event-body .ev-esp{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}
+.ec-event-body .ev-esp{font-style:italic}
+
+/* Modal cita */
+.modal-backdrop{position:fixed;inset:0;background:rgba(30,58,95,.45);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#fff;border-radius:10px;padding:1.25rem 1.5rem;min-width:320px;max-width:480px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 .75rem;color:var(--c5)}
+.modal dl{display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;font-size:.9rem;margin:0}
+.modal dt{color:var(--c4);font-weight:600}
+.modal .modal-actions{margin-top:1rem;display:flex;justify-content:flex-end;gap:.5rem}
