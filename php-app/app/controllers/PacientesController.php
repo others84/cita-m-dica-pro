@@ -30,22 +30,21 @@ class PacientesController extends Controller {
         $this->requireLogin();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $idClinica = (int)$this->input('id_CLINICA');
-        $apPat = $this->input('ap_paterno');
-        $apMat = $this->input('ap_materno');
-        $nombre = $this->input('nombre');
-        $direccion = $this->input('direccion');
-        $tel = $this->input('telefono');
-        $email = $this->input('email');
-        $fnac = $this->input('fecha_nacimiento');
-        $idGen = $this->intOrNull($this->input('id_CATALOGO_GENERO'));
-        $municipio = $this->input('municipio');
-        $idEst = $this->intOrNull($this->input('id_CATALOGO_ESTADOS'));
+        $apPat = (string)$this->input('ap_paterno');
+        $apMat = (string)$this->input('ap_materno');
+        $nombre = (string)$this->input('nombre');
+        $direccion = (string)$this->input('direccion');
+        $tel = (string)$this->input('telefono');
+        $email = (string)$this->input('email');
+        $fnac = (string)$this->input('fecha_nacimiento');
+        $idGen = (int)$this->input('id_CATALOGO_GENERO');
+        $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
         try {
             if ($id) {
-                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $municipio, $idEst);
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun);
                 $this->flash('ok', 'Paciente actualizado.');
             } else {
-                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $municipio, $idEst);
+                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun);
                 $this->flash('ok', 'Paciente registrado.');
             }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
