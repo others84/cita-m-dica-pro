@@ -20,10 +20,10 @@ class ClinicasController extends Controller {
         $id = $this->intOrNull($_POST['id'] ?? null);
         try {
             $n = $this->input('nombre'); $d = $this->input('direccion');
-            $e = $this->input('email'); $t = $this->input('telefono');
-            $m = $this->input('municipio'); $idEs = (int)$this->input('id_CATALOGO_ESTADOS');
-            if ($id) ClinicaModel::cambio($id, $n, $d, $e, $t, $m, $idEs);
-            else     ClinicaModel::alta($n, $d, $e, $t, $m, $idEs);
+            $e = (string)$this->input('email'); $t = (string)$this->input('telefono');
+            $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
+            if ($id) ClinicaModel::cambio($id, $n, $d, $e, $t, $idMun);
+            else     ClinicaModel::alta($n, $d, $e, $t, $idMun);
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('clinicas');
@@ -31,18 +31,6 @@ class ClinicasController extends Controller {
     public function eliminar(): void {
         $this->requireLogin(['admin_sistema']);
         try { ClinicaModel::baja((int)$this->input('id')); $this->flash('ok','Baja.'); }
-        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        $this->redirect('clinicas');
-    }
-    public function activar(): void {
-        $this->requireLogin(['admin_sistema']);
-        try { ClinicaModel::activa((int)$this->input('id')); $this->flash('ok','Activada.'); }
-        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        $this->redirect('clinicas');
-    }
-    public function desactivar(): void {
-        $this->requireLogin(['admin_sistema']);
-        try { ClinicaModel::desactiva((int)$this->input('id')); $this->flash('ok','Desactivada.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('clinicas');
     }
