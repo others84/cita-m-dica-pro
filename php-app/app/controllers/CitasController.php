@@ -57,8 +57,6 @@ class CitasController extends Controller {
             'observaciones'            => $this->input('observaciones'),
             'notifica_email'           => isset($_POST['notifica_email']) ? 1 : 0,
             'notifica_wa'              => isset($_POST['notifica_wa']) ? 1 : 0,
-            'email_notif'              => $this->input('email_notif'),
-            'celular_notif'            => $this->input('celular_notif'),
             'horas_anticipacion_notif' => (int)($this->input('horas_anticipacion_notif') ?? 24),
             'precio'                   => (float)($this->input('precio') ?? 0),
         ];
