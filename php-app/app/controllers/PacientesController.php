@@ -1,9 +1,62 @@
 <?php
 require_once __DIR__ . '/../core/Controller.php';
+require_once __DIR__ . '/../models/PacienteModel.php';
+require_once __DIR__ . '/../models/GeneroModel.php';
+require_once __DIR__ . '/../models/EstadoModel.php';
+require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class PacientesController extends Controller {
     public function index(): void {
-        $this->requireLogin(['asistente','medico','administrador','admin_sistema']);
-        $this->view('pacientes/index', ['title' => 'CRUD Pacientes']);
+        $this->requireLogin();
+        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editRow = null;
+        $rows = [];
+        try {
+            $rows = PacienteModel::listar();
+            if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->view('pacientes/index', [
+            'title'    => 'Pacientes',
+            'rows'     => $rows,
+            'editId'   => $editId,
+            'editRow'  => $editRow,
+            'generos'  => GeneroModel::listar(),
+            'estados'  => EstadoModel::listar(),
+            'clinicas' => ClinicaModel::listar(),
+        ]);
+    }
+
+    public function guardar(): void {
+        $this->requireLogin();
+        $id = $this->intOrNull($_POST['id'] ?? null);
+        $idClinica = (int)$this->input('id_CLINICA');
+        $apPat = $this->input('ap_paterno');
+        $apMat = $this->input('ap_materno');
+        $nombre = $this->input('nombre');
+        $direccion = $this->input('direccion');
+        $tel = $this->input('telefono');
+        $email = $this->input('email');
+        $fnac = $this->input('fecha_nacimiento');
+        $idGen = $this->intOrNull($this->input('id_CATALOGO_GENERO'));
+        $municipio = $this->input('municipio');
+        $idEst = $this->intOrNull($this->input('id_CATALOGO_ESTADOS'));
+        try {
+            if ($id) {
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $municipio, $idEst);
+                $this->flash('ok', 'Paciente actualizado.');
+            } else {
+                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $municipio, $idEst);
+                $this->flash('ok', 'Paciente registrado.');
+            }
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('pacientes');
+    }
+
+    public function eliminar(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        try { PacienteModel::baja($id); $this->flash('ok','Paciente eliminado.'); }
+        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('pacientes');
     }
 }
