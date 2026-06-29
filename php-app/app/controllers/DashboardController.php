@@ -5,7 +5,7 @@ class DashboardController extends Controller {
     public function index(): void {
         $this->requireLogin();
         $rol = $_SESSION['user']['rol'] ?? '';
-        $destino = $rol === 'admin_sistema' ? url('administradores') : url('calendario');
+        $destino = $rol === 'admin_sistema' ? url('clinicas') : url('calendario');
         header('Location: ' . $destino);
         exit;
     }
