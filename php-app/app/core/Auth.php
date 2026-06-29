@@ -14,13 +14,27 @@ class Auth {
             return null;
         }
         if (!$u) return null;
+        // Normaliza el nombre del rol que regresa el SP a un codigo corto
+        // estable usado por los controladores (admin_sistema, administrador,
+        // medico, asistente).
+        $rolNombre = (string)($u['rol'] ?? '');
+        $map = [
+            'Administrador de sistema' => 'admin_sistema',
+            'Administrador de clinica' => 'administrador',
+            'Administrador de clínica' => 'administrador',
+            'Medico'                   => 'medico',
+            'Médico'                   => 'medico',
+            'Asistente'                => 'asistente',
+        ];
+        $rolCodigo = $map[$rolNombre] ?? strtolower(str_replace(' ', '_', $rolNombre));
         return [
             'id_USUARIOS'     => (int)($u['id_USUARIOS'] ?? 0),
             'usuario'         => $u['usuario'] ?? $usuario,
             'nombre'          => $u['nombre_completo'] ?? $usuario,
             'email'           => $u['email'] ?? null,
             'id_ROLES'        => (int)($u['id_ROLES'] ?? 0),
-            'rol'             => $u['rol'] ?? '',
+            'rol'             => $rolCodigo,
+            'rol_nombre'      => $rolNombre,
             'id_CLINICA'      => isset($u['id_CLINICA']) ? (int)$u['id_CLINICA'] : null,
         ];
     }
