@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/PacienteModel.php';
 require_once __DIR__ . '/../models/GeneroModel.php';
-require_once __DIR__ . '/../models/EstadoModel.php';
+require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class PacientesController extends Controller {
@@ -20,9 +20,9 @@ class PacientesController extends Controller {
             'rows'     => $rows,
             'editId'   => $editId,
             'editRow'  => $editRow,
-            'generos'  => GeneroModel::listar(),
-            'estados'  => EstadoModel::listar(),
-            'clinicas' => ClinicaModel::listar(),
+            'generos'   => GeneroModel::listar(),
+            'municipios'=> MunicipioModel::listar(),
+            'clinicas'  => ClinicaModel::listar(),
         ]);
     }
 

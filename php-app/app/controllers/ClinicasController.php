@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
-require_once __DIR__ . '/../models/EstadoModel.php';
+require_once __DIR__ . '/../models/MunicipioModel.php';
 
 class ClinicasController extends Controller {
     public function index(): void {
@@ -12,7 +12,7 @@ class ClinicasController extends Controller {
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CLINICA']===$editId) { $editRow=$r; break; }
         $this->view('clinicas/index', [
             'title'=>'Clinicas','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'estados'=>EstadoModel::listar(),
+            'municipios'=>MunicipioModel::listar(),
         ]);
     }
     public function guardar(): void {
