@@ -6,13 +6,12 @@
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
     <label>Email <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
     <label>Telefono <input name="telefono" value="<?= htmlspecialchars($editRow['telefono'] ?? '') ?>"></label>
-    <label>Municipio <input name="municipio" required value="<?= htmlspecialchars($editRow['municipio'] ?? '') ?>"></label>
-    <label>Estado
-      <select name="id_CATALOGO_ESTADOS" required>
-        <option value="">--</option>
-        <?php foreach ($estados as $es): ?>
-          <option value="<?= (int)$es['id_CATALOGO_ESTADOS'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_ESTADOS']??0)===(int)$es['id_CATALOGO_ESTADOS']?'selected':'' ?>>
-            <?= htmlspecialchars($es['nombre']) ?>
+    <label>Municipio
+      <select name="id_CATALOGO_MUNICIPIO" required>
+        <option value="">-- seleccione --</option>
+        <?php foreach ($municipios as $mu): ?>
+          <option value="<?= (int)$mu['id_CATALOGO_MUNICIPIO'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_MUNICIPIO']??0)===(int)$mu['id_CATALOGO_MUNICIPIO']?'selected':'' ?>>
+            <?= htmlspecialchars($mu['nombre'] . ' - ' . ($mu['estado'] ?? '')) ?>
           </option>
         <?php endforeach; ?>
       </select>
