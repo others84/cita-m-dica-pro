@@ -3,6 +3,11 @@
  * Render generico para catalogos {id, nombre}.
  * Variables esperadas: $rows, $idField, $title, $controller (slug), $editId, $editRow
  */
+// El Router mapea parts[0]=controlador y parts[1]=accion. Como $controller ya
+// trae "catalogos/paises", la accion de guardar debe ir en la MISMA segunda
+// parte: "catalogos/paisesGuardar" (no "catalogos/paises/guardar", que caeria
+// en la accion "paises" con "guardar" como parametro y nunca ejecutaria el SP).
+$saveAction = $controller . 'Guardar';
 ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)"><?= htmlspecialchars($title) ?></h2>
@@ -10,7 +15,7 @@
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0"><?= $editId ? 'Editar' : 'Nuevo' ?></h3>
-  <form method="post" action="<?= url($controller . '/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url($saveAction) ?>" class="form-grid">
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre
       <input type="text" name="nombre" required maxlength="120"
