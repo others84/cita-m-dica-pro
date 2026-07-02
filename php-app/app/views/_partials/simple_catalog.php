@@ -31,13 +31,12 @@ $saveAction = $controller . 'Guardar';
 </div>
 
 <table class="data">
-  <thead><tr><th>ID</th><th>Nombre</th><th style="width:160px">Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th style="width:160px">Acciones</th></tr></thead>
   <tbody>
     <?php if (empty($rows)): ?>
-      <tr><td colspan="3" style="text-align:center;color:var(--c4);padding:1rem">Sin registros</td></tr>
+      <tr><td colspan="2" style="text-align:center;color:var(--c4);padding:1rem">Sin registros</td></tr>
     <?php else: foreach ($rows as $r): ?>
       <tr>
-        <td><?= htmlspecialchars((string)$r[$idField]) ?></td>
         <td><?= htmlspecialchars((string)$r['nombre']) ?></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url($controller . '?edit=' . $r[$idField]) ?>">Editar</a>

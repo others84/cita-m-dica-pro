@@ -19,13 +19,12 @@
   </form>
 </div>
 <table class="data">
-  <thead><tr><th>ID</th><th>Nombre</th><th>Pais</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th>País</th><th style="width:160px">Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $r): ?>
       <tr>
-        <td><?= (int)$r['id_CATALOGO_ESTADOS'] ?></td>
         <td><?= htmlspecialchars($r['nombre']) ?></td>
-        <td><?= (int)($r['id_CATALOGO_PAIS'] ?? 0) ?></td>
+        <td><?= htmlspecialchars((string)($r['pais'] ?? '')) ?></td>
         <td class="acts"><a class="btn btn-sec" href="<?= url('catalogos/estados?edit=' . (int)$r['id_CATALOGO_ESTADOS']) ?>">Editar</a></td>
       </tr>
     <?php endforeach; ?>

@@ -49,6 +49,7 @@ $rol  = $user['rol'];
           <summary>Catálogos</summary>
           <a href="<?= url('catalogos/paises') ?>">Países</a>
           <a href="<?= url('catalogos/estados') ?>">Estados</a>
+          <a href="<?= url('catalogos/municipios') ?>">Municipios</a>
           <a href="<?= url('catalogos/generos') ?>">Géneros</a>
           <a href="<?= url('catalogos/usuarios') ?>">Usuarios de clínica</a>
           <a href="<?= url('catalogos/estadosCita') ?>">Estado de citas</a>

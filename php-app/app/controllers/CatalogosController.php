@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/PaisModel.php';
 require_once __DIR__ . '/../models/EstadoModel.php';
+require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/GeneroModel.php';
 require_once __DIR__ . '/../models/EstadoCitaModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
@@ -93,6 +94,26 @@ class CatalogosController extends Controller {
         try { if ($id) EstadoModel::cambio($id,$n,$p); else EstadoModel::alta($n,$p); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->redirect('catalogos/estados');
+    }
+
+    /* ---- Municipios (con estado) ---- */
+    public function municipios(): void {
+        $this->guard();
+        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $rows = MunicipioModel::listar(); $editRow=null;
+        if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_MUNICIPIO']===$editId) { $editRow=$r; break; }
+        $this->view('catalogos/municipios', [
+            'title'=>'Municipios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
+            'estados'=>EstadoModel::listar(),
+        ]);
+    }
+    public function municipiosGuardar(): void {
+        $this->guard();
+        $id = $this->intOrNull($_POST['id'] ?? null);
+        $n = $this->input('nombre'); $e = (int)$this->input('id_CATALOGO_ESTADOS');
+        try { if ($id) MunicipioModel::cambio($id,$n,$e); else MunicipioModel::alta($n,$e); $this->flash('ok','Guardado.'); }
+        catch (Throwable $ex) { $this->flash('error',$ex->getMessage()); }
+        $this->redirect('catalogos/municipios');
     }
 
     /* ---- Usuarios de clinica ---- */
