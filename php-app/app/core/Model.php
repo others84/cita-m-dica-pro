@@ -54,7 +54,8 @@ class Model {
             $i++;
         }
 
-        $sql = "DECLARE @id_nuevo INT; EXEC citas.$spName $args, @id_nuevo=@id_nuevo OUTPUT; SELECT @id_nuevo AS id_nuevo;";
+        $argList = implode(', ', $args);
+        $sql = "DECLARE @id_nuevo INT; EXEC citas.$spName $argList, @id_nuevo=@id_nuevo OUTPUT; SELECT @id_nuevo AS id_nuevo;";
         try {
             $stmt = $pdo->prepare($sql);
             foreach ($values as $placeholder => $value) {
