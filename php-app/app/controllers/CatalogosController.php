@@ -25,8 +25,15 @@ class CatalogosController extends Controller {
     public function paisesGuardar(): void {
         $this->guard();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
-        try { if ($id) PaisModel::cambio($id,$n); else PaisModel::alta($n); $this->flash('ok','Guardado.'); }
-        catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
+        Database::log("CatalogosController::paisesGuardar POST id=" . var_export($id, true) . " nombre=" . var_export($n, true));
+        try {
+            if ($id) PaisModel::cambio($id, (string)$n);
+            else     PaisModel::alta((string)$n);
+            $this->flash('ok','Guardado.');
+        } catch (Throwable $e) {
+            Database::log('CatalogosController::paisesGuardar EXC ' . $e->getMessage());
+            $this->flash('error',$e->getMessage());
+        }
         $this->redirect('catalogos/paises');
     }
 
