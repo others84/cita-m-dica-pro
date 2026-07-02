@@ -35,13 +35,31 @@ class Model {
      */
     protected static function executeWithOutput(string $spName, array $bindings): int {
         $pdo = Database::pdo();
-        $names = array_keys($bindings);
-        $args = implode(', ', array_map(fn($n) => $n . '=' . $n, $names));
-        $sql = "DECLARE @id_nuevo INT; EXEC citas.$spName $args, @id_nuevo=@id_nuevo OUTPUT; SELECT @id_nuevo AS id_nuevo;";
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $spName)) {
+            throw new InvalidArgumentException('Nombre de procedimiento almacenado inválido.');
+        }
+
+        $args = [];
+        $values = [];
+        $i = 0;
+        foreach ($bindings as $spParam => $value) {
+            $spParam = ltrim((string)$spParam, '@');
+            if (!preg_match('/^[A-Za-z0-9_]+$/', $spParam)) {
+                throw new InvalidArgumentException('Nombre de parámetro inválido.');
+            }
+
+            $placeholder = ':p' . $i;
+            $args[] = '@' . $spParam . '=' . $placeholder;
+            $values[$placeholder] = $value;
+            $i++;
+        }
+
+        $argList = implode(', ', $args);
+        $sql = "DECLARE @id_nuevo INT; EXEC citas.$spName $argList, @id_nuevo=@id_nuevo OUTPUT; SELECT @id_nuevo AS id_nuevo;";
         try {
             $stmt = $pdo->prepare($sql);
-            foreach ($bindings as $k => $v) {
-                $stmt->bindValue($k, $v);
+            foreach ($values as $placeholder => $value) {
+                $stmt->bindValue($placeholder, $value);
             }
             $stmt->execute();
             do {
