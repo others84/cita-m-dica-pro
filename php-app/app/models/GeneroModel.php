@@ -9,4 +9,8 @@ class GeneroModel extends Model {
         self::execute('EXEC citas.spCambioGenero @id_CATALOGO_GENERO=:id, @nombre=:n, @id_usuario=:u',
             [':id'=>$id, ':n'=>$nombre, ':u'=>self::currentUserId()]);
     }
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaGenero @id_CATALOGO_GENERO=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
 }
