@@ -8,6 +8,7 @@
 // parte: "catalogos/paisesGuardar" (no "catalogos/paises/guardar", que caeria
 // en la accion "paises" con "guardar" como parametro y nunca ejecutaria el SP).
 $saveAction = $controller . 'Guardar';
+$deleteAction = $controller . 'Eliminar';
 ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)"><?= htmlspecialchars($title) ?></h2>
@@ -31,7 +32,7 @@ $saveAction = $controller . 'Guardar';
 </div>
 
 <table class="data">
-  <thead><tr><th>Nombre</th><th style="width:160px">Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th style="width:220px">Acciones</th></tr></thead>
   <tbody>
     <?php if (empty($rows)): ?>
       <tr><td colspan="2" style="text-align:center;color:var(--c4);padding:1rem">Sin registros</td></tr>
@@ -40,6 +41,11 @@ $saveAction = $controller . 'Guardar';
         <td><?= htmlspecialchars((string)$r['nombre']) ?></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url($controller . '?edit=' . $r[$idField]) ?>">Editar</a>
+          <form method="post" action="<?= url($deleteAction) ?>" style="display:inline"
+                onsubmit="return confirm('¿Eliminar el registro &quot;<?= htmlspecialchars(addslashes((string)$r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+            <input type="hidden" name="id" value="<?= (int)$r[$idField] ?>">
+            <button class="btn btn-danger" type="submit">Baja</button>
+          </form>
         </td>
       </tr>
     <?php endforeach; endif; ?>

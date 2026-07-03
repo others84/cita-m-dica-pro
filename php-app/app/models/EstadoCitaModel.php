@@ -9,4 +9,8 @@ class EstadoCitaModel extends Model {
         self::execute('EXEC citas.spCambioEstadoCita @id_CATALOGO_ESTADO_CITAS=:id, @nombre=:n, @id_usuario=:u',
             [':id'=>$id, ':n'=>$nombre, ':u'=>self::currentUserId()]);
     }
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaEstadoCita @id_CATALOGO_ESTADO_CITAS=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
 }

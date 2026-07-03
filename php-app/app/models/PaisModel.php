@@ -29,4 +29,8 @@ class PaisModel extends Model {
             throw $e;
         }
     }
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaPais @id_CATALOGO_PAIS=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
 }

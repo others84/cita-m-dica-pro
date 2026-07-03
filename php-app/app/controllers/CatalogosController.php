@@ -37,6 +37,12 @@ class CatalogosController extends Controller {
         }
         $this->redirect('catalogos/paises');
     }
+    public function paisesEliminar(): void {
+        $this->guard();
+        try { PaisModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
+        $this->redirect('catalogos/paises');
+    }
 
     /* ---- Generos ---- */
     public function generos(): void {
@@ -56,6 +62,12 @@ class CatalogosController extends Controller {
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->redirect('catalogos/generos');
     }
+    public function generosEliminar(): void {
+        $this->guard();
+        try { GeneroModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
+        $this->redirect('catalogos/generos');
+    }
 
     /* ---- Estados de cita ---- */
     public function estadosCita(): void {
@@ -73,6 +85,12 @@ class CatalogosController extends Controller {
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         try { if ($id) EstadoCitaModel::cambio($id,$n); else EstadoCitaModel::alta($n); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
+        $this->redirect('catalogos/estadosCita');
+    }
+    public function estadosCitaEliminar(): void {
+        $this->guard();
+        try { EstadoCitaModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->redirect('catalogos/estadosCita');
     }
 
@@ -95,6 +113,12 @@ class CatalogosController extends Controller {
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->redirect('catalogos/estados');
     }
+    public function estadosEliminar(): void {
+        $this->guard();
+        try { EstadoModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
+        $this->redirect('catalogos/estados');
+    }
 
     /* ---- Municipios (con estado) ---- */
     public function municipios(): void {
@@ -113,6 +137,12 @@ class CatalogosController extends Controller {
         $n = $this->input('nombre'); $e = (int)$this->input('id_CATALOGO_ESTADOS');
         try { if ($id) MunicipioModel::cambio($id,$n,$e); else MunicipioModel::alta($n,$e); $this->flash('ok','Guardado.'); }
         catch (Throwable $ex) { $this->flash('error',$ex->getMessage()); }
+        $this->redirect('catalogos/municipios');
+    }
+    public function municipiosEliminar(): void {
+        $this->guard();
+        try { MunicipioModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->redirect('catalogos/municipios');
     }
 
