@@ -13,4 +13,8 @@ class EstadoModel extends Model {
         self::execute('EXEC citas.spCambioEstado @id_CATALOGO_ESTADOS=:id, @nombre=:n, @id_CATALOGO_PAIS=:p, @id_usuario=:u',
             [':id'=>$id, ':n'=>$nombre, ':p'=>$idPais, ':u'=>self::currentUserId()]);
     }
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaEstado @id_CATALOGO_ESTADOS=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
 }
