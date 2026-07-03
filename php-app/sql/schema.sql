@@ -1772,6 +1772,99 @@ GO
 -- SEMILLA
 -- =====================================================================
 
+-- =====================================================================
+-- BAJAS DE CATALOGOS (DELETE fisico, propaga error de FK)
+-- =====================================================================
+CREATE OR ALTER PROCEDURE citas.spBajaPais
+    @id_CATALOGO_PAIS INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM citas.CATALOGO_PAIS WHERE id_CATALOGO_PAIS=@id_CATALOGO_PAIS;
+        INSERT INTO citas.LOG VALUES('CATALOGO_PAIS','spBajaPais','CATALOGO_PAIS',
+            'Baja Pais id='+CONVERT(VARCHAR(20),@id_CATALOGO_PAIS),GETDATE(),@id_usuario);
+    END TRY
+    BEGIN CATCH
+        DECLARE @err VARCHAR(2000)='ERROR spBajaPais: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CATALOGO_PAIS','spBajaPais','CATALOGO_PAIS',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spBajaEstado
+    @id_CATALOGO_ESTADOS INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM citas.CATALOGO_ESTADOS WHERE id_CATALOGO_ESTADOS=@id_CATALOGO_ESTADOS;
+        INSERT INTO citas.LOG VALUES('CATALOGO_ESTADOS','spBajaEstado','CATALOGO_ESTADOS',
+            'Baja Estado id='+CONVERT(VARCHAR(20),@id_CATALOGO_ESTADOS),GETDATE(),@id_usuario);
+    END TRY
+    BEGIN CATCH
+        DECLARE @err VARCHAR(2000)='ERROR spBajaEstado: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CATALOGO_ESTADOS','spBajaEstado','CATALOGO_ESTADOS',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spBajaMunicipio
+    @id_CATALOGO_MUNICIPIO INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM citas.CATALOGO_MUNICIPIO WHERE id_CATALOGO_MUNICIPIO=@id_CATALOGO_MUNICIPIO;
+        INSERT INTO citas.LOG VALUES('CATALOGO_MUNICIPIO','spBajaMunicipio','CATALOGO_MUNICIPIO',
+            'Baja Municipio id='+CONVERT(VARCHAR(20),@id_CATALOGO_MUNICIPIO),GETDATE(),@id_usuario);
+    END TRY
+    BEGIN CATCH
+        DECLARE @err VARCHAR(2000)='ERROR spBajaMunicipio: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CATALOGO_MUNICIPIO','spBajaMunicipio','CATALOGO_MUNICIPIO',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spBajaGenero
+    @id_CATALOGO_GENERO INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM citas.CATALOGO_GENERO WHERE id_CATALOGO_GENERO=@id_CATALOGO_GENERO;
+        INSERT INTO citas.LOG VALUES('CATALOGO_GENERO','spBajaGenero','CATALOGO_GENERO',
+            'Baja Genero id='+CONVERT(VARCHAR(20),@id_CATALOGO_GENERO),GETDATE(),@id_usuario);
+    END TRY
+    BEGIN CATCH
+        DECLARE @err VARCHAR(2000)='ERROR spBajaGenero: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CATALOGO_GENERO','spBajaGenero','CATALOGO_GENERO',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spBajaEstadoCita
+    @id_CATALOGO_ESTADO_CITAS INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM citas.CATALOGO_ESTADO_CITAS WHERE id_CATALOGO_ESTADO_CITAS=@id_CATALOGO_ESTADO_CITAS;
+        INSERT INTO citas.LOG VALUES('CATALOGO_ESTADO_CITAS','spBajaEstadoCita','CATALOGO_ESTADO_CITAS',
+            'Baja EstadoCita id='+CONVERT(VARCHAR(20),@id_CATALOGO_ESTADO_CITAS),GETDATE(),@id_usuario);
+    END TRY
+    BEGIN CATCH
+        DECLARE @err VARCHAR(2000)='ERROR spBajaEstadoCita: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CATALOGO_ESTADO_CITAS','spBajaEstadoCita','CATALOGO_ESTADO_CITAS',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
 -- Catalogos base
 DECLARE @id_pais INT;
 INSERT INTO citas.CATALOGO_PAIS(nombre,id_usuario_creacion,fecha_creacion)
