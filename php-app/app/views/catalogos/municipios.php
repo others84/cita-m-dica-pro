@@ -39,6 +39,11 @@
         <td><?= htmlspecialchars((string)($r['pais'] ?? '')) ?></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url('catalogos/municipios?edit=' . (int)$r['id_CATALOGO_MUNICIPIO']) ?>">Editar</a>
+          <form method="post" action="<?= url('catalogos/municipiosEliminar') ?>" style="display:inline"
+                onsubmit="return confirm('¿Eliminar el municipio &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+            <input type="hidden" name="id" value="<?= (int)$r['id_CATALOGO_MUNICIPIO'] ?>">
+            <button class="btn btn-danger" type="submit">Baja</button>
+          </form>
         </td>
       </tr>
     <?php endforeach; endif; ?>
