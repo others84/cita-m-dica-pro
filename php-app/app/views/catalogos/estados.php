@@ -19,13 +19,20 @@
   </form>
 </div>
 <table class="data">
-  <thead><tr><th>Nombre</th><th>País</th><th style="width:160px">Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th>País</th><th style="width:220px">Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $r): ?>
       <tr>
         <td><?= htmlspecialchars($r['nombre']) ?></td>
         <td><?= htmlspecialchars((string)($r['pais'] ?? '')) ?></td>
-        <td class="acts"><a class="btn btn-sec" href="<?= url('catalogos/estados?edit=' . (int)$r['id_CATALOGO_ESTADOS']) ?>">Editar</a></td>
+        <td class="acts">
+          <a class="btn btn-sec" href="<?= url('catalogos/estados?edit=' . (int)$r['id_CATALOGO_ESTADOS']) ?>">Editar</a>
+          <form method="post" action="<?= url('catalogos/estadosEliminar') ?>" style="display:inline"
+                onsubmit="return confirm('¿Eliminar el estado &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+            <input type="hidden" name="id" value="<?= (int)$r['id_CATALOGO_ESTADOS'] ?>">
+            <button class="btn btn-danger" type="submit">Baja</button>
+          </form>
+        </td>
       </tr>
     <?php endforeach; ?>
   </tbody>
