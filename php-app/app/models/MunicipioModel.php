@@ -13,4 +13,8 @@ class MunicipioModel extends Model {
         self::execute('EXEC citas.spCambioMunicipio @id_CATALOGO_MUNICIPIO=:id, @nombre=:n, @id_CATALOGO_ESTADOS=:e, @id_usuario=:u',
             [':id'=>$id, ':n'=>$nombre, ':e'=>$idEstado, ':u'=>self::currentUserId()]);
     }
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaMunicipio @id_CATALOGO_MUNICIPIO=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
 }
