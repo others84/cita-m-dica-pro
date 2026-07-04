@@ -19,6 +19,23 @@ if (strpos($controller, '/') !== false) {
     $deleteAction = $controller . '/eliminar';
 }
 ?>
+<?php if (!empty($rol) && $rol==='admin_sistema' && !empty($clinicas)): ?>
+<div class="card" style="margin-bottom:1rem">
+  <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
+  <form method="get" action="<?= url($controller) ?>" class="form-grid">
+    <label>Clinica
+      <select name="f_clinica" onchange="this.form.submit()">
+        <option value="">-- todas --</option>
+        <?php foreach ($clinicas as $cl): ?>
+          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= (int)($fClinica ?? 0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
+            <?= htmlspecialchars($cl['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+</div>
+<?php endif; ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)"><?= htmlspecialchars($title) ?></h2>
 </div>

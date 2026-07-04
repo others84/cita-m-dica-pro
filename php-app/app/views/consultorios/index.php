@@ -1,3 +1,4 @@
+<?php $controller='consultorios'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar consultorio' : 'Nuevo consultorio' ?></h2>
   <form method="post" action="<?= url('consultorios/guardar') ?>" class="form-grid">
