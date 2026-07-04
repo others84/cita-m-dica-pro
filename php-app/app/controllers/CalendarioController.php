@@ -2,15 +2,18 @@
 require_once __DIR__ . '/../core/Controller.php';
 
 require_once __DIR__ . '/../models/CitaModel.php';
+require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class CalendarioController extends Controller {
     public function index(): void {
         $this->requireLogin();
         $user   = $_SESSION['user'];
         $rol    = $user['rol'] ?? '';
+        $userClin = $user['id_CLINICA'] ?? null;
+        $fClinica = $rol === 'admin_sistema'
+            ? (isset($_GET['f_clinica']) && $_GET['f_clinica']!=='' ? (int)$_GET['f_clinica'] : null)
+            : ($userClin ? (int)$userClin : null);
 
-        // Si el rol es medico y existe id_USUARIOS->id_MEDICO, podria filtrarse;
-        // por ahora se muestran todas las citas en un rango razonable.
         $idMedico = null;
         $desde = date('Y-m-d', strtotime('-30 days'));
         $hasta = date('Y-m-d', strtotime('+90 days'));
@@ -18,7 +21,7 @@ class CalendarioController extends Controller {
         $eventos = [];
         $errorCarga = null;
         try {
-            $citas = CitaModel::listar($idMedico, $desde, $hasta);
+            $citas = CitaModel::listar($idMedico, $desde, $hasta, $fClinica);
             foreach ($citas as $c) {
                 $fecha = $c['fecha_cita'] instanceof DateTime
                     ? $c['fecha_cita']->format('Y-m-d')
@@ -53,6 +56,9 @@ class CalendarioController extends Controller {
             'title'       => 'Calendario de Citas',
             'eventos'     => $eventos,
             'errorCarga'  => $errorCarga,
+            'clinicas'    => ClinicaModel::listar(),
+            'fClinica'    => $fClinica,
+            'rol'         => $rol,
         ]);
     }
 }

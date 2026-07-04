@@ -686,10 +686,20 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidades
+    @id_CLINICA INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT id_CATALOGO_ESPECIALIDAD, nombre FROM citas.CATALOGO_ESPECIALIDAD ORDER BY nombre;
+    IF @id_CLINICA IS NULL
+        SELECT id_CATALOGO_ESPECIALIDAD, nombre
+          FROM citas.CATALOGO_ESPECIALIDAD ORDER BY nombre;
+    ELSE
+        SELECT DISTINCT e.id_CATALOGO_ESPECIALIDAD, e.nombre
+          FROM citas.CATALOGO_ESPECIALIDAD e
+          JOIN citas.CITA ci ON ci.id_CATALOGO_ESPECIALIDAD = e.id_CATALOGO_ESPECIALIDAD
+          JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
+         WHERE p.id_CLINICA = @id_CLINICA
+         ORDER BY e.nombre;
 END
 GO
 
@@ -1477,10 +1487,20 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spRegresaMedicos
+    @id_CLINICA INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT id_MEDICO, nombre_completo, activo FROM citas.MEDICO ORDER BY nombre_completo;
+    IF @id_CLINICA IS NULL
+        SELECT id_MEDICO, nombre_completo, activo
+          FROM citas.MEDICO ORDER BY nombre_completo;
+    ELSE
+        SELECT DISTINCT m.id_MEDICO, m.nombre_completo, m.activo
+          FROM citas.MEDICO m
+          JOIN citas.CITA ci ON ci.id_MEDICO = m.id_MEDICO
+          JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
+         WHERE p.id_CLINICA = @id_CLINICA
+         ORDER BY m.nombre_completo;
 END
 GO
 

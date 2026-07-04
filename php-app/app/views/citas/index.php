@@ -1,3 +1,4 @@
+<?php $controller='citas'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)">Citas registradas</h2>
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>

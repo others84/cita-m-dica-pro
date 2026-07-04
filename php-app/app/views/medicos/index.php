@@ -1,3 +1,4 @@
+<?php $controller='medicos'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar medico #' . (int)$editId : 'Nuevo medico' ?></h2>
   <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid">

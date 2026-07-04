@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/../core/Model.php';
 class MedicoModel extends Model {
-    public static function listar(): array { return self::query('EXEC citas.spRegresaMedicos'); }
+    public static function listar(?int $idClinica = null): array {
+        return self::query('EXEC citas.spRegresaMedicos @id_CLINICA=:c', [':c'=>$idClinica]);
+    }
     public static function alta(string $nombre): int {
         return self::executeWithOutput('spAltaMedico', ['@nombre_completo'=>$nombre, '@id_usuario'=>self::currentUserId()]);
     }

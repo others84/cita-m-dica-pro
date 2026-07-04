@@ -6,14 +6,20 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 class ConsultoriosController extends Controller {
     public function index(): void {
         $this->requireLogin(['administrador','admin_sistema']);
+        $rol      = $_SESSION['user']['rol'] ?? '';
+        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
+        $fClinica = $rol === 'admin_sistema'
+            ? $this->intOrNull($_GET['f_clinica'] ?? null)
+            : ($userClin ? (int)$userClin : null);
         $editId = $this->intOrNull($_GET['edit'] ?? null);
-        $rows = ConsultorioModel::listar();
+        $rows = ConsultorioModel::listar($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CONSULTORIO']===$editId) { $editRow=$r; break; }
         $this->view('consultorios/index', [
             'title'=>'Consultorios','rows'=>$rows,
             'editId'=>$editId,'editRow'=>$editRow,
             'clinicas'=>ClinicaModel::listar(),
+            'fClinica'=>$fClinica,'rol'=>$rol,
         ]);
     }
     public function guardar(): void {

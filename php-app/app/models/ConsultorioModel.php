@@ -2,12 +2,13 @@
 require_once __DIR__ . '/../core/Model.php';
 class ConsultorioModel extends Model {
     public static function listar(?int $idClinica = null): array {
-        // spRegresaConsultorios no acepta parametros; filtrar por clinica
-        // usa el SP dedicado spRegresaConsultoriosPorClinica.
+        $rows = self::query('EXEC citas.spRegresaConsultorios');
         if ($idClinica !== null) {
-            return self::query('EXEC citas.spRegresaConsultoriosPorClinica @id_CLINICA=:c', [':c'=>$idClinica]);
+            $rows = array_values(array_filter($rows, function($r) use ($idClinica) {
+                return (int)($r['id_CLINICA'] ?? 0) === $idClinica;
+            }));
         }
-        return self::query('EXEC citas.spRegresaConsultorios');
+        return $rows;
     }
     public static function alta(int $idClinica, string $nombre): int {
         return self::executeWithOutput('spAltaConsultorio', [

@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/../core/Model.php';
 class EspecialidadModel extends Model {
-    public static function listar(): array { return self::query('EXEC citas.spRegresaEspecialidades'); }
+    public static function listar(?int $idClinica = null): array {
+        return self::query('EXEC citas.spRegresaEspecialidades @id_CLINICA=:c', [':c'=>$idClinica]);
+    }
     public static function alta(string $nombre): int {
         return self::executeWithOutput('spAltaEspecialidad', ['@nombre'=>$nombre, '@id_usuario'=>self::currentUserId()]);
     }
