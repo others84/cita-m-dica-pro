@@ -6,17 +6,32 @@ require_once __DIR__ . '/../models/MedicoModel.php';
 require_once __DIR__ . '/../models/ConsultorioModel.php';
 require_once __DIR__ . '/../models/EspecialidadModel.php';
 require_once __DIR__ . '/../models/EstadoCitaModel.php';
+require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class CitasController extends Controller {
     public function index(): void {
         $this->requireLogin();
+        $rol      = $_SESSION['user']['rol'] ?? '';
+        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
+        $fClinica = $rol === 'admin_sistema'
+            ? $this->intOrNull($_GET['f_clinica'] ?? null)
+            : ($userClin ? (int)$userClin : null);
         try {
-            $citas = CitaModel::listar(null, date('Y-m-d', strtotime('-30 days')), date('Y-m-d', strtotime('+90 days')));
+            $citas = CitaModel::listar(null,
+                date('Y-m-d', strtotime('-30 days')),
+                date('Y-m-d', strtotime('+90 days')),
+                $fClinica);
         } catch (Throwable $e) {
             $this->flash('error', 'Error al cargar citas: ' . $e->getMessage());
             $citas = [];
         }
-        $this->view('citas/index', ['title' => 'Citas', 'citas' => $citas]);
+        $this->view('citas/index', [
+            'title'    => 'Citas',
+            'citas'    => $citas,
+            'clinicas' => ClinicaModel::listar(),
+            'fClinica' => $fClinica,
+            'rol'      => $rol,
+        ]);
     }
 
     public function nueva(): void { $this->form(); }
