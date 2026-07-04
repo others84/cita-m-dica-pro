@@ -7,8 +7,17 @@
 // trae "catalogos/paises", la accion de guardar debe ir en la MISMA segunda
 // parte: "catalogos/paisesGuardar" (no "catalogos/paises/guardar", que caeria
 // en la accion "paises" con "guardar" como parametro y nunca ejecutaria el SP).
-$saveAction = $controller . 'Guardar';
-$deleteAction = $controller . 'Eliminar';
+// Si el slug ya trae subruta (ej. "catalogos/paises"), concatenamos
+// la accion pegada: "catalogos/paisesGuardar". Si es un controlador
+// dedicado (ej. "especialidades"), la accion se separa con "/":
+// "especialidades/guardar".
+if (strpos($controller, '/') !== false) {
+    $saveAction   = $controller . 'Guardar';
+    $deleteAction = $controller . 'Eliminar';
+} else {
+    $saveAction   = $controller . '/guardar';
+    $deleteAction = $controller . '/eliminar';
+}
 ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)"><?= htmlspecialchars($title) ?></h2>
