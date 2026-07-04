@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="<?= asset('vendor/event-calendar/event-calendar.min.css') ?>?v=372">
+<?php $controller='calendario'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 
 <?php if (!empty($errorCarga)): ?>
   <div class="flash flash-error">No se pudieron cargar las citas desde la base de datos: <?= htmlspecialchars($errorCarga) ?></div>
