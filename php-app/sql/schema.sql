@@ -1394,14 +1394,14 @@ GO
 
 -- =========================  MEDICO  ==================================
 CREATE OR ALTER PROCEDURE citas.spAltaMedico
-    @nombre_completo VARCHAR(150), @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @id_CLINICA INT, @nombre_completo VARCHAR(150), @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            INSERT INTO citas.MEDICO(nombre_completo,activo,id_usuario_creacion,fecha_creacion)
-            VALUES(@nombre_completo,1,@id_usuario,GETDATE());
+            INSERT INTO citas.MEDICO(id_CLINICA,nombre_completo,activo,id_usuario_creacion,fecha_creacion)
+            VALUES(@id_CLINICA,@nombre_completo,1,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
             DECLARE @msg VARCHAR(2000);
             SET @msg='Alta Medico id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre_completo;
@@ -1419,14 +1419,15 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spCambioMedico
-    @id_MEDICO INT, @nombre_completo VARCHAR(150), @id_usuario TINYINT
+    @id_MEDICO INT, @id_CLINICA INT, @nombre_completo VARCHAR(150), @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
             UPDATE citas.MEDICO
-               SET nombre_completo=@nombre_completo,
+               SET id_CLINICA=@id_CLINICA,
+                   nombre_completo=@nombre_completo,
                    id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_MEDICO=@id_MEDICO;
             DECLARE @msg VARCHAR(2000);
@@ -1497,29 +1498,25 @@ CREATE OR ALTER PROCEDURE citas.spRegresaMedicos
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @id_CLINICA IS NULL
-        SELECT id_MEDICO, nombre_completo, activo
-          FROM citas.MEDICO ORDER BY nombre_completo;
-    ELSE
-        SELECT DISTINCT m.id_MEDICO, m.nombre_completo, m.activo
-          FROM citas.MEDICO m
-          JOIN citas.CITA ci ON ci.id_MEDICO = m.id_MEDICO
-          JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
-         WHERE p.id_CLINICA = @id_CLINICA
-         ORDER BY m.nombre_completo;
+    SELECT m.id_MEDICO, m.id_CLINICA, c.nombre AS clinica,
+           m.nombre_completo, m.activo
+      FROM citas.MEDICO m
+      JOIN citas.CLINICA c ON c.id_CLINICA = m.id_CLINICA
+     WHERE (@id_CLINICA IS NULL OR m.id_CLINICA = @id_CLINICA)
+     ORDER BY m.nombre_completo;
 END
 GO
 
 -- =========================  MEDICO_ESPECIALIDAD  =====================
 CREATE OR ALTER PROCEDURE citas.spAltaMedicoEspecialidad
-    @id_MEDICO INT, @id_CATALOGO_ESPECIALIDAD INT, @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @id_MEDICO INT, @id_CATALOGO_ESPECIALIDAD INT, @id_CLINICA INT, @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            INSERT INTO citas.MEDICO_ESPECIALIDAD(id_MEDICO,id_CATALOGO_ESPECIALIDAD,id_usuario_creacion,fecha_creacion)
-            VALUES(@id_MEDICO,@id_CATALOGO_ESPECIALIDAD,@id_usuario,GETDATE());
+            INSERT INTO citas.MEDICO_ESPECIALIDAD(id_MEDICO,id_CATALOGO_ESPECIALIDAD,id_CLINICA,id_usuario_creacion,fecha_creacion)
+            VALUES(@id_MEDICO,@id_CATALOGO_ESPECIALIDAD,@id_CLINICA,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
             DECLARE @msg VARCHAR(2000);
             SET @msg='Alta MedicoEspecialidad id='+CONVERT(VARCHAR(20),@id_nuevo);
@@ -1564,9 +1561,11 @@ CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidadesPorMedico
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT me.id_MEDICO_ESPECIALIDAD, me.id_CATALOGO_ESPECIALIDAD, e.nombre AS especialidad
+    SELECT me.id_MEDICO_ESPECIALIDAD, me.id_CATALOGO_ESPECIALIDAD, e.nombre AS especialidad,
+           me.id_CLINICA, c.nombre AS clinica
       FROM citas.MEDICO_ESPECIALIDAD me
       JOIN citas.CATALOGO_ESPECIALIDAD e ON e.id_CATALOGO_ESPECIALIDAD = me.id_CATALOGO_ESPECIALIDAD
+      JOIN citas.CLINICA c ON c.id_CLINICA = me.id_CLINICA
      WHERE me.id_MEDICO = @id_MEDICO
      ORDER BY e.nombre;
 END
