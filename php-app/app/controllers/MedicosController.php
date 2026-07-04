@@ -24,10 +24,11 @@ class MedicosController extends Controller {
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
+        $idClinica = (int)$this->input('id_CLINICA');
         $nombre = $this->input('nombre_completo');
         try {
-            if ($id) { MedicoModel::cambio($id, $nombre); $this->flash('ok','Actualizado.'); }
-            else     { MedicoModel::alta($nombre);        $this->flash('ok','Registrado.'); }
+            if ($id) { MedicoModel::cambio($id, $idClinica, $nombre); $this->flash('ok','Actualizado.'); }
+            else     { MedicoModel::alta($idClinica, $nombre);        $this->flash('ok','Registrado.'); }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('medicos');
     }
