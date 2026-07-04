@@ -2,46 +2,36 @@
 $fn = $editRow['fecha_nacimiento'] ?? '';
 if ($fn instanceof DateTime) $fn = $fn->format('Y-m-d');
 $fn = $fn ? substr((string)$fn,0,10) : '';
+// Mapeos para el cascada Pais -> Estado -> Municipio
+$paisPorEstado = [];
+foreach ($estados as $e) {
+  $paisPorEstado[(int)$e['id_CATALOGO_ESTADOS']] = (int)($e['id_CATALOGO_PAIS'] ?? 0);
+}
+$estadoPorMun = [];
+foreach ($municipios as $mu) {
+  $estadoPorMun[(int)$mu['id_CATALOGO_MUNICIPIO']] = (int)($mu['id_CATALOGO_ESTADOS'] ?? 0);
+}
+$selMun    = isset($editRow) ? (int)($editRow['id_CATALOGO_MUNICIPIO'] ?? 0) : 0;
+$selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
+$selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 ?>
+<?php if (($rol ?? '') === 'admin_sistema'): ?>
 <div class="card" style="margin-bottom:1rem">
-  <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
+  <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
   <form method="get" action="<?= url('pacientes') ?>" class="form-grid">
-    <label>Pais
-      <select name="f_pais">
-        <option value="">-- todos --</option>
-        <?php foreach ($paises as $p): ?>
-          <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= (int)($fPais ?? 0)===(int)$p['id_CATALOGO_PAIS']?'selected':'' ?>>
-            <?= htmlspecialchars($p['nombre']) ?>
+    <label>Clinica
+      <select name="f_clinica" onchange="this.form.submit()">
+        <option value="">-- todas --</option>
+        <?php foreach ($clinicas as $cl): ?>
+          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= (int)($fClinica ?? 0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
+            <?= htmlspecialchars($cl['nombre']) ?>
           </option>
         <?php endforeach; ?>
       </select>
     </label>
-    <label>Estado
-      <select name="f_estado">
-        <option value="">-- todos --</option>
-        <?php foreach ($estados as $e): ?>
-          <option value="<?= (int)$e['id_CATALOGO_ESTADOS'] ?>" <?= (int)($fEstado ?? 0)===(int)$e['id_CATALOGO_ESTADOS']?'selected':'' ?>>
-            <?= htmlspecialchars($e['nombre'] . (isset($e['pais']) ? ' - ' . $e['pais'] : '')) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-    <label>Municipio
-      <select name="f_municipio">
-        <option value="">-- todos --</option>
-        <?php foreach ($municipios as $mu): ?>
-          <option value="<?= (int)$mu['id_CATALOGO_MUNICIPIO'] ?>" <?= (int)($fMunicipio ?? 0)===(int)$mu['id_CATALOGO_MUNICIPIO']?'selected':'' ?>>
-            <?= htmlspecialchars($mu['nombre'] . (isset($mu['estado']) ? ' - ' . $mu['estado'] : '')) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-    <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit">Filtrar</button>
-      <a class="btn btn-sec" href="<?= url('pacientes') ?>">Limpiar</a>
-    </div>
   </form>
 </div>
+<?php endif; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">
@@ -73,14 +63,24 @@ $fn = $fn ? substr((string)$fn,0,10) : '';
         <?php endforeach; ?>
       </select>
     </label>
-    <label>Municipio
-      <select name="id_CATALOGO_MUNICIPIO" required>
+    <label>Pais
+      <select id="sel_pais" required>
         <option value="">-- seleccione --</option>
-        <?php foreach ($municipios as $mu): ?>
-          <option value="<?= (int)$mu['id_CATALOGO_MUNICIPIO'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_MUNICIPIO']??0)===(int)$mu['id_CATALOGO_MUNICIPIO']?'selected':'' ?>>
-            <?= htmlspecialchars($mu['nombre'] . ' - ' . ($mu['estado'] ?? '')) ?>
+        <?php foreach ($paises as $p): ?>
+          <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= $selPais===(int)$p['id_CATALOGO_PAIS']?'selected':'' ?>>
+            <?= htmlspecialchars($p['nombre']) ?>
           </option>
         <?php endforeach; ?>
+      </select>
+    </label>
+    <label>Estado
+      <select id="sel_estado" required>
+        <option value="">-- seleccione --</option>
+      </select>
+    </label>
+    <label>Municipio
+      <select id="sel_municipio" name="id_CATALOGO_MUNICIPIO" required>
+        <option value="">-- seleccione --</option>
       </select>
     </label>
     <div class="form-actions" style="grid-column:1/-1">
@@ -89,6 +89,43 @@ $fn = $fn ? substr((string)$fn,0,10) : '';
     </div>
   </form>
 </div>
+
+<script>
+(function(){
+  var ESTADOS = <?= json_encode(array_map(function($e){
+    return ['id'=>(int)$e['id_CATALOGO_ESTADOS'],'nombre'=>$e['nombre'],'pais'=>(int)($e['id_CATALOGO_PAIS']??0)];
+  }, $estados)) ?>;
+  var MUNIS = <?= json_encode(array_map(function($m){
+    return ['id'=>(int)$m['id_CATALOGO_MUNICIPIO'],'nombre'=>$m['nombre'],'estado'=>(int)($m['id_CATALOGO_ESTADOS']??0)];
+  }, $municipios)) ?>;
+  var selPais = <?= (int)$selPais ?>, selEstado = <?= (int)$selEstado ?>, selMun = <?= (int)$selMun ?>;
+  var pa = document.getElementById('sel_pais'),
+      es = document.getElementById('sel_estado'),
+      mu = document.getElementById('sel_municipio');
+  function fillEstados(){
+    var pid = parseInt(pa.value||0,10);
+    es.innerHTML = '<option value="">-- seleccione --</option>';
+    ESTADOS.filter(function(e){return e.pais===pid;}).forEach(function(e){
+      var o = new Option(e.nombre, e.id);
+      if (e.id===selEstado) o.selected = true;
+      es.appendChild(o);
+    });
+    fillMunis();
+  }
+  function fillMunis(){
+    var eid = parseInt(es.value||0,10);
+    mu.innerHTML = '<option value="">-- seleccione --</option>';
+    MUNIS.filter(function(m){return m.estado===eid;}).forEach(function(m){
+      var o = new Option(m.nombre, m.id);
+      if (m.id===selMun) o.selected = true;
+      mu.appendChild(o);
+    });
+  }
+  pa.addEventListener('change', function(){ selEstado=0; selMun=0; fillEstados(); });
+  es.addEventListener('change', function(){ selMun=0; fillMunis(); });
+  if (selPais) fillEstados(); // pre-carga en modo edicion
+})();
+</script>
 
 <table class="data">
   <thead><tr><th>Nombre</th><th>Telefono</th><th>Email</th><th>Municipio</th><th>Acciones</th></tr></thead>

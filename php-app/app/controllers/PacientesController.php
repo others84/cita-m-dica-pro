@@ -13,19 +13,15 @@ class PacientesController extends Controller {
         $editId = $this->intOrNull($_GET['edit'] ?? null);
         $editRow = null;
         $rows = [];
-        $fPais   = $this->intOrNull($_GET['f_pais']      ?? null);
-        $fEstado = $this->intOrNull($_GET['f_estado']    ?? null);
-        $fMun    = $this->intOrNull($_GET['f_municipio'] ?? null);
+        $rol       = $_SESSION['user']['rol'] ?? '';
+        $userClin  = $_SESSION['user']['id_CLINICA'] ?? null;
+        // Filtro por clinica: solo admin_sistema puede elegir; los demas se
+        // limitan a su propia clinica.
+        $fClinica = $rol === 'admin_sistema'
+            ? $this->intOrNull($_GET['f_clinica'] ?? null)
+            : ($userClin ? (int)$userClin : null);
         try {
-            $rows = PacienteModel::listar();
-            if ($fPais || $fEstado || $fMun) {
-                $rows = array_values(array_filter($rows, function ($r) use ($fPais, $fEstado, $fMun) {
-                    if ($fPais   && (int)($r['id_CATALOGO_PAIS']      ?? 0) !== $fPais)   return false;
-                    if ($fEstado && (int)($r['id_CATALOGO_ESTADOS']   ?? 0) !== $fEstado) return false;
-                    if ($fMun    && (int)($r['id_CATALOGO_MUNICIPIO'] ?? 0) !== $fMun)    return false;
-                    return true;
-                }));
-            }
+            $rows = PacienteModel::listar($fClinica);
             if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->view('pacientes/index', [
@@ -38,9 +34,8 @@ class PacientesController extends Controller {
             'clinicas'  => ClinicaModel::listar(),
             'paises'    => PaisModel::listar(),
             'estados'   => EstadoModel::listar(),
-            'fPais'     => $fPais,
-            'fEstado'   => $fEstado,
-            'fMunicipio'=> $fMun,
+            'fClinica'  => $fClinica,
+            'rol'       => $rol,
         ]);
     }
 
