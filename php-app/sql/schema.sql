@@ -1237,6 +1237,30 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE citas.spBajaConsultorio
+    @id_CONSULTORIO INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+            DELETE FROM citas.CLINICA_CONSULTORIO WHERE id_CONSULTORIO=@id_CONSULTORIO;
+            DELETE FROM citas.CONSULTORIO WHERE id_CONSULTORIO=@id_CONSULTORIO;
+            DECLARE @msg VARCHAR(2000);
+            SET @msg='Baja Consultorio id='+CONVERT(VARCHAR(20),@id_CONSULTORIO);
+            INSERT INTO citas.LOG VALUES('CONSULTORIO','spBajaConsultorio','CONSULTORIO',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spBajaConsultorio: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CONSULTORIO','spBajaConsultorio','CONSULTORIO',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
 CREATE OR ALTER PROCEDURE citas.spDesactivaConsultorio
     @id_CONSULTORIO INT, @id_usuario TINYINT
 AS
