@@ -22,16 +22,16 @@
   </form>
 </div>
 <table class="data">
-  <thead><tr><th>ID</th><th>Clinica</th><th>Nombre</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Clinica</th><th>Nombre</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $c): ?>
       <tr>
-        <td><?= (int)$c['id_CONSULTORIO'] ?></td>
-        <td><?= (int)($c['id_CLINICA'] ?? 0) ?></td>
+        <td><?= htmlspecialchars((string)($c['clinica'] ?? '')) ?></td>
         <td><?= htmlspecialchars($c['nombre']) ?></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url('consultorios?edit=' . (int)$c['id_CONSULTORIO']) ?>">Editar</a>
-          <form method="post" action="<?= url('consultorios/eliminar') ?>" style="display:inline" onsubmit="return confirm('Eliminar?')">
+          <form method="post" action="<?= url('consultorios/eliminar') ?>" style="display:inline"
+                onsubmit="return confirm('¿Eliminar el consultorio &quot;<?= htmlspecialchars(addslashes($c['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
             <input type="hidden" name="id" value="<?= (int)$c['id_CONSULTORIO'] ?>">
             <button class="btn btn-danger">Baja</button>
           </form>

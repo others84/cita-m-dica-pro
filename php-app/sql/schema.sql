@@ -1154,7 +1154,7 @@ GO
 
 -- =========================  CONSULTORIO  =============================
 CREATE OR ALTER PROCEDURE citas.spAltaConsultorio
-    @nombre VARCHAR(80), @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @id_CLINICA INT, @nombre VARCHAR(80), @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1163,8 +1163,10 @@ BEGIN
             INSERT INTO citas.CONSULTORIO(nombre,activo,id_usuario_creacion,fecha_creacion)
             VALUES(@nombre,1,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
+            INSERT INTO citas.CLINICA_CONSULTORIO(id_CLINICA,id_CONSULTORIO,id_usuario_creacion,fecha_creacion)
+            VALUES(@id_CLINICA,@id_nuevo,@id_usuario,GETDATE());
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Alta Consultorio id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre;
+            SET @msg='Alta Consultorio id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre+' clinica='+CONVERT(VARCHAR(20),@id_CLINICA);
             INSERT INTO citas.LOG VALUES('CONSULTORIO','spAltaConsultorio','CONSULTORIO',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -1179,7 +1181,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spCambioConsultorio
-    @id_CONSULTORIO INT, @nombre VARCHAR(80), @id_usuario TINYINT
+    @id_CONSULTORIO INT, @id_CLINICA INT, @nombre VARCHAR(80), @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1188,6 +1190,13 @@ BEGIN
             UPDATE citas.CONSULTORIO
                SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_CONSULTORIO=@id_CONSULTORIO;
+            IF EXISTS(SELECT 1 FROM citas.CLINICA_CONSULTORIO WHERE id_CONSULTORIO=@id_CONSULTORIO)
+                UPDATE citas.CLINICA_CONSULTORIO
+                   SET id_CLINICA=@id_CLINICA, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
+                 WHERE id_CONSULTORIO=@id_CONSULTORIO;
+            ELSE
+                INSERT INTO citas.CLINICA_CONSULTORIO(id_CLINICA,id_CONSULTORIO,id_usuario_creacion,fecha_creacion)
+                VALUES(@id_CLINICA,@id_CONSULTORIO,@id_usuario,GETDATE());
             DECLARE @msg VARCHAR(2000);
             SET @msg='Cambio Consultorio id='+CONVERT(VARCHAR(20),@id_CONSULTORIO);
             INSERT INTO citas.LOG VALUES('CONSULTORIO','spCambioConsultorio','CONSULTORIO',@msg,GETDATE(),@id_usuario);
@@ -1257,7 +1266,12 @@ CREATE OR ALTER PROCEDURE citas.spRegresaConsultorios
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT id_CONSULTORIO, nombre, activo FROM citas.CONSULTORIO ORDER BY nombre;
+    SELECT co.id_CONSULTORIO, co.nombre, co.activo,
+           cc.id_CLINICA, cl.nombre AS clinica
+      FROM citas.CONSULTORIO co
+      LEFT JOIN citas.CLINICA_CONSULTORIO cc ON cc.id_CONSULTORIO = co.id_CONSULTORIO
+      LEFT JOIN citas.CLINICA cl ON cl.id_CLINICA = cc.id_CLINICA
+     ORDER BY co.nombre;
 END
 GO
 
