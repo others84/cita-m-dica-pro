@@ -36,14 +36,14 @@
   </form>
 </div>
 <table class="data">
-  <thead><tr><th>ID</th><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Clinica</th><th>Activo</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $u): ?>
       <tr>
-        <td><?= (int)$u['id_USUARIOS'] ?></td>
         <td><?= htmlspecialchars($u['usuario']) ?></td>
         <td><?= htmlspecialchars($u['nombre_completo']) ?></td>
         <td><?= htmlspecialchars($u['rol'] ?? '') ?></td>
+        <td><?= htmlspecialchars($u['clinica'] ?? '—') ?></td>
         <td><span class="badge <?= empty($u['activo'])?'off':'' ?>"><?= empty($u['activo'])?'No':'Si' ?></span></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url('catalogos/usuarios?edit=' . (int)$u['id_USUARIOS']) ?>">Editar</a>
