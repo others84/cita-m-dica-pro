@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../core/Model.php';
 class CitaModel extends Model {
-    public static function listar(?int $idMedico = null, ?string $desde = null, ?string $hasta = null): array {
+    public static function listar(?int $idMedico = null, ?string $desde = null, ?string $hasta = null, ?int $idClinica = null): array {
         return self::query(
             'EXEC citas.spRegresaCitas @id_MEDICO=:m, @id_CLINICA=:c, @fecha_desde=:d, @fecha_hasta=:h',
-            [':m'=>$idMedico, ':c'=>null, ':d'=>$desde, ':h'=>$hasta]
+            [':m'=>$idMedico, ':c'=>$idClinica, ':d'=>$desde, ':h'=>$hasta]
         );
     }
     public static function alta(array $d): int {
