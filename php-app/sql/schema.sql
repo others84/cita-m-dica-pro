@@ -181,6 +181,7 @@ CREATE TABLE citas.CLINICA (
     email                    VARCHAR(120)      NOT NULL,
     telefono                 VARCHAR(20)       NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
+    activo                   BIT               NOT NULL CONSTRAINT DF_activo_CLINICA DEFAULT (1),
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -192,6 +193,12 @@ CREATE TABLE citas.CLINICA (
 );
 GO
 CREATE UNIQUE INDEX IX_nombre_CLINICA ON citas.CLINICA(nombre);
+GO
+
+-- FK diferida: CATALOGO_ESPECIALIDAD.id_CLINICA -> CLINICA.id_CLINICA
+ALTER TABLE citas.CATALOGO_ESPECIALIDAD
+    ADD CONSTRAINT FK_id_CLINICA_CLINICA_id_CLINICA_CATALOGO_ESPECIALIDAD
+    FOREIGN KEY (id_CLINICA) REFERENCES citas.CLINICA(id_CLINICA);
 GO
 
 -- ---------- USUARIOS_CLINICA ----------
