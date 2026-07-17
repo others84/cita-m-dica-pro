@@ -1,153 +1,76 @@
-# Rediseño de la base de datos `CitasMedicas` (SQL Server 2022 Express)
 
-Sobrescribo `php-app/sql/schema.sql` desde cero y actualizo `php-app/config/config.properties`. Solo se tocan esos 2 archivos en este paso — los modelos PHP se ajustarán en una segunda fase para reflejar el nuevo esquema.
+## 1. Médicos: botones Activar / Desactivar
 
-## Decisiones confirmadas
+- **SQL `spActivaMedico` / `spDesactivaMedico` (`php-app/sql/schema.sql`)**: enriquecer el mensaje de LOG para incluir el nombre del médico y el nombre de la clínica (JOIN a `MEDICO` + `CLINICA`), formato: `Activa/Desactiva Medico id=X nombre='...' clinica='...' por usuario id=U`.
+- **`MedicoModel`**: agregar `activa(int $id)` y `desactiva(int $id)` invocando esos SPs.
+- **`MedicosController`**: agregar acciones `activar()` y `desactivar()` (POST, roles `administrador`/`admin_sistema`) que llaman al modelo y a `Database::log()` con: acción, id_MEDICO, nombre del médico, clínica y usuario en sesión (`$_SESSION['user']['usuario']`). Redirigen a `medicos`.
+- **`views/medicos/index.php`**: en la columna Acciones, sustituir/complementar el botón "Baja" con un botón que muestra "Desactivar" cuando `activo=1` y "Activar" cuando `activo=0`, apuntando a `medicos/desactivar` o `medicos/activar`.
 
-- **MEDICO ↔ CONSULTORIO:** sin relación persistida. Se eligen al crear la CITA.
-- **PACIENTE ↔ CLINICA:** `id_CLINICA NOT NULL` en PACIENTE + `UNIQUE (id_CLINICA, ap_paterno, ap_materno, nombre)`.
-- **Direcciones:** FK a `CATALOGO_MUNICIPIO` (que apunta a `CATALOGO_ESTADOS` → `CATALOGO_PAIS`). 3FN estricta: la CLINICA y el PACIENTE solo guardan `id_CATALOGO_MUNICIPIO`; estado/país se obtienen por join.
-- **USUARIOS:** `usuario`, `password_hash VARBINARY(64)`, `password_salt VARCHAR(36)`, `nombre_completo`, `email`, `activo BIT`. Cifrado `HASHBYTES('SHA2_512', password + salt)` con salt = `CONVERT(VARCHAR(36), NEWID())`.
-- **ROLES** semilla fija: `Administrador de sistema`, `Administrador de clinica`, `Medico`, `Asistente`.
-- **CITA:** `notifica_email BIT`, `notifica_wa BIT`, `horas_anticipacion_notif TINYINT NOT NULL DEFAULT 24`. `email_notif` y `celular_notif` se copian del PACIENTE al crear/modificar.
+## 2. Especialidades por clínica
 
-## Tablas (16 en esquema `citas`, todas con PK identity + 4 campos de auditoría)
+- **Esquema `CATALOGO_ESPECIALIDAD` (`schema.sql`)**: añadir columna `id_CLINICA INT NOT NULL` con FK a `CLINICA`. Cambiar índice único a `(nombre, id_CLINICA)` para permitir el mismo nombre en clínicas distintas.
+- **SPs**:
+  - `spAltaEspecialidad`: agregar `@id_CLINICA INT`; INSERT incluye la columna; LOG con nombre + clínica + usuario.
+  - `spCambioEspecialidad`: agregar `@id_CLINICA INT`; UPDATE respectivo.
+  - `spRegresaEspecialidades`: filtrar directamente por `e.id_CLINICA = @id_CLINICA` cuando no es NULL; devolver también `id_CLINICA` y `clinica` (JOIN a `CLINICA`). Elimina el join actual vía `CITA/PACIENTE`.
+- **`EspecialidadModel`**: firmas `alta(string $nombre, int $idClinica)` y `cambio(int $id, string $nombre, int $idClinica)`.
+- **`EspecialidadesController`**:
+  - En `index()`: cargar `ClinicaModel::listar()` y pasarlo a la vista.
+  - En `guardar()`: leer `id_CLINICA` (para `admin_sistema` viene del `<select>`, para `administrador` usar `$_SESSION['user']['id_CLINICA']`). Después de guardar, `Database::log()` con nombre, clínica y usuario.
+- **Vista**: dejar de usar el partial genérico `_partials/simple_catalog.php` y crear `views/especialidades/index.php` con:
+  - filtro de clínica (solo `admin_sistema`) reutilizando `_partials/filtro_clinica.php`,
+  - formulario con `<select name="id_CLINICA">` (solo `admin_sistema`; el resto lo envía como `hidden` con su clínica),
+  - tabla con columnas: Nombre, Clínica, Acciones.
 
-```text
-Catálogos:
-  CATALOGO_PAIS         (nombre)
-  CATALOGO_ESTADOS      (nombre, id_CATALOGO_PAIS FK)
-  CATALOGO_MUNICIPIO    (nombre, id_CATALOGO_ESTADOS FK)
-  CATALOGO_GENERO       (nombre)
-  CATALOGO_ESPECIALIDAD (nombre)
-  CATALOGO_ESTADO_CITAS (nombre)
+## 3. Clínicas: corregir botón "Activar" y "Desactivar"
 
-Seguridad:
-  ROLES                 (nombre, descripcion)
-  USUARIOS              (id_ROLES FK, usuario UQ, password_hash, password_salt,
-                         nombre_completo, email, activo)
-  USUARIOS_CLINICA      (id_USUARIOS FK, id_CLINICA FK) UQ(par)
+Los formularios postean a `clinicas/activar` y `clinicas/desactivar` pero el controlador no tiene esas acciones (de ahí `Acción no encontrada: activar`). Además la tabla `CLINICA` no tiene columna `activo`.
 
-Negocio:
-  CLINICA               (nombre, direccion, email, telefono,
-                         id_CATALOGO_MUNICIPIO FK)
-  CONSULTORIO           (nombre, activo)
-  CLINICA_CONSULTORIO   (id_CLINICA FK, id_CONSULTORIO FK) UQ(par)
-  MEDICO                (nombre_completo, activo)
-  MEDICO_ESPECIALIDAD   (id_MEDICO FK, id_CATALOGO_ESPECIALIDAD FK) UQ(par)
-  PACIENTE              (id_CLINICA FK, ap_paterno, ap_materno, nombre,
-                         direccion, telefono, email, fecha_nacimiento,
-                         id_CATALOGO_GENERO FK, id_CATALOGO_MUNICIPIO FK)
-                         UQ(id_CLINICA, ap_paterno, ap_materno, nombre)
-  CITA                  (id_PACIENTE FK, fecha_cita DATE, hora_inicio TIME,
-                         hora_fin TIME, id_CATALOGO_ESTADO_CITAS FK,
-                         observaciones, notifica_email BIT, notifica_wa BIT,
-                         email_notif, celular_notif, horas_anticipacion_notif,
-                         precio DECIMAL(10,2), id_MEDICO FK,
-                         id_CATALOGO_ESPECIALIDAD FK, id_CONSULTORIO FK)
+- **Esquema**: agregar `activo BIT NOT NULL DEFAULT 1` a `CLINICA`.
+- **SPs nuevos**: `spActivaClinica` y `spDesactivaClinica` (`@id_CLINICA`, `@id_usuario`) que hacen UPDATE y registran en `citas.LOG` incluyendo nombre de la clínica y usuario.
+- **`spRegresaClinicas`**: incluir `c.activo` en el SELECT.
+- **`ClinicaModel`**: agregar `activa(int $id)` y `desactiva(int $id)`.
+- **`ClinicasController`**: agregar acciones `activar()` y `desactivar()`; escribir en `app.log` (nombre de clínica + usuario + acción).
 
-Auditoría: LOG (sin los 4 campos de auditoría, según spec)
-```
+## 4. Filtro "País" en Estados
 
-## Restricciones (CHK_*)
+- **`CatalogosController::estados()`**: leer `f_pais` de `$_GET`, pasarlo a `EstadoModel::listar($fPais)` y a la vista.
+- **`views/catalogos/estados.php`**: agregar `<form GET>` con `<select name="f_pais">` (opciones desde `$paises`, opción "-- todos --") con `onchange="this.form.submit()"`, arriba de la tabla.
 
-- `CHK_hora_CITA`: `hora_fin > hora_inicio`
-- `CHK_precio_CITA`: `precio >= 0`
-- `CHK_horas_anticipacion_CITA`: `horas_anticipacion_notif BETWEEN 1 AND 168`
-- `CHK_email_PACIENTE` / `CHK_email_CLINICA` / `CHK_email_USUARIOS`: patrón básico con `LIKE '%_@_%._%'`
-- `CHK_activo_*`: `activo IN (0,1)` (redundante con BIT, pero explícito por convención).
+## 5. Filtros "País" y "Estado" en Municipios
 
-## Índices únicos (IX_*)
+- **`MunicipioModel::listar`**: aceptar también `?int $idPais = null`. Como `spRegresaMunicipios` ya recibe `@id_CATALOGO_ESTADOS`, el filtrado por país se hará en PHP con `array_filter` sobre `$row['id_CATALOGO_PAIS']` cuando venga en el resultset (verificar el SELECT del SP; si no lo devuelve, extenderlo para incluir `id_CATALOGO_PAIS`).
+- **`CatalogosController::municipios()`**: leer `f_pais` y `f_estado`, cargar `PaisModel::listar()` y `EstadoModel::listar($fPais)` para poblar los selects encadenados; aplicar filtros al listado.
+- **`views/catalogos/municipios.php`**: agregar bloque de filtros con dos `<select>` (País → Estado). Cuando cambia País, el submit recarga con los estados de ese país.
 
-- `IX_usuario_USUARIOS`
-- `IX_nombre_CATALOGO_PAIS`, `IX_nombre_id_CATALOGO_PAIS_CATALOGO_ESTADOS`, `IX_nombre_id_CATALOGO_ESTADOS_CATALOGO_MUNICIPIO`
-- `IX_nombre_CATALOGO_ESPECIALIDAD`, `IX_nombre_CATALOGO_GENERO`, `IX_nombre_CATALOGO_ESTADO_CITAS`, `IX_nombre_ROLES`
-- `IX_id_CLINICA_ap_paterno_ap_materno_nombre_PACIENTE`
-- `IX_id_CLINICA_id_CONSULTORIO_CLINICA_CONSULTORIO`
-- `IX_id_MEDICO_id_CATALOGO_ESPECIALIDAD_MEDICO_ESPECIALIDAD`
-- `IX_id_USUARIOS_id_CLINICA_USUARIOS_CLINICA`
-- Índices no únicos de apoyo en CITA: `(fecha_cita, id_MEDICO)`, `(id_PACIENTE)`.
+## 6. Pantalla "Bloquear acceso a clínicas"
 
-## Procedimientos almacenados
+- **SP nuevo `spRegresaClinicasResumen`**: por cada clínica devolver `id_CLINICA, nombre, activo, total_usuarios (COUNT DISTINCT USUARIOS_CLINICA), total_pacientes (COUNT PACIENTE), total_citas (COUNT CITA vía PACIENTE)`.
+- **Modelo `ClinicaModel::resumen()`**: ejecuta ese SP.
+- **`SistemaController::bloquearClinicas()`**: consumir el resumen y pasarlo a la vista. Agregar acciones `bloquear()` y `desbloquear()` (POST, `admin_sistema`) que llaman a `spDesactivaClinica` / `spActivaClinica` del punto 3 (misma bandera `activo`) y escriben en `app.log` (clínica, usuario, acción).
+- **Vista `views/sistema/bloquear_clinicas.php`**: tabla con columnas Nombre, Usuarios, Pacientes, Citas, Estado, Acción (botón "Bloquear" cuando `activo=1`, "Desbloquear" cuando `activo=0`).
+- **Efecto del bloqueo en el login (`Auth::attempt` / `spLoginUsuario`)**: si el usuario tiene `id_CLINICA` y esa clínica está `activo=0`, retornar `null` y registrar en `app.log`. Se implementa como verificación adicional en PHP tras leer `id_CLINICA` de la sesión (consulta rápida a `CLINICA.activo`) para no tocar el SP de login. Se aplica solo a roles distintos de `admin_sistema`.
 
-Por cada tabla de catálogo y entidad: `spAlta...`, `spCambio...`, `spBaja...` (lógica donde aplique), `spActiva...` / `spDesactiva...` (solo donde existe `activo`), `spRegresa...`.
+## Detalles técnicos
 
-Además:
-- `spLoginUsuario(@usuario, @password)` → devuelve datos del usuario + rol + (cuando aplique) `id_CLINICA` desde `USUARIOS_CLINICA`.
-- `spCambioPassword(@id_USUARIOS, @password, @id_usuario)` — regenera salt y hash.
-- `spRegresaCitas(@id_MEDICO, @id_CLINICA, @fecha_desde, @fecha_hasta)` — join con PACIENTE, MEDICO, CATALOGO_ESPECIALIDAD, CONSULTORIO, CATALOGO_ESTADO_CITAS para el calendario.
-- `spRegresaEspecialidadesPorMedico(@id_MEDICO)` — para el combo dependiente de la pantalla CITA.
-- `spRegresaConsultoriosPorClinica(@id_CLINICA)`.
+Archivos a modificar:
+- `php-app/sql/schema.sql` (tabla `CLINICA`, tabla `CATALOGO_ESPECIALIDAD`, SPs de médicos/especialidades/clínicas, nuevos SPs `spActivaClinica`, `spDesactivaClinica`, `spRegresaClinicasResumen`)
+- `php-app/app/controllers/MedicosController.php`
+- `php-app/app/controllers/EspecialidadesController.php`
+- `php-app/app/controllers/ClinicasController.php`
+- `php-app/app/controllers/CatalogosController.php`
+- `php-app/app/controllers/SistemaController.php`
+- `php-app/app/core/Auth.php`
+- `php-app/app/models/MedicoModel.php`
+- `php-app/app/models/EspecialidadModel.php`
+- `php-app/app/models/ClinicaModel.php`
+- `php-app/app/models/MunicipioModel.php`
+- `php-app/app/views/medicos/index.php`
+- `php-app/app/views/catalogos/estados.php`
+- `php-app/app/views/catalogos/municipios.php`
+- `php-app/app/views/sistema/bloquear_clinicas.php`
 
-### Estructura estándar de cada SP
+Archivos nuevos:
+- `php-app/app/views/especialidades/index.php`
 
-```sql
-CREATE OR ALTER PROCEDURE citas.spAltaXxx (...params..., @id_usuario TINYINT, @id_nuevo INT OUTPUT)
-AS
-BEGIN
-  SET NOCOUNT ON;
-  BEGIN TRY
-    BEGIN TRAN;
-      -- validaciones de negocio (existencia FK, duplicados, etc.)
-      INSERT INTO citas.XXX (...) VALUES (...);
-      SET @id_nuevo = SCOPE_IDENTITY();
-
-      DECLARE @msg VARCHAR(2000);
-      SET @msg = 'Alta XXX id=' + CONVERT(VARCHAR(20), @id_nuevo);
-      INSERT INTO citas.LOG (modulo, procedimiento, tabla, evento, fecha, id_usuario)
-      VALUES ('XXX', 'spAltaXxx', 'XXX', @msg, GETDATE(), @id_usuario);
-    COMMIT;
-  END TRY
-  BEGIN CATCH
-    IF @@TRANCOUNT > 0 ROLLBACK;
-    DECLARE @err VARCHAR(2000);
-    SET @err = 'ERROR spAltaXxx: ' + ERROR_MESSAGE();
-    INSERT INTO citas.LOG (modulo, procedimiento, tabla, evento, fecha, id_usuario)
-    VALUES ('XXX', 'spAltaXxx', 'XXX', @err, GETDATE(), ISNULL(@id_usuario,0));
-    ;THROW;
-  END CATCH
-END
-GO
-```
-
-Reglas aplicadas en todos los SPs:
-- Concatenación con `+`, nunca `CONCAT`. Valores no `varchar` van envueltos en `CONVERT(VARCHAR(...), ...)`.
-- Mensajes a `LOG` siempre via variable local `@msg VARCHAR(2000)` / `@err VARCHAR(2000)`.
-- Errores se registran en `LOG` y se relanzan con `;THROW` para que PHP los reciba.
-
-## Seguridad
-
-```sql
-CREATE LOGIN citasadmin WITH PASSWORD = 'admin01$', CHECK_POLICY = OFF;
-CREATE USER  citasadmin FOR LOGIN citasadmin WITH DEFAULT_SCHEMA = citas;
-ALTER AUTHORIZATION ON SCHEMA::citas TO citasadmin;
-
--- Solo ejecución de SPs, nada directo a tablas
-GRANT EXECUTE ON SCHEMA::citas TO citasadmin;
-DENY SELECT, INSERT, UPDATE, DELETE ON SCHEMA::citas TO citasadmin;
-```
-
-## Datos semilla
-
-- `CATALOGO_PAIS`: Mexico
-- `CATALOGO_GENERO`: Masculino, Femenino, Otro
-- `CATALOGO_ESTADO_CITAS`: Agendada, Confirmada, Cancelada, Atendida, NoAsistio
-- `ROLES`: 4 fijos
-- 1 usuario semilla `adminMaster1` con rol `Administrador de sistema` (sin `USUARIOS_CLINICA`).
-
-## Orden del script
-
-1. `DROP DATABASE IF EXISTS CitasMedicas;` + `CREATE DATABASE` + `USE`.
-2. `CREATE SCHEMA citas` + login/usuario/grants.
-3. Tablas en orden de dependencia (catálogos → ROLES/USUARIOS → CLINICA → puentes → MEDICO/PACIENTE → CITA → LOG).
-4. Índices únicos y CHKs.
-5. SPs (catálogos → seguridad → negocio → consultas para calendario).
-6. INSERTs de semilla (incluido el usuario master con salt+hash generado in-line).
-
-## Archivo `config.properties`
-
-Se mantiene tal cual ya está (instancia, BD, usuario, password, puerto 1435).
-
-## Fuera de alcance de este plan
-
-- No se tocan controladores ni modelos PHP. Una vez aprobado este schema, en un siguiente turno alineo `UsuarioModel`, `PacienteModel`, `CitaModel`, etc., a los nuevos parámetros (por ejemplo `id_CATALOGO_MUNICIPIO` en lugar de `municipio` + `id_CATALOGO_ESTADOS`, y los nuevos SPs `spRegresaEspecialidadesPorMedico` / `spRegresaConsultoriosPorClinica`).
+Todos los `Database::log()` incluirán: acción, entidad, id, nombre, clínica, y `usuario` de sesión (`$_SESSION['user']['usuario']`).
