@@ -1534,7 +1534,14 @@ BEGIN
             UPDATE citas.MEDICO SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_MEDICO=@id_MEDICO;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Activa Medico id='+CONVERT(VARCHAR(20),@id_MEDICO);
+            DECLARE @nm VARCHAR(150), @cli VARCHAR(150);
+            SELECT @nm=m.nombre_completo, @cli=c.nombre
+              FROM citas.MEDICO m JOIN citas.CLINICA c ON c.id_CLINICA=m.id_CLINICA
+             WHERE m.id_MEDICO=@id_MEDICO;
+            SET @msg='Activa Medico id='+CONVERT(VARCHAR(20),@id_MEDICO)
+                    +' nombre='+ISNULL(@nm,'?')
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('MEDICO','spActivaMedico','MEDICO',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -1558,7 +1565,14 @@ BEGIN
             UPDATE citas.MEDICO SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_MEDICO=@id_MEDICO;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Desactiva Medico id='+CONVERT(VARCHAR(20),@id_MEDICO);
+            DECLARE @nm VARCHAR(150), @cli VARCHAR(150);
+            SELECT @nm=m.nombre_completo, @cli=c.nombre
+              FROM citas.MEDICO m JOIN citas.CLINICA c ON c.id_CLINICA=m.id_CLINICA
+             WHERE m.id_MEDICO=@id_MEDICO;
+            SET @msg='Desactiva Medico id='+CONVERT(VARCHAR(20),@id_MEDICO)
+                    +' nombre='+ISNULL(@nm,'?')
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('MEDICO','spDesactivaMedico','MEDICO',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
