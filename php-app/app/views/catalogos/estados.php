@@ -18,6 +18,21 @@
     </div>
   </form>
 </div>
+<div class="card" style="margin-bottom:1rem">
+  <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
+  <form method="get" action="<?= url('catalogos/estados') ?>" class="form-grid">
+    <label>Pais
+      <select name="f_pais" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach (($paises ?? []) as $p): ?>
+          <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= (int)($fPais ?? 0)===(int)$p['id_CATALOGO_PAIS']?'selected':'' ?>>
+            <?= htmlspecialchars($p['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+</div>
 <table class="data">
   <thead><tr><th>Nombre</th><th>País</th><th style="width:220px">Acciones</th></tr></thead>
   <tbody>

@@ -15,18 +15,31 @@ class EspecialidadesController extends Controller {
         $rows = EspecialidadModel::listar($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_ESPECIALIDAD']===$editId) { $editRow=$r; break; }
-        $this->view('_partials/simple_catalog', [
-            'title'=>'Especialidades','rows'=>$rows,'idField'=>'id_CATALOGO_ESPECIALIDAD',
-            'controller'=>'especialidades','editId'=>$editId,'editRow'=>$editRow,
+        $this->view('especialidades/index', [
+            'title'=>'Especialidades','rows'=>$rows,
+            'editId'=>$editId,'editRow'=>$editRow,
             'clinicas'=>ClinicaModel::listar(), 'fClinica'=>$fClinica, 'rol'=>$rol,
+            'userClin'=>$userClin,
         ]);
     }
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
         $nombre = $this->input('nombre');
+        $rol      = $_SESSION['user']['rol'] ?? '';
+        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
+        $idClinica = $rol === 'admin_sistema'
+            ? (int)$this->input('id_CLINICA')
+            : (int)($userClin ?? 0);
         try {
-            if ($id) EspecialidadModel::cambio($id, $nombre); else EspecialidadModel::alta($nombre);
+            if ($idClinica <= 0) throw new RuntimeException('Seleccione una clinica.');
+            if ($id) EspecialidadModel::cambio($id, $nombre, $idClinica);
+            else     EspecialidadModel::alta($nombre, $idClinica);
+            $cliNombre = '?';
+            foreach (ClinicaModel::listar() as $cl) if ((int)$cl['id_CLINICA']===$idClinica) { $cliNombre=$cl['nombre']; break; }
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            $accion = $id ? 'CAMBIO' : 'ALTA';
+            Database::log("ESPECIALIDAD {$accion} nombre='{$nombre}' clinica='{$cliNombre}' por usuario='{$usr}'");
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('especialidades');

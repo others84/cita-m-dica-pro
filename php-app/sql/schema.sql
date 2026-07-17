@@ -109,6 +109,7 @@ GO
 CREATE TABLE citas.CATALOGO_ESPECIALIDAD (
     id_CATALOGO_ESPECIALIDAD INT IDENTITY(1,1) NOT NULL,
     nombre                   VARCHAR(120)      NOT NULL,
+    id_CLINICA               INT               NOT NULL,
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -116,7 +117,7 @@ CREATE TABLE citas.CATALOGO_ESPECIALIDAD (
     CONSTRAINT PK_id_CATALOGO_ESPECIALIDAD PRIMARY KEY (id_CATALOGO_ESPECIALIDAD)
 );
 GO
-CREATE UNIQUE INDEX IX_nombre_CATALOGO_ESPECIALIDAD ON citas.CATALOGO_ESPECIALIDAD(nombre);
+CREATE UNIQUE INDEX IX_nombre_id_CLINICA_CATALOGO_ESPECIALIDAD ON citas.CATALOGO_ESPECIALIDAD(nombre, id_CLINICA);
 GO
 
 -- ---------- CATALOGO_ESTADO_CITAS ----------
@@ -180,6 +181,7 @@ CREATE TABLE citas.CLINICA (
     email                    VARCHAR(120)      NOT NULL,
     telefono                 VARCHAR(20)       NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
+    activo                   BIT               NOT NULL CONSTRAINT DF_activo_CLINICA DEFAULT (1),
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -191,6 +193,12 @@ CREATE TABLE citas.CLINICA (
 );
 GO
 CREATE UNIQUE INDEX IX_nombre_CLINICA ON citas.CLINICA(nombre);
+GO
+
+-- FK diferida: CATALOGO_ESPECIALIDAD.id_CLINICA -> CLINICA.id_CLINICA
+ALTER TABLE citas.CATALOGO_ESPECIALIDAD
+    ADD CONSTRAINT FK_id_CLINICA_CLINICA_id_CLINICA_CATALOGO_ESPECIALIDAD
+    FOREIGN KEY (id_CLINICA) REFERENCES citas.CLINICA(id_CLINICA);
 GO
 
 -- ---------- USUARIOS_CLINICA ----------
@@ -642,17 +650,21 @@ GO
 
 -- =========================  CATALOGO_ESPECIALIDAD  ===================
 CREATE OR ALTER PROCEDURE citas.spAltaEspecialidad
-    @nombre VARCHAR(120), @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @nombre VARCHAR(120), @id_CLINICA INT, @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            INSERT INTO citas.CATALOGO_ESPECIALIDAD(nombre,id_usuario_creacion,fecha_creacion)
-            VALUES(@nombre,@id_usuario,GETDATE());
+            INSERT INTO citas.CATALOGO_ESPECIALIDAD(nombre,id_CLINICA,id_usuario_creacion,fecha_creacion)
+            VALUES(@nombre,@id_CLINICA,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Alta Especialidad id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre;
+            DECLARE @cli VARCHAR(150);
+            SELECT @cli=nombre FROM citas.CLINICA WHERE id_CLINICA=@id_CLINICA;
+            SET @msg='Alta Especialidad id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('CATALOGO_ESPECIALIDAD','spAltaEspecialidad','CATALOGO_ESPECIALIDAD',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -667,14 +679,15 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spCambioEspecialidad
-    @id_CATALOGO_ESPECIALIDAD INT, @nombre VARCHAR(120), @id_usuario TINYINT
+    @id_CATALOGO_ESPECIALIDAD INT, @nombre VARCHAR(120), @id_CLINICA INT, @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
             UPDATE citas.CATALOGO_ESPECIALIDAD
-               SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
+               SET nombre=@nombre, id_CLINICA=@id_CLINICA,
+                   id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_CATALOGO_ESPECIALIDAD=@id_CATALOGO_ESPECIALIDAD;
             DECLARE @msg VARCHAR(2000);
             SET @msg='Cambio Especialidad id='+CONVERT(VARCHAR(20),@id_CATALOGO_ESPECIALIDAD);
@@ -696,16 +709,11 @@ CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidades
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @id_CLINICA IS NULL
-        SELECT id_CATALOGO_ESPECIALIDAD, nombre
-          FROM citas.CATALOGO_ESPECIALIDAD ORDER BY nombre;
-    ELSE
-        SELECT DISTINCT e.id_CATALOGO_ESPECIALIDAD, e.nombre
-          FROM citas.CATALOGO_ESPECIALIDAD e
-          JOIN citas.CITA ci ON ci.id_CATALOGO_ESPECIALIDAD = e.id_CATALOGO_ESPECIALIDAD
-          JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
-         WHERE p.id_CLINICA = @id_CLINICA
-         ORDER BY e.nombre;
+    SELECT e.id_CATALOGO_ESPECIALIDAD, e.nombre, e.id_CLINICA, c.nombre AS clinica
+      FROM citas.CATALOGO_ESPECIALIDAD e
+      JOIN citas.CLINICA c ON c.id_CLINICA = e.id_CLINICA
+     WHERE (@id_CLINICA IS NULL OR e.id_CLINICA = @id_CLINICA)
+     ORDER BY e.nombre;
 END
 GO
 
@@ -1156,7 +1164,7 @@ CREATE OR ALTER PROCEDURE citas.spRegresaClinicas
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT c.id_CLINICA, c.nombre, c.direccion, c.email, c.telefono,
+    SELECT c.id_CLINICA, c.nombre, c.direccion, c.email, c.telefono, c.activo,
            c.id_CATALOGO_MUNICIPIO, m.nombre AS municipio,
            m.id_CATALOGO_ESTADOS, e.nombre AS estado,
            e.id_CATALOGO_PAIS, p.nombre AS pais
@@ -1164,6 +1172,77 @@ BEGIN
       JOIN citas.CATALOGO_MUNICIPIO m ON m.id_CATALOGO_MUNICIPIO = c.id_CATALOGO_MUNICIPIO
       JOIN citas.CATALOGO_ESTADOS   e ON e.id_CATALOGO_ESTADOS   = m.id_CATALOGO_ESTADOS
       JOIN citas.CATALOGO_PAIS      p ON p.id_CATALOGO_PAIS      = e.id_CATALOGO_PAIS
+     ORDER BY c.nombre;
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spActivaClinica
+    @id_CLINICA INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+            UPDATE citas.CLINICA SET activo=1,
+                   id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
+             WHERE id_CLINICA=@id_CLINICA;
+            DECLARE @cli VARCHAR(150);
+            SELECT @cli=nombre FROM citas.CLINICA WHERE id_CLINICA=@id_CLINICA;
+            DECLARE @msg VARCHAR(2000);
+            SET @msg='Activa Clinica id='+CONVERT(VARCHAR(20),@id_CLINICA)
+                    +' nombre='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
+            INSERT INTO citas.LOG VALUES('CLINICA','spActivaClinica','CLINICA',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spActivaClinica: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CLINICA','spActivaClinica','CLINICA',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spDesactivaClinica
+    @id_CLINICA INT, @id_usuario TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+            UPDATE citas.CLINICA SET activo=0,
+                   id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
+             WHERE id_CLINICA=@id_CLINICA;
+            DECLARE @cli VARCHAR(150);
+            SELECT @cli=nombre FROM citas.CLINICA WHERE id_CLINICA=@id_CLINICA;
+            DECLARE @msg VARCHAR(2000);
+            SET @msg='Desactiva Clinica id='+CONVERT(VARCHAR(20),@id_CLINICA)
+                    +' nombre='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
+            INSERT INTO citas.LOG VALUES('CLINICA','spDesactivaClinica','CLINICA',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spDesactivaClinica: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('CLINICA','spDesactivaClinica','CLINICA',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE citas.spRegresaClinicasResumen
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.id_CLINICA, c.nombre, c.activo,
+           (SELECT COUNT(DISTINCT uc.id_USUARIOS) FROM citas.USUARIOS_CLINICA uc WHERE uc.id_CLINICA = c.id_CLINICA) AS total_usuarios,
+           (SELECT COUNT(*) FROM citas.PACIENTE p WHERE p.id_CLINICA = c.id_CLINICA) AS total_pacientes,
+           (SELECT COUNT(*) FROM citas.CITA ci JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE WHERE p.id_CLINICA = c.id_CLINICA) AS total_citas
+      FROM citas.CLINICA c
      ORDER BY c.nombre;
 END
 GO
@@ -1455,7 +1534,14 @@ BEGIN
             UPDATE citas.MEDICO SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_MEDICO=@id_MEDICO;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Activa Medico id='+CONVERT(VARCHAR(20),@id_MEDICO);
+            DECLARE @nm VARCHAR(150), @cli VARCHAR(150);
+            SELECT @nm=m.nombre_completo, @cli=c.nombre
+              FROM citas.MEDICO m JOIN citas.CLINICA c ON c.id_CLINICA=m.id_CLINICA
+             WHERE m.id_MEDICO=@id_MEDICO;
+            SET @msg='Activa Medico id='+CONVERT(VARCHAR(20),@id_MEDICO)
+                    +' nombre='+ISNULL(@nm,'?')
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('MEDICO','spActivaMedico','MEDICO',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -1479,7 +1565,14 @@ BEGIN
             UPDATE citas.MEDICO SET activo=0, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_MEDICO=@id_MEDICO;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Desactiva Medico id='+CONVERT(VARCHAR(20),@id_MEDICO);
+            DECLARE @nm VARCHAR(150), @cli VARCHAR(150);
+            SELECT @nm=m.nombre_completo, @cli=c.nombre
+              FROM citas.MEDICO m JOIN citas.CLINICA c ON c.id_CLINICA=m.id_CLINICA
+             WHERE m.id_MEDICO=@id_MEDICO;
+            SET @msg='Desactiva Medico id='+CONVERT(VARCHAR(20),@id_MEDICO)
+                    +' nombre='+ISNULL(@nm,'?')
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('MEDICO','spDesactivaMedico','MEDICO',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY

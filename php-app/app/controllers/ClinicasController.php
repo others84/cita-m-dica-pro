@@ -34,4 +34,28 @@ class ClinicasController extends Controller {
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('clinicas');
     }
+    public function activar(): void {
+        $this->requireLogin(['admin_sistema']);
+        $id = (int)$this->input('id');
+        try {
+            $nombre = ClinicaModel::nombre($id);
+            ClinicaModel::activa($id);
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            Database::log("CLINICA ACTIVADA id={$id} nombre='{$nombre}' por usuario='{$usr}'");
+            $this->flash('ok','Clinica activada.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('clinicas');
+    }
+    public function desactivar(): void {
+        $this->requireLogin(['admin_sistema']);
+        $id = (int)$this->input('id');
+        try {
+            $nombre = ClinicaModel::nombre($id);
+            ClinicaModel::desactiva($id);
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            Database::log("CLINICA DESACTIVADA id={$id} nombre='{$nombre}' por usuario='{$usr}'");
+            $this->flash('ok','Clinica desactivada.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('clinicas');
+    }
 }

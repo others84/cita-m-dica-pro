@@ -98,11 +98,12 @@ class CatalogosController extends Controller {
     public function estados(): void {
         $this->guard();
         $editId = $this->intOrNull($_GET['edit'] ?? null);
-        $rows = EstadoModel::listar(); $editRow=null;
+        $fPais = $this->intOrNull($_GET['f_pais'] ?? null);
+        $rows = EstadoModel::listar($fPais); $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_ESTADOS']===$editId) { $editRow=$r; break; }
         $this->view('catalogos/estados', [
             'title'=>'Estados','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'paises'=>PaisModel::listar(),
+            'paises'=>PaisModel::listar(), 'fPais'=>$fPais,
         ]);
     }
     public function estadosGuardar(): void {
@@ -124,11 +125,19 @@ class CatalogosController extends Controller {
     public function municipios(): void {
         $this->guard();
         $editId = $this->intOrNull($_GET['edit'] ?? null);
-        $rows = MunicipioModel::listar(); $editRow=null;
+        $fPais = $this->intOrNull($_GET['f_pais'] ?? null);
+        $fEstado = $this->intOrNull($_GET['f_estado'] ?? null);
+        $rows = MunicipioModel::listar($fEstado);
+        if ($fPais && !$fEstado) {
+            $rows = array_values(array_filter($rows, fn($r) => (int)($r['id_CATALOGO_PAIS'] ?? 0) === $fPais));
+        }
+        $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_MUNICIPIO']===$editId) { $editRow=$r; break; }
         $this->view('catalogos/municipios', [
             'title'=>'Municipios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'estados'=>EstadoModel::listar(),
+            'estados'=>EstadoModel::listar($fPais),
+            'paises'=>PaisModel::listar(),
+            'fPais'=>$fPais, 'fEstado'=>$fEstado,
         ]);
     }
     public function municipiosGuardar(): void {

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class Auth {
     /**
@@ -14,10 +15,23 @@ class Auth {
             return null;
         }
         if (!$u) return null;
+        $rolNombre = (string)($u['rol'] ?? '');
+        $idClinica = isset($u['id_CLINICA']) ? (int)$u['id_CLINICA'] : null;
+        // Bloqueo por clinica: si la clinica del usuario esta desactivada, negar acceso
+        // (no aplica al administrador de sistema).
+        if ($idClinica && $rolNombre !== 'Administrador de sistema') {
+            try {
+                if (!ClinicaModel::estaActiva($idClinica)) {
+                    Database::log("LOGIN BLOQUEADO usuario='{$usuario}' clinica_id={$idClinica} (clinica bloqueada)");
+                    return null;
+                }
+            } catch (Throwable $e) {
+                Database::log('Auth clinic check error: ' . $e->getMessage());
+            }
+        }
         // Normaliza el nombre del rol que regresa el SP a un codigo corto
         // estable usado por los controladores (admin_sistema, administrador,
         // medico, asistente).
-        $rolNombre = (string)($u['rol'] ?? '');
         $map = [
             'Administrador de sistema' => 'admin_sistema',
             'Administrador de clinica' => 'administrador',
@@ -35,7 +49,7 @@ class Auth {
             'id_ROLES'        => (int)($u['id_ROLES'] ?? 0),
             'rol'             => $rolCodigo,
             'rol_nombre'      => $rolNombre,
-            'id_CLINICA'      => isset($u['id_CLINICA']) ? (int)$u['id_CLINICA'] : null,
+            'id_CLINICA'      => $idClinica,
         ];
     }
 }
