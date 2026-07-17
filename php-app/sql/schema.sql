@@ -650,17 +650,21 @@ GO
 
 -- =========================  CATALOGO_ESPECIALIDAD  ===================
 CREATE OR ALTER PROCEDURE citas.spAltaEspecialidad
-    @nombre VARCHAR(120), @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @nombre VARCHAR(120), @id_CLINICA INT, @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            INSERT INTO citas.CATALOGO_ESPECIALIDAD(nombre,id_usuario_creacion,fecha_creacion)
-            VALUES(@nombre,@id_usuario,GETDATE());
+            INSERT INTO citas.CATALOGO_ESPECIALIDAD(nombre,id_CLINICA,id_usuario_creacion,fecha_creacion)
+            VALUES(@nombre,@id_CLINICA,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Alta Especialidad id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre;
+            DECLARE @cli VARCHAR(150);
+            SELECT @cli=nombre FROM citas.CLINICA WHERE id_CLINICA=@id_CLINICA;
+            SET @msg='Alta Especialidad id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre
+                    +' clinica='+ISNULL(@cli,'?')
+                    +' por usuario id='+CONVERT(VARCHAR(10),@id_usuario);
             INSERT INTO citas.LOG VALUES('CATALOGO_ESPECIALIDAD','spAltaEspecialidad','CATALOGO_ESPECIALIDAD',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -675,14 +679,15 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spCambioEspecialidad
-    @id_CATALOGO_ESPECIALIDAD INT, @nombre VARCHAR(120), @id_usuario TINYINT
+    @id_CATALOGO_ESPECIALIDAD INT, @nombre VARCHAR(120), @id_CLINICA INT, @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
             UPDATE citas.CATALOGO_ESPECIALIDAD
-               SET nombre=@nombre, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
+               SET nombre=@nombre, id_CLINICA=@id_CLINICA,
+                   id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_CATALOGO_ESPECIALIDAD=@id_CATALOGO_ESPECIALIDAD;
             DECLARE @msg VARCHAR(2000);
             SET @msg='Cambio Especialidad id='+CONVERT(VARCHAR(20),@id_CATALOGO_ESPECIALIDAD);
@@ -704,16 +709,11 @@ CREATE OR ALTER PROCEDURE citas.spRegresaEspecialidades
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @id_CLINICA IS NULL
-        SELECT id_CATALOGO_ESPECIALIDAD, nombre
-          FROM citas.CATALOGO_ESPECIALIDAD ORDER BY nombre;
-    ELSE
-        SELECT DISTINCT e.id_CATALOGO_ESPECIALIDAD, e.nombre
-          FROM citas.CATALOGO_ESPECIALIDAD e
-          JOIN citas.CITA ci ON ci.id_CATALOGO_ESPECIALIDAD = e.id_CATALOGO_ESPECIALIDAD
-          JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
-         WHERE p.id_CLINICA = @id_CLINICA
-         ORDER BY e.nombre;
+    SELECT e.id_CATALOGO_ESPECIALIDAD, e.nombre, e.id_CLINICA, c.nombre AS clinica
+      FROM citas.CATALOGO_ESPECIALIDAD e
+      JOIN citas.CLINICA c ON c.id_CLINICA = e.id_CLINICA
+     WHERE (@id_CLINICA IS NULL OR e.id_CLINICA = @id_CLINICA)
+     ORDER BY e.nombre;
 END
 GO
 
