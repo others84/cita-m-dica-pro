@@ -38,4 +38,28 @@ class MedicosController extends Controller {
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->redirect('medicos');
     }
+    public function activar(): void {
+        $this->requireLogin(['administrador','admin_sistema']);
+        $id = (int)$this->input('id');
+        try {
+            $info = MedicoModel::obtener($id);
+            MedicoModel::activa($id);
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            Database::log("MEDICO ACTIVADO id={$id} nombre='".($info['nombre_completo'] ?? '?')."' clinica='".($info['clinica'] ?? '?')."' por usuario='{$usr}'");
+            $this->flash('ok','Medico activado.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('medicos');
+    }
+    public function desactivar(): void {
+        $this->requireLogin(['administrador','admin_sistema']);
+        $id = (int)$this->input('id');
+        try {
+            $info = MedicoModel::obtener($id);
+            MedicoModel::desactiva($id);
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            Database::log("MEDICO DESACTIVADO id={$id} nombre='".($info['nombre_completo'] ?? '?')."' clinica='".($info['clinica'] ?? '?')."' por usuario='{$usr}'");
+            $this->flash('ok','Medico desactivado.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->redirect('medicos');
+    }
 }

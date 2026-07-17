@@ -35,10 +35,17 @@
         <td><span class="badge <?= empty($m['activo'])?'off':'' ?>"><?= empty($m['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
           <a class="btn btn-sec" href="<?= url('medicos?edit=' . (int)$m['id_MEDICO']) ?>">Editar</a>
-          <form method="post" action="<?= url('medicos/eliminar') ?>" style="display:inline" onsubmit="return confirm('Dar de baja?')">
-            <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">
-            <button class="btn btn-danger">Baja</button>
-          </form>
+          <?php if (!empty($m['activo'])): ?>
+            <form method="post" action="<?= url('medicos/desactivar') ?>" style="display:inline" onsubmit="return confirm('Desactivar medico?')">
+              <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">
+              <button class="btn btn-danger">Desactivar</button>
+            </form>
+          <?php else: ?>
+            <form method="post" action="<?= url('medicos/activar') ?>" style="display:inline">
+              <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">
+              <button class="btn">Activar</button>
+            </form>
+          <?php endif; ?>
         </td>
       </tr>
     <?php endforeach; ?>
