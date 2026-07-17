@@ -3,6 +3,32 @@
 </div>
 
 <div class="card" style="margin-bottom:1rem">
+  <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
+  <form method="get" action="<?= url('catalogos/municipios') ?>" class="form-grid">
+    <label>Pais
+      <select name="f_pais" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach (($paises ?? []) as $p): ?>
+          <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= (int)($fPais ?? 0)===(int)$p['id_CATALOGO_PAIS']?'selected':'' ?>>
+            <?= htmlspecialchars($p['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <label>Estado
+      <select name="f_estado" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach (($estados ?? []) as $e): ?>
+          <option value="<?= (int)$e['id_CATALOGO_ESTADOS'] ?>" <?= (int)($fEstado ?? 0)===(int)$e['id_CATALOGO_ESTADOS']?'selected':'' ?>>
+            <?= htmlspecialchars($e['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+</div>
+
+<div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0"><?= $editId ? 'Editar municipio' : 'Nuevo municipio' ?></h3>
   <form method="post" action="<?= url('catalogos/municipiosGuardar') ?>" class="form-grid">
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
