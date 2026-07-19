@@ -41,7 +41,6 @@ $rol  = $user['rol'];
         <a href="<?= url('medicos') ?>">Médicos</a>
         <a href="<?= url('especialidades') ?>">Especialidad</a>
         <a href="<?= url('consultorios') ?>">Consultorios</a>
-        <a href="<?= url('usuariosClinica') ?>">Asignar clínicas a usuarios</a>
         <details class="menu-group">
           <summary>Reportes</summary>
           <a href="<?= url('reportes/ingresos') ?>">Ingresos</a>
@@ -56,6 +55,7 @@ $rol  = $user['rol'];
         <a href="<?= url('especialidades') ?>">Especialidad</a>
         <a href="<?= url('consultorios') ?>">Consultorios</a>
         <a href="<?= url('clinicas') ?>">Clínicas</a>
+        <a href="<?= url('usuariosClinica') ?>">Asignar clínicas a usuarios</a>
         <details class="menu-group">
           <summary>Catálogos</summary>
           <a href="<?= url('catalogos/paises') ?>">Países</a>
