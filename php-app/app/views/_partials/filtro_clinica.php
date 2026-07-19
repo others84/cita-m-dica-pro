@@ -9,8 +9,6 @@
  */
 $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
 $opts = $clinicasFiltro ?? $clinicas ?? [];
-// Para roles no admin_sistema, ocultar filtro si solo hay una clinica asignada.
-if ($rol !== 'admin_sistema' && count($opts) < 2) return;
 if (empty($opts)) return;
 $permitirTodas = ($rol === 'admin_sistema');
 ?>
