@@ -16,6 +16,17 @@ $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 ?>
 <?php $controller='pacientes'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
+<?php if (class_exists('Database')) {
+  Database::log(sprintf(
+    'PACIENTES.view rol=%s user=%s fClinica=%s hiddenClinicaNuevo=%s get_f_clinica=%s session_f_clinica=%s',
+    $rol ?? '?',
+    $_SESSION['user']['usuario'] ?? '?',
+    $fClinica ?? 'NULL',
+    (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0),
+    $_GET['f_clinica'] ?? 'NULL',
+    $_SESSION['f_clinica'] ?? 'NULL'
+  ));
+} ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">
@@ -73,7 +84,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('pacientes') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('pacientes' . (!empty($fClinica) ? '?f_clinica=' . (int)$fClinica : '')) ?>">Cancelar</a><?php endif; ?>
     </div>
   </form>
 </div>
@@ -128,7 +139,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
         <td><?= htmlspecialchars($p['email'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['municipio'] ?? '') ?></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('pacientes?edit=' . (int)$p['id_PACIENTE']) ?>">Editar</a>
+          <a class="btn btn-sec" href="<?= url('pacientes?edit=' . (int)$p['id_PACIENTE'] . (!empty($fClinica) ? '&f_clinica=' . (int)$fClinica : '')) ?>">Editar</a>
           <form method="post" action="<?= url('pacientes/eliminar') ?>" style="display:inline" onsubmit="return confirm('Eliminar paciente?')">
             <input type="hidden" name="id" value="<?= (int)$p['id_PACIENTE'] ?>">
             <button class="btn btn-danger" type="submit">Eliminar</button>

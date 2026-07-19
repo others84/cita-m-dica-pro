@@ -61,8 +61,34 @@ class Controller {
         $sessClinicas = $_SESSION['user']['clinicas'] ?? [];
         $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
         $raw = $this->intOrNull($_GET['f_clinica'] ?? null);
+        $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
+
+        if (class_exists('Database')) {
+            $idsInicio = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
+            Database::log(sprintf(
+                'resolveClinicaContext IN rol=%s user=%s uri=%s get_f_clinica=%s session_f_clinica=%s session_ids=[%s] user_id_CLINICA=%s',
+                $rol,
+                $_SESSION['user']['usuario'] ?? '?',
+                $_SERVER['REQUEST_URI'] ?? '?',
+                $raw === null ? 'NULL' : (string)$raw,
+                $last ?: 'NULL',
+                implode(',', $idsInicio),
+                $userClin === null ? 'NULL' : (string)$userClin
+            ));
+        }
 
         if ($rol === 'admin_sistema') {
+            if ($raw !== null) {
+                $_SESSION['f_clinica'] = $raw;
+            }
+            if (class_exists('Database')) {
+                Database::log(sprintf(
+                    'resolveClinicaContext OUT rol=%s user=%s modo=admin_sistema fClinica=%s',
+                    $rol,
+                    $_SESSION['user']['usuario'] ?? '?',
+                    $raw === null ? 'NULL' : (string)$raw
+                ));
+            }
             require_once __DIR__ . '/../models/ClinicaModel.php';
             return [
                 'clinicasFiltro' => ClinicaModel::listar(),
@@ -77,25 +103,55 @@ class Controller {
             require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
             $sessClinicas = UsuarioClinicaModel::listarPorUsuario((int)$_SESSION['user']['id_USUARIOS']);
             $_SESSION['user']['clinicas'] = $sessClinicas;
+            if (class_exists('Database')) {
+                $idsRefrescados = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
+                Database::log(sprintf(
+                    'resolveClinicaContext REFRESH user=%s rows=%d ids=[%s]',
+                    $_SESSION['user']['usuario'] ?? '?',
+                    count($sessClinicas),
+                    implode(',', $idsRefrescados)
+                ));
+            }
         }
 
         $ids = array_map(fn($c) => (int)$c['id_CLINICA'], $sessClinicas);
         $fClinica = null;
+        $motivo = 'sin_clinica';
         if ($raw && in_array($raw, $ids, true)) {
             $fClinica = $raw;
+            $motivo = 'get_valido';
         } elseif (!empty($ids)) {
             // Si el usuario intento seleccionar una clinica valida pero por
             // algun motivo no matcheo, respetamos el raw solo si esta en $ids.
             // De lo contrario mantenemos la ultima seleccion valida guardada.
-            $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
-            $fClinica = ($last && in_array($last, $ids, true)) ? $last : $ids[0];
+            if ($last && in_array($last, $ids, true)) {
+                $fClinica = $last;
+                $motivo = 'session_valida';
+            } else {
+                $fClinica = $ids[0];
+                $motivo = $raw ? 'get_no_permitido_default' : 'default_primera';
+            }
         } elseif ($userClin) {
             $fClinica = (int)$userClin;
+            $motivo = 'user_id_CLINICA';
         }
         // Persistimos la ultima seleccion valida para que se mantenga entre
         // navegaciones aunque el usuario no vuelva a pasar ?f_clinica.
         if ($fClinica) {
             $_SESSION['f_clinica'] = $fClinica;
+        }
+        if (class_exists('Database')) {
+            Database::log(sprintf(
+                'resolveClinicaContext OUT rol=%s user=%s ids=[%s] get_f_clinica=%s session_f_clinica_previa=%s fClinica=%s motivo=%s session_f_clinica_final=%s',
+                $rol,
+                $_SESSION['user']['usuario'] ?? '?',
+                implode(',', $ids),
+                $raw === null ? 'NULL' : (string)$raw,
+                $last ?: 'NULL',
+                $fClinica === null ? 'NULL' : (string)$fClinica,
+                $motivo,
+                $_SESSION['f_clinica'] ?? 'NULL'
+            ));
         }
         return [
             'clinicasFiltro' => $sessClinicas,
