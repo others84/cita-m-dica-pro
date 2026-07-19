@@ -8,7 +8,13 @@ class UsuarioClinicaModel extends Model {
      */
     public static function listarPorUsuario(int $idUsuario): array {
         try {
-            return self::query('EXEC citas.spRegresaClinicasUsuario @id_USUARIO=:u', [':u' => $idUsuario]);
+            $rows = self::query('EXEC citas.spRegresaClinicasUsuario @id_USUARIO=:u', [':u' => $idUsuario]);
+            Database::log(sprintf(
+                'spRegresaClinicasUsuario user=%d rows=%d ids=[%s]',
+                $idUsuario, count($rows),
+                implode(',', array_map(fn($r) => (int)($r['id_CLINICA'] ?? 0), $rows))
+            ));
+            return $rows;
         } catch (Throwable $e) {
             Database::log('spRegresaClinicasUsuario ERR: ' . $e->getMessage());
             return [];
