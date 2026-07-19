@@ -23,11 +23,10 @@
   </form>
 </div>
 <table class="data">
-  <thead><tr><th>ID</th><th>Nombre</th><th>Municipio</th><th>Telefono</th><th>Activa</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th>Municipio</th><th>Telefono</th><th>Activa</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $c): ?>
       <tr>
-        <td><?= (int)$c['id_CLINICA'] ?></td>
         <td><?= htmlspecialchars($c['nombre']) ?></td>
         <td><?= htmlspecialchars($c['municipio'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['telefono'] ?? '') ?></td>
