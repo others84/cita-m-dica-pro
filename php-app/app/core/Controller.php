@@ -46,4 +46,44 @@ class Controller {
         if ($v === null || $v === '') return null;
         return (int)$v;
     }
+
+    /**
+     * Resuelve el contexto de filtro por clinica segun el rol.
+     * Retorna ['clinicasFiltro' => array, 'fClinica' => ?int, 'rol' => string].
+     *
+     * - admin_sistema: puede elegir cualquier clinica (o "todas" => null).
+     * - resto de roles: se limitan a las clinicas asignadas en sesion. Si eligen
+     *   una valida se respeta; si no, se toma la primera asignada. Nunca pueden
+     *   ver datos de una clinica que no tienen asignada.
+     */
+    protected function resolveClinicaContext(): array {
+        $rol = $_SESSION['user']['rol'] ?? '';
+        $sessClinicas = $_SESSION['user']['clinicas'] ?? [];
+        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
+        $raw = $this->intOrNull($_GET['f_clinica'] ?? null);
+
+        if ($rol === 'admin_sistema') {
+            require_once __DIR__ . '/../models/ClinicaModel.php';
+            return [
+                'clinicasFiltro' => ClinicaModel::listar(),
+                'fClinica' => $raw,
+                'rol' => $rol,
+            ];
+        }
+
+        $ids = array_map(fn($c) => (int)$c['id_CLINICA'], $sessClinicas);
+        $fClinica = null;
+        if ($raw && in_array($raw, $ids, true)) {
+            $fClinica = $raw;
+        } elseif (!empty($ids)) {
+            $fClinica = $ids[0];
+        } elseif ($userClin) {
+            $fClinica = (int)$userClin;
+        }
+        return [
+            'clinicasFiltro' => $sessClinicas,
+            'fClinica' => $fClinica,
+            'rol' => $rol,
+        ];
+    }
 }

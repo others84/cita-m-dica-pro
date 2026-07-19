@@ -42,15 +42,6 @@ $rol  = $user['rol'];
         <a href="<?= url('especialidades') ?>">Especialidad</a>
         <a href="<?= url('consultorios') ?>">Consultorios</a>
         <details class="menu-group">
-          <summary>Catálogos</summary>
-          <a href="<?= url('catalogos/paises') ?>">Países</a>
-          <a href="<?= url('catalogos/estados') ?>">Estados</a>
-          <a href="<?= url('catalogos/municipios') ?>">Municipios</a>
-          <a href="<?= url('catalogos/generos') ?>">Géneros</a>
-          <a href="<?= url('catalogos/usuarios') ?>">Usuarios</a>
-          <a href="<?= url('catalogos/estadosCita') ?>">Edo de citas</a>
-        </details>
-        <details class="menu-group">
           <summary>Reportes</summary>
           <a href="<?= url('reportes/ingresos') ?>">Ingresos</a>
         </details>
