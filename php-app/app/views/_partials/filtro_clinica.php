@@ -14,6 +14,17 @@ if ($rol === 'admin_sistema') {
     // Otros roles: SIEMPRE limitar a las clinicas asignadas al usuario en sesion.
     $opts = $_SESSION['user']['clinicas'] ?? [];
 }
+// Diagnostico: registra que clinicas ve el partial para el usuario actual.
+if (class_exists('Database')) {
+    $ids = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $opts);
+    Database::log(sprintf(
+        'filtro_clinica rol=%s user=%s ctrl=%s opts=[%s]',
+        $rol,
+        $_SESSION['user']['usuario'] ?? '?',
+        $controller ?? '?',
+        implode(',', $ids)
+    ));
+}
 if (empty($opts)) return;
 $permitirTodas = ($rol === 'admin_sistema');
 ?>
