@@ -71,14 +71,31 @@ class Controller {
             ];
         }
 
+        // Safety net: si la sesion no trae clinicas (login antiguo o sesion
+        // creada antes de asignar clinicas), refrescamos desde DB.
+        if (empty($sessClinicas) && !empty($_SESSION['user']['id_USUARIOS'])) {
+            require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+            $sessClinicas = UsuarioClinicaModel::listarPorUsuario((int)$_SESSION['user']['id_USUARIOS']);
+            $_SESSION['user']['clinicas'] = $sessClinicas;
+        }
+
         $ids = array_map(fn($c) => (int)$c['id_CLINICA'], $sessClinicas);
         $fClinica = null;
         if ($raw && in_array($raw, $ids, true)) {
             $fClinica = $raw;
         } elseif (!empty($ids)) {
-            $fClinica = $ids[0];
+            // Si el usuario intento seleccionar una clinica valida pero por
+            // algun motivo no matcheo, respetamos el raw solo si esta en $ids.
+            // De lo contrario mantenemos la ultima seleccion valida guardada.
+            $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
+            $fClinica = ($last && in_array($last, $ids, true)) ? $last : $ids[0];
         } elseif ($userClin) {
             $fClinica = (int)$userClin;
+        }
+        // Persistimos la ultima seleccion valida para que se mantenga entre
+        // navegaciones aunque el usuario no vuelva a pasar ?f_clinica.
+        if ($fClinica) {
+            $_SESSION['f_clinica'] = $fClinica;
         }
         return [
             'clinicasFiltro' => $sessClinicas,
