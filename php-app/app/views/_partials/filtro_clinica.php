@@ -8,7 +8,12 @@
  * Opcional: $clinicasFiltro (lista a mostrar). Si no viene, cae a $clinicas.
  */
 $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
-$opts = $clinicasFiltro ?? $clinicas ?? [];
+if ($rol === 'admin_sistema') {
+    $opts = $clinicasFiltro ?? $clinicas ?? [];
+} else {
+    // Otros roles: SIEMPRE limitar a las clinicas asignadas al usuario en sesion.
+    $opts = $_SESSION['user']['clinicas'] ?? [];
+}
 if (empty($opts)) return;
 $permitirTodas = ($rol === 'admin_sistema');
 ?>
