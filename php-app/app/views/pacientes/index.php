@@ -31,7 +31,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
-    <?php if ($rol === 'asistente'): ?>
+    <?php if (in_array($rol, ['asistente','medico','administrador'], true)): ?>
       <input type="hidden" name="id_CLINICA" value="<?= (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0) ?>">
     <?php else: ?>
     <label>Clinica
