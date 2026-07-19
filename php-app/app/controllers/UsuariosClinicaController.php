@@ -6,7 +6,7 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class UsuariosClinicaController extends Controller {
     public function index(): void {
-        $this->requireLogin(['administrador']);
+        $this->requireLogin(['admin_sistema']);
         $ctx = $this->resolveClinicaContext();
         $clinicasAdmin = $ctx['clinicasFiltro']; // clinicas asignadas al admin
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $clinicasAdmin);
@@ -45,7 +45,7 @@ class UsuariosClinicaController extends Controller {
     }
 
     public function asignar(): void {
-        $this->requireLogin(['administrador']);
+        $this->requireLogin(['admin_sistema']);
         $ctx = $this->resolveClinicaContext();
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro']);
         $idUsuario = (int)$this->input('id_USUARIO');
@@ -73,7 +73,7 @@ class UsuariosClinicaController extends Controller {
     }
 
     public function remover(): void {
-        $this->requireLogin(['administrador']);
+        $this->requireLogin(['admin_sistema']);
         $ctx = $this->resolveClinicaContext();
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro']);
         $idUsuario = (int)$this->input('id_USUARIO');
