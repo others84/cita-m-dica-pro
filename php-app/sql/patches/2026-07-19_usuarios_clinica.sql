@@ -41,7 +41,7 @@ CREATE PROCEDURE citas.spRegresaClinicasUsuario
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT c.id_CLINICA, c.nombre, ISNULL(c.activo, 1) AS activo
+    SELECT uc.id_USUARIOS_CLINICA, c.id_CLINICA, c.nombre, ISNULL(c.activo, 1) AS activo
     FROM citas.USUARIOS_CLINICA uc
     INNER JOIN citas.CLINICA c ON c.id_CLINICA = uc.id_CLINICA
     WHERE uc.id_USUARIOS = @id_USUARIO
@@ -50,35 +50,62 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('citas.spAsignaUsuarioClinica','P') IS NOT NULL DROP PROCEDURE citas.spAsignaUsuarioClinica;
+-- Alta / baja de asignacion usuario-clinica.
+-- Usa los SPs oficiales citas.spAltaUsuarioClinica y citas.spBajaUsuarioClinica
+-- que ya viven en schema.sql. Se recrean aqui con CREATE OR ALTER para
+-- garantizar que existen despues de aplicar este patch.
 GO
-CREATE PROCEDURE citas.spAsignaUsuarioClinica
-    @id_USUARIO INT,
-    @id_CLINICA INT,
-    @id_usuario INT = NULL
+CREATE OR ALTER PROCEDURE citas.spAltaUsuarioClinica
+    @id_USUARIOS INT, @id_CLINICA INT, @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM citas.USUARIOS_CLINICA WHERE id_USUARIOS=@id_USUARIO AND id_CLINICA=@id_CLINICA)
-        INSERT INTO citas.USUARIOS_CLINICA (id_USUARIOS, id_CLINICA, id_usuario_creacion, fecha_creacion)
-        VALUES (@id_USUARIO, @id_CLINICA, ISNULL(@id_usuario,1), GETDATE());
+    BEGIN TRY
+        BEGIN TRAN;
+            INSERT INTO citas.USUARIOS_CLINICA(id_USUARIOS,id_CLINICA,id_usuario_creacion,fecha_creacion)
+            VALUES(@id_USUARIOS,@id_CLINICA,@id_usuario,GETDATE());
+            SET @id_nuevo=SCOPE_IDENTITY();
+            DECLARE @msg VARCHAR(2000);
+            SET @msg='Alta UsuarioClinica id='+CONVERT(VARCHAR(20),@id_nuevo)
+                   +' usuario='+CONVERT(VARCHAR(20),@id_USUARIOS)
+                   +' clinica='+CONVERT(VARCHAR(20),@id_CLINICA);
+            INSERT INTO citas.LOG VALUES('USUARIOS_CLINICA','spAltaUsuarioClinica','USUARIOS_CLINICA',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spAltaUsuarioClinica: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('USUARIOS_CLINICA','spAltaUsuarioClinica','USUARIOS_CLINICA',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
 END
 GO
 
-IF OBJECT_ID('citas.spRemueveUsuarioClinica','P') IS NOT NULL DROP PROCEDURE citas.spRemueveUsuarioClinica;
-GO
-CREATE PROCEDURE citas.spRemueveUsuarioClinica
-    @id_USUARIO INT,
-    @id_CLINICA INT,
-    @id_usuario INT = NULL
+CREATE OR ALTER PROCEDURE citas.spBajaUsuarioClinica
+    @id_USUARIOS_CLINICA INT, @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
-    DELETE FROM citas.USUARIOS_CLINICA WHERE id_USUARIOS=@id_USUARIO AND id_CLINICA=@id_CLINICA;
+    BEGIN TRY
+        BEGIN TRAN;
+            DELETE FROM citas.USUARIOS_CLINICA WHERE id_USUARIOS_CLINICA=@id_USUARIOS_CLINICA;
+            DECLARE @msg VARCHAR(2000);
+            SET @msg='Baja UsuarioClinica id='+CONVERT(VARCHAR(20),@id_USUARIOS_CLINICA);
+            INSERT INTO citas.LOG VALUES('USUARIOS_CLINICA','spBajaUsuarioClinica','USUARIOS_CLINICA',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spBajaUsuarioClinica: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG VALUES('USUARIOS_CLINICA','spBajaUsuarioClinica','USUARIOS_CLINICA',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
 END
 GO
 
 GRANT EXECUTE ON citas.spRegresaClinicasUsuario TO app_user;
-GRANT EXECUTE ON citas.spAsignaUsuarioClinica   TO app_user;
-GRANT EXECUTE ON citas.spRemueveUsuarioClinica  TO app_user;
+GRANT EXECUTE ON citas.spAltaUsuarioClinica     TO app_user;
+GRANT EXECUTE ON citas.spBajaUsuarioClinica     TO app_user;
 GO
