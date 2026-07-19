@@ -13,6 +13,15 @@ class CitasController extends Controller {
         $this->requireLogin();
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
+        $sesClin = $_SESSION['user']['clinicas'] ?? [];
+        $idsSes  = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sesClin);
+        Database::log(sprintf(
+            'CITAS.index rol=%s user=%s fClinica=%s sesion_clinicas=[%s]',
+            $rol,
+            $_SESSION['user']['usuario'] ?? '?',
+            var_export($fClinica, true),
+            implode(',', $idsSes)
+        ));
         try {
             $citas = CitaModel::listar(null,
                 date('Y-m-d', strtotime('-30 days')),
