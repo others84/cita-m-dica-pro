@@ -13,13 +13,8 @@ class PacientesController extends Controller {
         $editId = $this->intOrNull($_GET['edit'] ?? null);
         $editRow = null;
         $rows = [];
-        $rol       = $_SESSION['user']['rol'] ?? '';
-        $userClin  = $_SESSION['user']['id_CLINICA'] ?? null;
-        // Filtro por clinica: solo admin_sistema puede elegir; los demas se
-        // limitan a su propia clinica.
-        $fClinica = $rol === 'admin_sistema'
-            ? $this->intOrNull($_GET['f_clinica'] ?? null)
-            : ($userClin ? (int)$userClin : null);
+        $ctx = $this->resolveClinicaContext();
+        $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         try {
             $rows = PacienteModel::listar($fClinica);
             if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
@@ -36,6 +31,7 @@ class PacientesController extends Controller {
             'estados'   => EstadoModel::listar(),
             'fClinica'  => $fClinica,
             'rol'       => $rol,
+            'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
 

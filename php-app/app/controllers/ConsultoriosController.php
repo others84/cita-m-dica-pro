@@ -6,11 +6,8 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 class ConsultoriosController extends Controller {
     public function index(): void {
         $this->requireLogin(['administrador','admin_sistema']);
-        $rol      = $_SESSION['user']['rol'] ?? '';
-        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
-        $fClinica = $rol === 'admin_sistema'
-            ? $this->intOrNull($_GET['f_clinica'] ?? null)
-            : ($userClin ? (int)$userClin : null);
+        $ctx = $this->resolveClinicaContext();
+        $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         $editId = $this->intOrNull($_GET['edit'] ?? null);
         $rows = ConsultorioModel::listar($fClinica);
         $editRow = null;
@@ -20,6 +17,7 @@ class ConsultoriosController extends Controller {
             'editId'=>$editId,'editRow'=>$editRow,
             'clinicas'=>ClinicaModel::listar(),
             'fClinica'=>$fClinica,'rol'=>$rol,
+            'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
     public function guardar(): void {
