@@ -44,17 +44,13 @@
         <tr>
           <td><?= htmlspecialchars($r['nombre']) ?></td>
           <td class="acts">
-            <?php if (in_array((int)$r['id_CLINICA'], $idsAdmin, true)): ?>
-              <form method="post" action="<?= url('usuariosClinica/remover') ?>" style="display:inline"
-                    onsubmit="return confirm('¿Remover el acceso a esta clínica?');">
-                <input type="hidden" name="id_USUARIO" value="<?= (int)$usuarioSel['id_USUARIOS'] ?>">
-                <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)$r['id_USUARIOS_CLINICA'] ?>">
-                <input type="hidden" name="id_CLINICA" value="<?= (int)$r['id_CLINICA'] ?>">
-                <button class="btn btn-danger">Remover</button>
-              </form>
-            <?php else: ?>
-              <span class="badge off">Fuera de tu alcance</span>
-            <?php endif; ?>
+            <form method="post" action="<?= url('usuariosClinica/remover') ?>" style="display:inline"
+                  onsubmit="return confirm('¿Remover el acceso a esta clínica?');">
+              <input type="hidden" name="id_USUARIO" value="<?= (int)$usuarioSel['id_USUARIOS'] ?>">
+              <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)$r['id_USUARIOS_CLINICA'] ?>">
+              <input type="hidden" name="id_CLINICA" value="<?= (int)$r['id_CLINICA'] ?>">
+              <button class="btn btn-danger">Remover</button>
+            </form>
           </td>
         </tr>
       <?php endforeach; endif; ?>
