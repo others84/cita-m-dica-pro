@@ -20,6 +20,9 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <?php if ($rol === 'asistente'): ?>
+      <input type="hidden" name="id_CLINICA" value="<?= (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0) ?>">
+    <?php else: ?>
     <label>Clinica
       <select name="id_CLINICA" required>
         <option value="">-- seleccione --</option>
@@ -30,6 +33,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
         <?php endforeach; ?>
       </select>
     </label>
+    <?php endif; ?>
     <label>Apellido paterno <input name="ap_paterno" required value="<?= htmlspecialchars($editRow['ap_paterno'] ?? '') ?>"></label>
     <label>Apellido materno <input name="ap_materno" value="<?= htmlspecialchars($editRow['ap_materno'] ?? '') ?>"></label>
     <label>Nombre(s) <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
