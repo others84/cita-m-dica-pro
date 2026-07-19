@@ -18,10 +18,14 @@ if ($rol === 'admin_sistema') {
 if (class_exists('Database')) {
     $ids = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $opts);
     Database::log(sprintf(
-        'filtro_clinica rol=%s user=%s ctrl=%s opts=[%s]',
+        'filtro_clinica rol=%s user=%s ctrl=%s uri=%s get_f_clinica=%s fClinica=%s session_f_clinica=%s opts=[%s]',
         $rol,
         $_SESSION['user']['usuario'] ?? '?',
         $controller ?? '?',
+        $_SERVER['REQUEST_URI'] ?? '?',
+        $_GET['f_clinica'] ?? 'NULL',
+        $fClinica ?? 'NULL',
+        $_SESSION['f_clinica'] ?? 'NULL',
         implode(',', $ids)
     ));
 }
