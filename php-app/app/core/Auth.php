@@ -46,6 +46,11 @@ class Auth {
         $clinicas = [];
         if ($rolCodigo !== 'admin_sistema' && $idUsuario > 0) {
             $clinicas = UsuarioClinicaModel::listarPorUsuario($idUsuario);
+            Database::log(sprintf(
+                'Auth.login usuario=%s id_USUARIOS=%d rol=%s clinicas_asignadas=%d ids=[%s]',
+                $usuario, $idUsuario, $rolCodigo, count($clinicas),
+                implode(',', array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $clinicas))
+            ));
             // Fallback: si por alguna razon no hay asignaciones, usar la clinica propia
             if (empty($clinicas) && $idClinica) {
                 try {
