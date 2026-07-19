@@ -15,23 +15,7 @@ $selMun    = isset($editRow) ? (int)($editRow['id_CATALOGO_MUNICIPIO'] ?? 0) : 0
 $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 ?>
-<?php if (($rol ?? '') === 'admin_sistema'): ?>
-<div class="card" style="margin-bottom:1rem">
-  <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
-  <form method="get" action="<?= url('pacientes') ?>" class="form-grid">
-    <label>Clinica
-      <select name="f_clinica" onchange="this.form.submit()">
-        <option value="">-- todas --</option>
-        <?php foreach ($clinicas as $cl): ?>
-          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= (int)($fClinica ?? 0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
-            <?= htmlspecialchars($cl['nombre']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-  </form>
-</div>
-<?php endif; ?>
+<?php $controller='pacientes'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">

@@ -11,11 +11,8 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 class CitasController extends Controller {
     public function index(): void {
         $this->requireLogin();
-        $rol      = $_SESSION['user']['rol'] ?? '';
-        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
-        $fClinica = $rol === 'admin_sistema'
-            ? $this->intOrNull($_GET['f_clinica'] ?? null)
-            : ($userClin ? (int)$userClin : null);
+        $ctx = $this->resolveClinicaContext();
+        $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         try {
             $citas = CitaModel::listar(null,
                 date('Y-m-d', strtotime('-30 days')),
@@ -31,6 +28,7 @@ class CitasController extends Controller {
             'clinicas' => ClinicaModel::listar(),
             'fClinica' => $fClinica,
             'rol'      => $rol,
+            'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
 

@@ -1,17 +1,28 @@
 <?php
 /**
- * Filtro de clinica para admin_sistema.
- * Requiere: $rol, $clinicas, $fClinica, $controller (slug del controlador, ej. 'medicos').
+ * Filtro de clinica.
+ * - admin_sistema: puede elegir entre todas las clinicas o "-- todas --".
+ * - otros roles: puede elegir entre las clinicas asignadas (si tiene mas de una).
+ *
+ * Requiere: $rol, $fClinica, $controller (slug del controlador).
+ * Opcional: $clinicasFiltro (lista a mostrar). Si no viene, cae a $clinicas.
  */
-if (($rol ?? '') !== 'admin_sistema') return;
+$rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
+$opts = $clinicasFiltro ?? $clinicas ?? [];
+// Para roles no admin_sistema, ocultar filtro si solo hay una clinica asignada.
+if ($rol !== 'admin_sistema' && count($opts) < 2) return;
+if (empty($opts)) return;
+$permitirTodas = ($rol === 'admin_sistema');
 ?>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
   <form method="get" action="<?= url($controller) ?>" class="form-grid">
     <label>Clinica
       <select name="f_clinica" onchange="this.form.submit()">
-        <option value="">-- todas --</option>
-        <?php foreach (($clinicas ?? []) as $cl): ?>
+        <?php if ($permitirTodas): ?>
+          <option value="">-- todas --</option>
+        <?php endif; ?>
+        <?php foreach ($opts as $cl): ?>
           <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= (int)($fClinica ?? 0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
             <?= htmlspecialchars($cl['nombre']) ?>
           </option>

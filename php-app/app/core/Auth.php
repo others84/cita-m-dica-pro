@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
+require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
 
 class Auth {
     /**
@@ -41,6 +42,22 @@ class Auth {
             'Asistente'                => 'asistente',
         ];
         $rolCodigo = $map[$rolNombre] ?? strtolower(str_replace(' ', '_', $rolNombre));
+        $idUsuario = (int)($u['id_USUARIOS'] ?? 0);
+        $clinicas = [];
+        if ($rolCodigo !== 'admin_sistema' && $idUsuario > 0) {
+            $clinicas = UsuarioClinicaModel::listarPorUsuario($idUsuario);
+            // Fallback: si por alguna razon no hay asignaciones, usar la clinica propia
+            if (empty($clinicas) && $idClinica) {
+                try {
+                    foreach (ClinicaModel::listar() as $cl) {
+                        if ((int)$cl['id_CLINICA'] === $idClinica) {
+                            $clinicas = [['id_CLINICA' => $idClinica, 'nombre' => $cl['nombre'], 'activo' => 1]];
+                            break;
+                        }
+                    }
+                } catch (Throwable $e) { /* ignore */ }
+            }
+        }
         return [
             'id_USUARIOS'     => (int)($u['id_USUARIOS'] ?? 0),
             'usuario'         => $u['usuario'] ?? $usuario,
@@ -50,6 +67,7 @@ class Auth {
             'rol'             => $rolCodigo,
             'rol_nombre'      => $rolNombre,
             'id_CLINICA'      => $idClinica,
+            'clinicas'        => $clinicas,
         ];
     }
 }

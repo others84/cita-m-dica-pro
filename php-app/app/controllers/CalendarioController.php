@@ -7,12 +7,8 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 class CalendarioController extends Controller {
     public function index(): void {
         $this->requireLogin();
-        $user   = $_SESSION['user'];
-        $rol    = $user['rol'] ?? '';
-        $userClin = $user['id_CLINICA'] ?? null;
-        $fClinica = $rol === 'admin_sistema'
-            ? (isset($_GET['f_clinica']) && $_GET['f_clinica']!=='' ? (int)$_GET['f_clinica'] : null)
-            : ($userClin ? (int)$userClin : null);
+        $ctx = $this->resolveClinicaContext();
+        $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
 
         $idMedico = null;
         $desde = date('Y-m-d', strtotime('-30 days'));
@@ -59,6 +55,7 @@ class CalendarioController extends Controller {
             'clinicas'    => ClinicaModel::listar(),
             'fClinica'    => $fClinica,
             'rol'         => $rol,
+            'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
 }
