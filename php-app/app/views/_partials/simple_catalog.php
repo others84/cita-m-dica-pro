@@ -22,7 +22,7 @@ if (strpos($controller, '/') !== false) {
 <?php if (!empty($rol) && $rol==='admin_sistema' && !empty($clinicas)): ?>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
-  <form method="post" action="<?= url($controller) ?>" class="form-grid">
+  <form method="post" action="<?= url($controller) ?>" class="form-grid"><?= csrf_field() ?>
     <label>Clinica
       <select name="f_clinica" onchange="this.form.submit()">
         <option value="">-- todas --</option>
@@ -42,7 +42,7 @@ if (strpos($controller, '/') !== false) {
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0"><?= $editId ? 'Editar' : 'Nuevo' ?></h3>
-  <form method="post" action="<?= url($saveAction) ?>" class="form-grid">
+  <form method="post" action="<?= url($saveAction) ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre
       <input type="text" name="nombre" required maxlength="120"
@@ -68,7 +68,7 @@ if (strpos($controller, '/') !== false) {
         <td class="acts">
           <?php post_button($controller, ['edit' => (int)$r[$idField]], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url($deleteAction) ?>" style="display:inline"
-                onsubmit="return confirm('¿Eliminar el registro &quot;<?= htmlspecialchars(addslashes((string)$r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+                onsubmit="return confirm('¿Eliminar el registro &quot;<?= htmlspecialchars(addslashes((string)$r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');"><?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$r[$idField] ?>">
             <button class="btn btn-danger" type="submit">Baja</button>
           </form>

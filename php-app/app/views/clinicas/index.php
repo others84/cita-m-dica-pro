@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar clinica' : 'Nueva clinica' ?></h2>
-  <form method="post" action="<?= url('clinicas/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('clinicas/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
@@ -34,11 +34,11 @@
         <td class="acts">
           <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($c['activo'])): ?>
-            <form method="post" action="<?= url('clinicas/desactivar') ?>" style="display:inline">
+            <form method="post" action="<?= url('clinicas/desactivar') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>"><button class="btn btn-danger">Desactivar</button>
             </form>
           <?php else: ?>
-            <form method="post" action="<?= url('clinicas/activar') ?>" style="display:inline">
+            <form method="post" action="<?= url('clinicas/activar') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>"><button class="btn">Activar</button>
             </form>
           <?php endif; ?>

@@ -1,7 +1,7 @@
 <?php $controller='consultorios'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar consultorio' : 'Nuevo consultorio' ?></h2>
-  <form method="post" action="<?= url('consultorios/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('consultorios/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Clinica
       <select name="id_CLINICA" required>
@@ -32,7 +32,7 @@
         <td class="acts">
           <?php post_button('consultorios', ['edit' => (int)$c['id_CONSULTORIO']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('consultorios/eliminar') ?>" style="display:inline"
-                onsubmit="return confirm('¿Eliminar el consultorio &quot;<?= htmlspecialchars(addslashes($c['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+                onsubmit="return confirm('¿Eliminar el consultorio &quot;<?= htmlspecialchars(addslashes($c['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');"><?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$c['id_CONSULTORIO'] ?>">
             <button class="btn btn-danger">Baja</button>
           </form>

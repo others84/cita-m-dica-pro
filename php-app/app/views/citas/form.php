@@ -11,7 +11,7 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
 ?>
 <div class="card">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita' ?></h2>
-  <form method="post" action="<?= url('citas/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('citas/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
 
     <label>Paciente

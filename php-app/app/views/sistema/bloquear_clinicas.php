@@ -21,12 +21,12 @@
         <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo'])?'Bloqueada':'Activa' ?></span></td>
         <td class="acts">
           <?php if (!empty($c['activo'])): ?>
-            <form method="post" action="<?= url('sistema/bloquear') ?>" style="display:inline" onsubmit="return confirm('Bloquear acceso a la clinica?')">
+            <form method="post" action="<?= url('sistema/bloquear') ?>" style="display:inline" onsubmit="return confirm('Bloquear acceso a la clinica?')"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>">
               <button class="btn btn-danger">Bloquear</button>
             </form>
           <?php else: ?>
-            <form method="post" action="<?= url('sistema/desbloquear') ?>" style="display:inline">
+            <form method="post" action="<?= url('sistema/desbloquear') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>">
               <button class="btn">Desbloquear</button>
             </form>

@@ -1,7 +1,7 @@
 <?php $controller='medicos'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar medico #' . (int)$editId : 'Nuevo medico' ?></h2>
-  <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Clinica
       <select name="id_CLINICA" required>
@@ -36,12 +36,12 @@
         <td class="acts">
           <?php post_button('medicos', ['edit' => (int)$m['id_MEDICO']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($m['activo'])): ?>
-            <form method="post" action="<?= url('medicos/desactivar') ?>" style="display:inline" onsubmit="return confirm('Desactivar medico?')">
+            <form method="post" action="<?= url('medicos/desactivar') ?>" style="display:inline" onsubmit="return confirm('Desactivar medico?')"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">
               <button class="btn btn-danger">Desactivar</button>
             </form>
           <?php else: ?>
-            <form method="post" action="<?= url('medicos/activar') ?>" style="display:inline">
+            <form method="post" action="<?= url('medicos/activar') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">
               <button class="btn">Activar</button>
             </form>

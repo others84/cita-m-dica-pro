@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Seleccionar usuario</h3>
-  <form method="post" action="<?= url('usuariosClinica') ?>" class="form-grid">
+  <form method="post" action="<?= url('usuariosClinica') ?>" class="form-grid"><?= csrf_field() ?>
     <label>Usuario
       <select name="id_USUARIO" onchange="this.form.submit()">
         <option value="">-- seleccione --</option>
@@ -17,7 +17,7 @@
 <?php if ($usuarioSel): ?>
   <div class="card" style="margin-bottom:1rem">
     <h2 style="margin-top:0">Asignar clínica</h2>
-    <form method="post" action="<?= url('usuariosClinica/asignar') ?>" class="form-grid">
+    <form method="post" action="<?= url('usuariosClinica/asignar') ?>" class="form-grid"><?= csrf_field() ?>
       <input type="hidden" name="id_USUARIO" value="<?= (int)$usuarioSel['id_USUARIOS'] ?>">
       <label>Clínica
         <select name="id_CLINICA" required>
@@ -45,7 +45,7 @@
           <td><?= htmlspecialchars($r['nombre']) ?></td>
           <td class="acts">
             <form method="post" action="<?= url('usuariosClinica/remover') ?>" style="display:inline"
-                  onsubmit="return confirm('¿Remover el acceso a esta clínica?');">
+                  onsubmit="return confirm('¿Remover el acceso a esta clínica?');"><?= csrf_field() ?>
               <input type="hidden" name="id_USUARIO" value="<?= (int)$usuarioSel['id_USUARIOS'] ?>">
               <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)($r['id_USUARIOS_CLINICA'] ?? 0) ?>">
               <input type="hidden" name="id_CLINICA" value="<?= (int)$r['id_CLINICA'] ?>">

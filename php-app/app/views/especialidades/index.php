@@ -1,7 +1,7 @@
 <?php $controller='especialidades'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar especialidad' : 'Nueva especialidad' ?></h2>
-  <form method="post" action="<?= url('especialidades/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('especialidades/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre
       <input name="nombre" required maxlength="120" value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>">

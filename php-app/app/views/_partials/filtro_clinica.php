@@ -34,7 +34,7 @@ $permitirTodas = ($rol === 'admin_sistema');
 ?>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
-  <form method="post" action="<?= url($controller) ?>" class="form-grid">
+  <form method="post" action="<?= url($controller) ?>" class="form-grid"><?= csrf_field() ?>
     <label>Clinica
       <select name="f_clinica" onchange="this.form.submit()">
         <?php if ($permitirTodas): ?>
