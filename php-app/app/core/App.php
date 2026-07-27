@@ -80,6 +80,29 @@ class App {
             session_start();
         }
         Config::load(__DIR__ . '/../../config/config.properties');
+
+        // Blindaje de URL limpia: ningun dato de negocio puede viajar por la
+        // barra de direcciones. Si llega cualquier parametro GET distinto de
+        // 'url' (ej. ?f_clinica=3&edit=5), se ignora y se redirige a la ruta
+        // limpia. Asi el usuario no puede manipular valores desde la URL.
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+            $extra = $_GET;
+            unset($extra['url']);
+            if (!empty($extra)) {
+                if (class_exists('Database')) {
+                    Database::log(sprintf(
+                        'URL GET params ignorados uri=%s user=%s params=[%s]',
+                        $_SERVER['REQUEST_URI'] ?? '?',
+                        $_SESSION['user']['usuario'] ?? 'anonimo',
+                        implode(',', array_keys($extra))
+                    ));
+                }
+                $ruta = trim((string)($_GET['url'] ?? ''), '/');
+                header('Location: ' . url($ruta));
+                return;
+            }
+        }
+
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !csrf_verify()) {
             $uri = $_SERVER['REQUEST_URI'] ?? '?';
             if (class_exists('Database')) {
