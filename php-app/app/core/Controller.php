@@ -34,7 +34,8 @@ class Controller {
     }
 
     protected function input(string $key, $default = null) {
-        $v = $_POST[$key] ?? $_GET[$key] ?? $default;
+        // Solo POST: los valores nunca deben viajar en la URL.
+        $v = $_POST[$key] ?? $default;
         if (is_string($v)) {
             $v = trim($v);
             if ($v === '') return $default;
