@@ -97,7 +97,8 @@ class App {
             // regenerar el token y volver al formulario con un aviso.
             if (empty($_SESSION['user'])) {
                 csrf_token();
-                header('Location: ' . url('auth/login?expirada=1'));
+                $_SESSION['flash_error'] = 'Tu sesión expiró. Vuelve a intentarlo.';
+                header('Location: ' . url('auth/login'));
                 return;
             }
             http_response_code(419);
