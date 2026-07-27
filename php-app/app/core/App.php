@@ -76,15 +76,29 @@ if (!function_exists('post_button')) {
 
 class App {
     public function run(): void {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         Config::load(__DIR__ . '/../../config/config.properties');
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !csrf_verify()) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '?';
             if (class_exists('Database')) {
                 Database::log(sprintf(
-                    'CSRF INVALIDO uri=%s user=%s ip=%s',
-                    $_SERVER['REQUEST_URI'] ?? '?',
+                    'CSRF INVALIDO uri=%s user=%s ip=%s enviado=%s guardado=%s sid=%s',
+                    $uri,
                     $_SESSION['user']['usuario'] ?? 'anonimo',
-                    $_SERVER['REMOTE_ADDR'] ?? '?'
+                    $_SERVER['REMOTE_ADDR'] ?? '?',
+                    empty($_POST['_csrf']) ? 'NO' : 'SI',
+                    empty($_SESSION['csrf_token']) ? 'NO' : 'SI',
+                    session_id()
                 ));
+            }
+            // Sesion nueva/expirada en el login: no mostrar pantalla de error,
+            // regenerar el token y volver al formulario con un aviso.
+            if (empty($_SESSION['user'])) {
+                csrf_token();
+                header('Location: ' . url('auth/login?expirada=1'));
+                return;
             }
             http_response_code(419);
             echo 'Sesion expirada o solicitud invalida (CSRF). Recargue la pagina e intente de nuevo.';
