@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body class="login-body">
-  <form class="login-card" method="post" action="<?= url('auth/login') ?>">
+  <form class="login-card" method="post" action="<?= url('auth/login') ?>"><?= csrf_field() ?>
     <h1>Citas Médicas</h1>
     <p class="subtitle">Inicia sesión</p>
     <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>

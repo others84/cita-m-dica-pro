@@ -29,7 +29,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 } ?>
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
-  <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <?php if (in_array($rol, ['asistente','medico','administrador'], true)): ?>
       <input type="hidden" name="id_CLINICA" value="<?= (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0) ?>">
@@ -140,7 +140,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
         <td><?= htmlspecialchars($p['municipio'] ?? '') ?></td>
         <td class="acts">
           <?php post_button('pacientes', ['edit' => (int)$p['id_PACIENTE']], 'Editar', 'btn btn-sec'); ?>
-          <form method="post" action="<?= url('pacientes/eliminar') ?>" style="display:inline" onsubmit="return confirm('Eliminar paciente?')">
+          <form method="post" action="<?= url('pacientes/eliminar') ?>" style="display:inline" onsubmit="return confirm('Eliminar paciente?')"><?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$p['id_PACIENTE'] ?>">
             <button class="btn btn-danger" type="submit">Eliminar</button>
           </form>

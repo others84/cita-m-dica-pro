@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar estado' : 'Nuevo estado' ?></h2>
-  <form method="post" action="<?= url('catalogos/estadosGuardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/estadosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
     <label>Pais
@@ -20,7 +20,7 @@
 </div>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
-  <form method="post" action="<?= url('catalogos/estados') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/estados') ?>" class="form-grid"><?= csrf_field() ?>
     <label>Pais
       <select name="f_pais" onchange="this.form.submit()">
         <option value="">-- todos --</option>
@@ -43,7 +43,7 @@
         <td class="acts">
           <?php post_button('catalogos/estados', ['edit' => (int)$r['id_CATALOGO_ESTADOS']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('catalogos/estadosEliminar') ?>" style="display:inline"
-                onsubmit="return confirm('¿Eliminar el estado &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+                onsubmit="return confirm('¿Eliminar el estado &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');"><?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$r['id_CATALOGO_ESTADOS'] ?>">
             <button class="btn btn-danger" type="submit">Baja</button>
           </form>

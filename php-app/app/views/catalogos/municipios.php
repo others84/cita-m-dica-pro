@@ -4,7 +4,7 @@
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
-  <form method="post" action="<?= url('catalogos/municipios') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/municipios') ?>" class="form-grid"><?= csrf_field() ?>
     <label>Pais
       <select name="f_pais" onchange="this.form.submit()">
         <option value="">-- todos --</option>
@@ -30,7 +30,7 @@
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0"><?= $editId ? 'Editar municipio' : 'Nuevo municipio' ?></h3>
-  <form method="post" action="<?= url('catalogos/municipiosGuardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/municipiosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre
       <input name="nombre" required maxlength="120"
@@ -66,7 +66,7 @@
         <td class="acts">
           <?php post_button('catalogos/municipios', ['edit' => (int)$r['id_CATALOGO_MUNICIPIO']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('catalogos/municipiosEliminar') ?>" style="display:inline"
-                onsubmit="return confirm('¿Eliminar el municipio &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
+                onsubmit="return confirm('¿Eliminar el municipio &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');"><?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$r['id_CATALOGO_MUNICIPIO'] ?>">
             <button class="btn btn-danger" type="submit">Baja</button>
           </form>

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/Config.php';
+require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Router.php';
 require_once __DIR__ . '/Controller.php';
 
@@ -23,6 +24,32 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('csrf_token')) {
+    /** Token CSRF de la sesion actual (se genera una vez por sesion). */
+    function csrf_token(): string {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+}
+
+if (!function_exists('csrf_field')) {
+    /** Campo oculto con el token CSRF; debe ir en TODOS los formularios POST. */
+    function csrf_field(): string {
+        return '<input type="hidden" name="_csrf" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES) . '">';
+    }
+}
+
+if (!function_exists('csrf_verify')) {
+    /** Valida el token recibido por POST contra el de la sesion. */
+    function csrf_verify(): bool {
+        $sent = $_POST['_csrf'] ?? '';
+        $stored = $_SESSION['csrf_token'] ?? '';
+        return is_string($sent) && $stored !== '' && hash_equals($stored, $sent);
+    }
+}
+
 if (!function_exists('post_button')) {
     /**
      * Renderiza un boton que envia sus datos por POST (no por la URL).
@@ -38,6 +65,7 @@ if (!function_exists('post_button')) {
             ? ' onsubmit="return confirm(\'' . htmlspecialchars(str_replace("'", "\\'", $confirm), ENT_QUOTES) . '\');"'
             : '';
         echo '<form method="post" action="' . url($action) . '" style="display:inline"' . $onsubmit . '>';
+        echo csrf_field();
         foreach ($fields as $k => $v) {
             echo '<input type="hidden" name="' . htmlspecialchars((string)$k) . '" value="' . htmlspecialchars((string)$v) . '">';
         }
@@ -49,6 +77,19 @@ if (!function_exists('post_button')) {
 class App {
     public function run(): void {
         Config::load(__DIR__ . '/../../config/config.properties');
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !csrf_verify()) {
+            if (class_exists('Database')) {
+                Database::log(sprintf(
+                    'CSRF INVALIDO uri=%s user=%s ip=%s',
+                    $_SERVER['REQUEST_URI'] ?? '?',
+                    $_SESSION['user']['usuario'] ?? 'anonimo',
+                    $_SERVER['REMOTE_ADDR'] ?? '?'
+                ));
+            }
+            http_response_code(419);
+            echo 'Sesion expirada o solicitud invalida (CSRF). Recargue la pagina e intente de nuevo.';
+            return;
+        }
         $router = new Router();
         $router->dispatch($_GET['url'] ?? '');
     }

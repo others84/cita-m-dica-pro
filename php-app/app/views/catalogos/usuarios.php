@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar usuario #' . (int)$editId : 'Nuevo usuario' ?></h2>
-  <form method="post" action="<?= url('catalogos/usuariosGuardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/usuariosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Usuario
       <input name="usuario" required maxlength="50" value="<?= htmlspecialchars($editRow['usuario'] ?? '') ?>" <?= $editId?'readonly':'' ?>>
@@ -48,11 +48,11 @@
         <td class="acts">
           <?php post_button('catalogos/usuarios', ['edit' => (int)$u['id_USUARIOS']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($u['activo'])): ?>
-            <form method="post" action="<?= url('catalogos/usuariosDesactivar') ?>" style="display:inline">
+            <form method="post" action="<?= url('catalogos/usuariosDesactivar') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$u['id_USUARIOS'] ?>"><button class="btn btn-danger">Desactivar</button>
             </form>
           <?php else: ?>
-            <form method="post" action="<?= url('catalogos/usuariosActivar') ?>" style="display:inline">
+            <form method="post" action="<?= url('catalogos/usuariosActivar') ?>" style="display:inline"><?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$u['id_USUARIOS'] ?>"><button class="btn">Activar</button>
             </form>
           <?php endif; ?>

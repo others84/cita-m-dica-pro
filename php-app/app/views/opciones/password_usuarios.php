@@ -1,7 +1,7 @@
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0;color:var(--c5)">Cambiar contraseña de un usuario</h2>
   <p style="color:var(--c4);margin-top:0">Solo se muestran los usuarios de las clínicas a las que tienes acceso.</p>
-  <form method="post" action="<?= url('opciones/passwordUsuariosGuardar') ?>" class="form-grid">
+  <form method="post" action="<?= url('opciones/passwordUsuariosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <label>Usuario
       <select name="id_USUARIO" required>
         <option value="">-- selecciona --</option>
