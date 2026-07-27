@@ -107,13 +107,15 @@ class App {
             $uri = $_SERVER['REQUEST_URI'] ?? '?';
             if (class_exists('Database')) {
                 Database::log(sprintf(
-                    'CSRF INVALIDO uri=%s user=%s ip=%s enviado=%s guardado=%s sid=%s',
+                    'CSRF INVALIDO uri=%s user=%s ip=%s enviado=%s guardado=%s coincide=%s sid=%s campos=[%s]',
                     $uri,
                     $_SESSION['user']['usuario'] ?? 'anonimo',
                     $_SERVER['REMOTE_ADDR'] ?? '?',
                     empty($_POST['_csrf']) ? 'NO' : 'SI',
                     empty($_SESSION['csrf_token']) ? 'NO' : 'SI',
-                    session_id()
+                    (!empty($_POST['_csrf']) && !empty($_SESSION['csrf_token'])) ? 'NO' : 'N/A',
+                    session_id(),
+                    implode(',', array_keys($_POST))
                 ));
             }
             // Sesion nueva/expirada en el login: no mostrar pantalla de error,
@@ -124,8 +126,19 @@ class App {
                 header('Location: ' . url('auth/login'));
                 return;
             }
+            // Usuario logueado: el token quedo desfasado (pagina cacheada o
+            // sesion reciclada). Se emite un token nuevo y se ofrece volver.
+            csrf_token();
             http_response_code(419);
-            echo 'Sesion expirada o solicitud invalida (CSRF). Recargue la pagina e intente de nuevo.';
+            $volver = htmlspecialchars(url(trim((string)($_GET['url'] ?? ''), '/')), ENT_QUOTES);
+            echo '<!doctype html><meta charset="utf-8">'
+               . '<div style="font-family:system-ui;max-width:520px;margin:3rem auto;padding:1.5rem;'
+               . 'border:1px solid #cfe3f5;border-radius:10px;background:#EAF6FF;color:#1E3A5F">'
+               . '<h2 style="margin-top:0">Tu sesión se actualizó</h2>'
+               . '<p>La página estaba abierta demasiado tiempo y el token de seguridad caducó. '
+               . 'Abre de nuevo la pantalla y vuelve a guardar.</p>'
+               . '<p><a href="' . $volver . '" style="color:#1E3A5F;font-weight:600">Volver a la pantalla</a></p>'
+               . '</div>';
             return;
         }
         $router = new Router();
