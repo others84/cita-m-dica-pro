@@ -51,7 +51,7 @@ if (strpos($controller, '/') !== false) {
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?>
-        <?php post_button($controller, ['edit' => ''], 'Cancelar', 'btn btn-sec'); ?>
+        <?php ?><button class="btn btn-sec" type="submit" name="edit" value="" formaction="<?= url($controller) ?>">Cancelar</button><?php  ?>
       <?php endif; ?>
     </div>
   </form>

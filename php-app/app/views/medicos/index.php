@@ -21,7 +21,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): post_button('medicos', ['edit' => ''], 'Cancelar', 'btn btn-sec'); endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" name="edit" value="" formaction="<?= url('medicos') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
