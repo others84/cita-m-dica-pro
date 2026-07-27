@@ -1,4 +1,10 @@
-<?php $title = 'Iniciar sesión'; ?>
+<?php
+$title = 'Iniciar sesión';
+// Fallback por si la vista se sirve sin los helpers de App.php cargados.
+if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
+if (empty($_SESSION['csrf_token'])) { $_SESSION['csrf_token'] = bin2hex(random_bytes(32)); }
+$csrf = $_SESSION['csrf_token'];
+?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -8,7 +14,8 @@
 <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body class="login-body">
-  <form class="login-card" method="post" action="<?= url('auth/login') ?>"><?= csrf_field() ?>
+  <form class="login-card" method="post" action="<?= url('auth/login') ?>">
+    <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES) ?>">
     <h1>Citas Médicas</h1>
     <p class="subtitle">Inicia sesión</p>
     <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>
