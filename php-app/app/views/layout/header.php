@@ -36,6 +36,7 @@ $rol  = $user['rol'];
         <details class="menu-group">
           <summary>Opciones</summary>
           <a href="<?= url('opciones/cambiarPassword') ?>">Cambiar contraseña</a>
+          <a href="<?= url('opciones/passwordUsuarios') ?>">Contraseña de usuarios</a>
         </details>
         <a href="<?= url('pacientes') ?>">Pacientes</a>
         <a href="<?= url('medicos') ?>">Médicos</a>
