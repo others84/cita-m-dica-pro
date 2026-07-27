@@ -73,7 +73,8 @@ class OpcionesController extends Controller {
     }
 
     /**
-     * Usuarios (no admin_sistema) pertenecientes a las clinicas del admin.
+     * Usuarios pertenecientes a las clinicas del admin, mas los
+     * administradores de sistema (que no estan ligados a una clinica).
      */
     private function usuariosDeClinicas(array $ctx): array {
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro'] ?? []);
@@ -81,8 +82,8 @@ class OpcionesController extends Controller {
         $out = [];
         foreach (UsuarioModel::listar() as $u) {
             $rol = strtolower((string)($u['rol'] ?? ''));
-            if (strpos($rol, 'sistema') !== false) continue;
             if ((int)$u['id_USUARIOS'] === $yo) continue;
+            if (strpos($rol, 'sistema') !== false) { $out[] = $u; continue; }
             $ids = array_map(fn($r) => (int)$r['id_CLINICA'], UsuarioClinicaModel::listarPorUsuario((int)$u['id_USUARIOS']));
             if (!empty($u['id_CLINICA'])) $ids[] = (int)$u['id_CLINICA'];
             if (array_intersect($ids, $idsAdmin)) $out[] = $u;
