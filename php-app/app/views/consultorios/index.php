@@ -18,7 +18,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('consultorios') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('consultorios') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
@@ -30,7 +30,7 @@
         <td><?= htmlspecialchars((string)($c['clinica'] ?? '')) ?></td>
         <td><?= htmlspecialchars($c['nombre']) ?></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('consultorios?edit=' . (int)$c['id_CONSULTORIO']) ?>">Editar</a>
+          <?php post_button('consultorios', ['edit' => (int)$c['id_CONSULTORIO']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('consultorios/eliminar') ?>" style="display:inline"
                 onsubmit="return confirm('¿Eliminar el consultorio &quot;<?= htmlspecialchars(addslashes($c['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
             <input type="hidden" name="id" value="<?= (int)$c['id_CONSULTORIO'] ?>">

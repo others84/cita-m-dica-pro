@@ -21,7 +21,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('medicos') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('medicos') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
@@ -34,7 +34,7 @@
         <td><?= htmlspecialchars($m['clinica'] ?? '') ?></td>
         <td><span class="badge <?= empty($m['activo'])?'off':'' ?>"><?= empty($m['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('medicos?edit=' . (int)$m['id_MEDICO']) ?>">Editar</a>
+          <?php post_button('medicos', ['edit' => (int)$m['id_MEDICO']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($m['activo'])): ?>
             <form method="post" action="<?= url('medicos/desactivar') ?>" style="display:inline" onsubmit="return confirm('Desactivar medico?')">
               <input type="hidden" name="id" value="<?= (int)$m['id_MEDICO'] ?>">

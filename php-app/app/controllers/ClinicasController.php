@@ -6,7 +6,7 @@ require_once __DIR__ . '/../models/MunicipioModel.php';
 class ClinicasController extends Controller {
     public function index(): void {
         $this->requireLogin(['admin_sistema']);
-        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editId = $this->stateInt('edit');
         $rows = ClinicaModel::listar();
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CLINICA']===$editId) { $editRow=$r; break; }
@@ -26,12 +26,14 @@ class ClinicasController extends Controller {
             else     ClinicaModel::alta($n, $d, $e, $t, $idMun);
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('clinicas');
     }
     public function eliminar(): void {
         $this->requireLogin(['admin_sistema']);
         try { ClinicaModel::baja((int)$this->input('id')); $this->flash('ok','Baja.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('clinicas');
     }
     public function activar(): void {

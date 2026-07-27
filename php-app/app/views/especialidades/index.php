@@ -23,7 +23,7 @@
     <?php endif; ?>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('especialidades') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('especialidades') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
@@ -37,7 +37,7 @@
         <td><?= htmlspecialchars($r['nombre']) ?></td>
         <td><?= htmlspecialchars($r['clinica'] ?? '') ?></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('especialidades?edit=' . (int)$r['id_CATALOGO_ESPECIALIDAD']) ?>">Editar</a>
+          <?php post_button('especialidades', ['edit' => (int)$r['id_CATALOGO_ESPECIALIDAD']], 'Editar', 'btn btn-sec'); ?>
         </td>
       </tr>
     <?php endforeach; endif; ?>

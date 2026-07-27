@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Seleccionar usuario</h3>
-  <form method="get" action="<?= url('usuariosClinica') ?>" class="form-grid">
+  <form method="post" action="<?= url('usuariosClinica') ?>" class="form-grid">
     <label>Usuario
       <select name="id_USUARIO" onchange="this.form.submit()">
         <option value="">-- seleccione --</option>

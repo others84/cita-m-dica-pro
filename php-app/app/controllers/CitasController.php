@@ -41,12 +41,12 @@ class CitasController extends Controller {
         ]);
     }
 
-    public function nueva(): void { $this->form(); }
+    public function nueva(): void { $this->clearState('id'); $this->form(); }
     public function editar(): void { $this->form(); }
 
     private function form(): void {
         $this->requireLogin();
-        $editId = $this->intOrNull($_GET['id'] ?? null);
+        $editId = $this->stateInt('id');
         $editRow = null;
         if ($editId) {
             $rows = CitaModel::listar();
@@ -88,6 +88,7 @@ class CitasController extends Controller {
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo guardar: ' . $e->getMessage());
         }
+        $this->clearState('id');
         $this->redirect('citas');
     }
 
@@ -97,6 +98,7 @@ class CitasController extends Controller {
         $idEstado = (int)$this->input('id_estado'); // pasar "Cancelada"
         try { CitaModel::cancela($id, $idEstado); $this->flash('ok', 'Cita cancelada.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('id');
         $this->redirect('citas');
     }
 }

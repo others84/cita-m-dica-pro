@@ -1,76 +1,40 @@
+## Objetivo
 
-## 1. Médicos: botones Activar / Desactivar
+Hoy varias pantallas envían sus datos por la URL (`?f_clinica=1`, `?edit=5`, `?id=12`, `?f_pais=`, `?id_USUARIO=`). Eso los deja visibles y editables a mano por el usuario. La actualización cambia todo ese envío a **POST** y guarda el estado (filtros / registro en edición) en la **sesión del servidor**, de modo que la URL quede limpia (`.../pacientes`, `.../citas`, etc.).
 
-- **SQL `spActivaMedico` / `spDesactivaMedico` (`php-app/sql/schema.sql`)**: enriquecer el mensaje de LOG para incluir el nombre del médico y el nombre de la clínica (JOIN a `MEDICO` + `CLINICA`), formato: `Activa/Desactiva Medico id=X nombre='...' clinica='...' por usuario id=U`.
-- **`MedicoModel`**: agregar `activa(int $id)` y `desactiva(int $id)` invocando esos SPs.
-- **`MedicosController`**: agregar acciones `activar()` y `desactivar()` (POST, roles `administrador`/`admin_sistema`) que llaman al modelo y a `Database::log()` con: acción, id_MEDICO, nombre del médico, clínica y usuario en sesión (`$_SESSION['user']['usuario']`). Redirigen a `medicos`.
-- **`views/medicos/index.php`**: en la columna Acciones, sustituir/complementar el botón "Baja" con un botón que muestra "Desactivar" cuando `activo=1` y "Activar" cuando `activo=0`, apuntando a `medicos/desactivar` o `medicos/activar`.
+## Qué se hace
 
-## 2. Especialidades por clínica
+### 1. Helper central en `core/Controller.php`
+- Nuevo método `stateParam(string $clave, $default = null)`: lee el valor de `$_POST`, si no viene lo toma de la sesión (`$_SESSION['ui'][controlador][clave]`) y lo persiste. Con esto ya no se lee nada de `$_GET`.
+- Nuevo método `clearState(string $clave)` para limpiar el estado (p. ej. al cancelar una edición o después de guardar).
+- `resolveClinicaContext()` deja de leer `$_GET['f_clinica']` y pasa a usar `stateParam('f_clinica')`, conservando la lógica actual de validación por rol y de "última selección válida".
 
-- **Esquema `CATALOGO_ESPECIALIDAD` (`schema.sql`)**: añadir columna `id_CLINICA INT NOT NULL` con FK a `CLINICA`. Cambiar índice único a `(nombre, id_CLINICA)` para permitir el mismo nombre en clínicas distintas.
-- **SPs**:
-  - `spAltaEspecialidad`: agregar `@id_CLINICA INT`; INSERT incluye la columna; LOG con nombre + clínica + usuario.
-  - `spCambioEspecialidad`: agregar `@id_CLINICA INT`; UPDATE respectivo.
-  - `spRegresaEspecialidades`: filtrar directamente por `e.id_CLINICA = @id_CLINICA` cuando no es NULL; devolver también `id_CLINICA` y `clinica` (JOIN a `CLINICA`). Elimina el join actual vía `CITA/PACIENTE`.
-- **`EspecialidadModel`**: firmas `alta(string $nombre, int $idClinica)` y `cambio(int $id, string $nombre, int $idClinica)`.
-- **`EspecialidadesController`**:
-  - En `index()`: cargar `ClinicaModel::listar()` y pasarlo a la vista.
-  - En `guardar()`: leer `id_CLINICA` (para `admin_sistema` viene del `<select>`, para `administrador` usar `$_SESSION['user']['id_CLINICA']`). Después de guardar, `Database::log()` con nombre, clínica y usuario.
-- **Vista**: dejar de usar el partial genérico `_partials/simple_catalog.php` y crear `views/especialidades/index.php` con:
-  - filtro de clínica (solo `admin_sistema`) reutilizando `_partials/filtro_clinica.php`,
-  - formulario con `<select name="id_CLINICA">` (solo `admin_sistema`; el resto lo envía como `hidden` con su clínica),
-  - tabla con columnas: Nombre, Clínica, Acciones.
+### 2. Filtros (selects que hoy recargan por GET)
+Archivos: `_partials/filtro_clinica.php`, `_partials/simple_catalog.php`, `catalogos/estados.php`, `catalogos/municipios.php`, `usuarios_clinica/index.php`.
+- Cambiar `method="get"` por `method="post"` apuntando a la misma acción del controlador.
+- El controlador recibe el filtro por POST, lo guarda en sesión y renderiza (sin redirección, para no perder el POST).
 
-## 3. Clínicas: corregir botón "Activar" y "Desactivar"
+### 3. Botones de acción que hoy llevan el ID en la URL
+Afecta: Editar / Baja / Activar-Desactivar / Remover en `citas`, `pacientes`, `medicos`, `especialidades`, `consultorios`, `clinicas`, `catalogos/*`, `usuarios_clinica`, `opciones/password_usuarios`.
+- Reemplazar los `<a href="...?edit=N">` por un formulario POST mínimo con `<input type="hidden">` y un `<button>` estilizado igual que el botón actual (misma clase `btn btn-sec`, misma confirmación `confirm()` en las bajas).
+- Para no repetir código en cada vista, se agrega un partial `_partials/post_button.php` que recibe acción, campos ocultos, etiqueta, clase y mensaje de confirmación.
 
-Los formularios postean a `clinicas/activar` y `clinicas/desactivar` pero el controlador no tiene esas acciones (de ahí `Acción no encontrada: activar`). Además la tabla `CLINICA` no tiene columna `activo`.
+### 4. Controladores
+`CitasController`, `PacientesController`, `MedicosController`, `EspecialidadesController`, `ConsultoriosController`, `ClinicasController`, `CatalogosController`, `UsuariosClinicaController`, `OpcionesController`:
+- Sustituir cada lectura de `$_GET[...]` por `stateParam(...)` / `$this->input(...)` en POST.
+- Tras guardar o eliminar, mantener el patrón Post-Redirect-Get pero **sin** query string: la clínica y los filtros ya viven en sesión, así que basta con `redirect('pacientes')`, `redirect('citas')`, etc.
+- Al terminar una edición o al cancelar, limpiar la clave de estado correspondiente para que no quede un formulario "pegado" en modo edición.
 
-- **Esquema**: agregar `activo BIT NOT NULL DEFAULT 1` a `CLINICA`.
-- **SPs nuevos**: `spActivaClinica` y `spDesactivaClinica` (`@id_CLINICA`, `@id_usuario`) que hacen UPDATE y registran en `citas.LOG` incluyendo nombre de la clínica y usuario.
-- **`spRegresaClinicas`**: incluir `c.activo` en el SELECT.
-- **`ClinicaModel`**: agregar `activa(int $id)` y `desactiva(int $id)`.
-- **`ClinicasController`**: agregar acciones `activar()` y `desactivar()`; escribir en `app.log` (nombre de clínica + usuario + acción).
-
-## 4. Filtro "País" en Estados
-
-- **`CatalogosController::estados()`**: leer `f_pais` de `$_GET`, pasarlo a `EstadoModel::listar($fPais)` y a la vista.
-- **`views/catalogos/estados.php`**: agregar `<form GET>` con `<select name="f_pais">` (opciones desde `$paises`, opción "-- todos --") con `onchange="this.form.submit()"`, arriba de la tabla.
-
-## 5. Filtros "País" y "Estado" en Municipios
-
-- **`MunicipioModel::listar`**: aceptar también `?int $idPais = null`. Como `spRegresaMunicipios` ya recibe `@id_CATALOGO_ESTADOS`, el filtrado por país se hará en PHP con `array_filter` sobre `$row['id_CATALOGO_PAIS']` cuando venga en el resultset (verificar el SELECT del SP; si no lo devuelve, extenderlo para incluir `id_CATALOGO_PAIS`).
-- **`CatalogosController::municipios()`**: leer `f_pais` y `f_estado`, cargar `PaisModel::listar()` y `EstadoModel::listar($fPais)` para poblar los selects encadenados; aplicar filtros al listado.
-- **`views/catalogos/municipios.php`**: agregar bloque de filtros con dos `<select>` (País → Estado). Cuando cambia País, el submit recarga con los estados de ese país.
-
-## 6. Pantalla "Bloquear acceso a clínicas"
-
-- **SP nuevo `spRegresaClinicasResumen`**: por cada clínica devolver `id_CLINICA, nombre, activo, total_usuarios (COUNT DISTINCT USUARIOS_CLINICA), total_pacientes (COUNT PACIENTE), total_citas (COUNT CITA vía PACIENTE)`.
-- **Modelo `ClinicaModel::resumen()`**: ejecuta ese SP.
-- **`SistemaController::bloquearClinicas()`**: consumir el resumen y pasarlo a la vista. Agregar acciones `bloquear()` y `desbloquear()` (POST, `admin_sistema`) que llaman a `spDesactivaClinica` / `spActivaClinica` del punto 3 (misma bandera `activo`) y escriben en `app.log` (clínica, usuario, acción).
-- **Vista `views/sistema/bloquear_clinicas.php`**: tabla con columnas Nombre, Usuarios, Pacientes, Citas, Estado, Acción (botón "Bloquear" cuando `activo=1`, "Desbloquear" cuando `activo=0`).
-- **Efecto del bloqueo en el login (`Auth::attempt` / `spLoginUsuario`)**: si el usuario tiene `id_CLINICA` y esa clínica está `activo=0`, retornar `null` y registrar en `app.log`. Se implementa como verificación adicional en PHP tras leer `id_CLINICA` de la sesión (consulta rápida a `CLINICA.activo`) para no tocar el SP de login. Se aplica solo a roles distintos de `admin_sistema`.
+### 5. Enlaces del sidebar
+`layout/header.php` ya no necesita arrastrar `f_clinica`: los enlaces quedan limpios y el contexto se resuelve desde sesión.
 
 ## Detalles técnicos
 
-Archivos a modificar:
-- `php-app/sql/schema.sql` (tabla `CLINICA`, tabla `CATALOGO_ESPECIALIDAD`, SPs de médicos/especialidades/clínicas, nuevos SPs `spActivaClinica`, `spDesactivaClinica`, `spRegresaClinicasResumen`)
-- `php-app/app/controllers/MedicosController.php`
-- `php-app/app/controllers/EspecialidadesController.php`
-- `php-app/app/controllers/ClinicasController.php`
-- `php-app/app/controllers/CatalogosController.php`
-- `php-app/app/controllers/SistemaController.php`
-- `php-app/app/core/Auth.php`
-- `php-app/app/models/MedicoModel.php`
-- `php-app/app/models/EspecialidadModel.php`
-- `php-app/app/models/ClinicaModel.php`
-- `php-app/app/models/MunicipioModel.php`
-- `php-app/app/views/medicos/index.php`
-- `php-app/app/views/catalogos/estados.php`
-- `php-app/app/views/catalogos/municipios.php`
-- `php-app/app/views/sistema/bloquear_clinicas.php`
+- La sesión ya está activa en `public/index.php`, así que no hace falta infraestructura nueva.
+- El estado se guarda namespaced por controlador para que el `edit` de Pacientes no colisione con el de Médicos.
+- Se conserva el logging actual en `app.log`, ajustando los mensajes para reportar el origen del valor (`post` o `session`) en lugar de `get_f_clinica`.
+- Nota de seguridad: los datos dejan de ser visibles/manipulables desde la barra de direcciones, pero un POST sigue siendo modificable con herramientas de desarrollador; por eso se mantiene (y se refuerza) la validación en servidor de que la clínica/registro pertenezca al usuario. Si quieres, en un paso posterior se puede añadir token CSRF a todos los formularios.
 
-Archivos nuevos:
-- `php-app/app/views/especialidades/index.php`
+## Archivos a actualizar en tu servidor
 
-Todos los `Database::log()` incluirán: acción, entidad, id, nombre, clínica, y `usuario` de sesión (`$_SESSION['user']['usuario']`).
+`app/core/Controller.php`, los 9 controladores listados, `app/views/_partials/filtro_clinica.php`, `_partials/simple_catalog.php`, nuevo `_partials/post_button.php`, `views/layout/header.php` y las vistas de citas, pacientes, medicos, especialidades, consultorios, clinicas, catalogos (estados, municipios, paises, generos, usuarios, estados_cita), usuarios_clinica y opciones/password_usuarios.

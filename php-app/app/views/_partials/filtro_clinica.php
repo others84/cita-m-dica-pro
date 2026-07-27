@@ -18,12 +18,12 @@ if ($rol === 'admin_sistema') {
 if (class_exists('Database')) {
     $ids = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $opts);
     Database::log(sprintf(
-        'filtro_clinica rol=%s user=%s ctrl=%s uri=%s get_f_clinica=%s fClinica=%s session_f_clinica=%s opts=[%s]',
+        'filtro_clinica rol=%s user=%s ctrl=%s uri=%s post_f_clinica=%s fClinica=%s session_f_clinica=%s opts=[%s]',
         $rol,
         $_SESSION['user']['usuario'] ?? '?',
         $controller ?? '?',
         $_SERVER['REQUEST_URI'] ?? '?',
-        $_GET['f_clinica'] ?? 'NULL',
+        $_POST['f_clinica'] ?? 'NO_POST',
         $fClinica ?? 'NULL',
         $_SESSION['f_clinica'] ?? 'NULL',
         implode(',', $ids)
@@ -34,7 +34,7 @@ $permitirTodas = ($rol === 'admin_sistema');
 ?>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtro</h3>
-  <form method="get" action="<?= url($controller) ?>" class="form-grid">
+  <form method="post" action="<?= url($controller) ?>" class="form-grid">
     <label>Clinica
       <select name="f_clinica" onchange="this.form.submit()">
         <?php if ($permitirTodas): ?>

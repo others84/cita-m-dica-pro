@@ -8,7 +8,7 @@ class MedicosController extends Controller {
         $this->requireLogin(['medico','administrador','admin_sistema']);
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
-        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editId = $this->stateInt('edit');
         $rows = MedicoModel::listar($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_MEDICO']===$editId) { $editRow = $r; break; }
@@ -28,12 +28,14 @@ class MedicosController extends Controller {
             if ($id) { MedicoModel::cambio($id, $idClinica, $nombre); $this->flash('ok','Actualizado.'); }
             else     { MedicoModel::alta($idClinica, $nombre);        $this->flash('ok','Registrado.'); }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('medicos');
     }
     public function eliminar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         try { MedicoModel::baja((int)$this->input('id')); $this->flash('ok','Eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('medicos');
     }
     public function activar(): void {

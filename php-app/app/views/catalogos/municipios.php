@@ -4,7 +4,7 @@
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
-  <form method="get" action="<?= url('catalogos/municipios') ?>" class="form-grid">
+  <form method="post" action="<?= url('catalogos/municipios') ?>" class="form-grid">
     <label>Pais
       <select name="f_pais" onchange="this.form.submit()">
         <option value="">-- todos --</option>
@@ -48,7 +48,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId?'Actualizar':'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('catalogos/municipios') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('catalogos/municipios') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
@@ -64,7 +64,7 @@
         <td><?= htmlspecialchars((string)($r['estado'] ?? '')) ?></td>
         <td><?= htmlspecialchars((string)($r['pais'] ?? '')) ?></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('catalogos/municipios?edit=' . (int)$r['id_CATALOGO_MUNICIPIO']) ?>">Editar</a>
+          <?php post_button('catalogos/municipios', ['edit' => (int)$r['id_CATALOGO_MUNICIPIO']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('catalogos/municipiosEliminar') ?>" style="display:inline"
                 onsubmit="return confirm('¿Eliminar el municipio &quot;<?= htmlspecialchars(addslashes($r['nombre'])) ?>&quot;? Esta acción no se puede deshacer.');">
             <input type="hidden" name="id" value="<?= (int)$r['id_CATALOGO_MUNICIPIO'] ?>">
