@@ -59,15 +59,34 @@ class PacientesController extends Controller {
         if (($ctx['rol'] ?? '') !== 'admin_sistema' && !empty($idsPermitidos) && !in_array($idClinica, $idsPermitidos, true)) {
             $idClinica = (int)($ctx['fClinica'] ?? 0);
         }
-        $apPat = (string)$this->input('ap_paterno');
-        $apMat = (string)$this->input('ap_materno');
-        $nombre = (string)$this->input('nombre');
-        $direccion = (string)$this->input('direccion');
-        $tel = (string)$this->input('telefono');
-        $email = (string)$this->input('email');
-        $fnac = (string)$this->input('fecha_nacimiento');
+        $apPat = trim((string)$this->input('ap_paterno'));
+        $apMat = trim((string)$this->input('ap_materno'));
+        $nombre = trim((string)$this->input('nombre'));
+        $direccion = trim((string)$this->input('direccion'));
+        $tel = trim((string)$this->input('telefono'));
+        $email = trim((string)$this->input('email'));
+        $fnac = trim((string)$this->input('fecha_nacimiento'));
         $idGen = (int)$this->input('id_CATALOGO_GENERO');
         $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
+
+        // Todas las columnas de PACIENTE son NOT NULL y el email tiene CHECK de formato.
+        $faltantes = [];
+        if ($apPat === '') $faltantes[] = 'apellido paterno';
+        if ($apMat === '') $faltantes[] = 'apellido materno';
+        if ($nombre === '') $faltantes[] = 'nombre';
+        if ($direccion === '') $faltantes[] = 'direccion';
+        if ($tel === '') $faltantes[] = 'telefono';
+        if ($fnac === '') $faltantes[] = 'fecha de nacimiento';
+        if ($idGen <= 0) $faltantes[] = 'genero';
+        if ($idMun <= 0) $faltantes[] = 'municipio';
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) $faltantes[] = 'email valido';
+        if ($faltantes) {
+            $msg = 'Faltan datos obligatorios: ' . implode(', ', $faltantes) . '.';
+            if (class_exists('Database')) Database::log('PACIENTES.guardar VALIDACION user=' . ($_SESSION['user']['usuario'] ?? '?') . ' ' . $msg);
+            $this->flash('error', $msg);
+            $this->redirect('pacientes');
+            return;
+        }
         try {
             if (class_exists('Database')) {
                 Database::log(sprintf(
@@ -88,7 +107,10 @@ class PacientesController extends Controller {
                 PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun);
                 $this->flash('ok', 'Paciente registrado.');
             }
-        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        } catch (Throwable $e) {
+            if (class_exists('Database')) Database::log('PACIENTES.guardar ERROR user=' . ($_SESSION['user']['usuario'] ?? '?') . ' id=' . ($id ?? 'NULL') . ' msg=' . $e->getMessage());
+            $this->flash('error', $e->getMessage());
+        }
         $this->clearState('edit');
         $this->redirect('pacientes');
     }
