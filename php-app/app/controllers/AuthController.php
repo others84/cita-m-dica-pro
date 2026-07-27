@@ -7,6 +7,10 @@ class AuthController extends Controller {
 
     public function login(): void {
         $error = null;
+        if (!empty($_SESSION['flash_error'])) {
+            $error = $_SESSION['flash_error'];
+            unset($_SESSION['flash_error']);
+        }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usuario  = trim($_POST['usuario'] ?? '');
             $password = $_POST['password'] ?? '';
@@ -23,7 +27,14 @@ class AuthController extends Controller {
     }
 
     public function logout(): void {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
         session_destroy();
+        session_start();
+        session_regenerate_id(true);
         header('Location: ' . url('auth/login'));
         exit;
     }
