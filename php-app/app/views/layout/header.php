@@ -1,5 +1,12 @@
 <?php
 if (empty($_SESSION['user'])) { header('Location: ' . url('auth/login')); exit; }
+// Nunca servir una copia cacheada: un HTML viejo trae un token CSRF caducado
+// y el POST fallaba con "Sesion expirada o solicitud invalida (CSRF)".
+if (!headers_sent()) {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+}
 $user = $_SESSION['user'];
 $rol  = $user['rol'];
 ?>
