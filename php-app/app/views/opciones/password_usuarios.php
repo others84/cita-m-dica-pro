@@ -35,7 +35,7 @@
         <td><?= htmlspecialchars($u['clinica'] ?? '—') ?></td>
         <td><span class="badge <?= empty($u['activo'])?'off':'' ?>"><?= empty($u['activo'])?'No':'Si' ?></span></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('opciones/passwordUsuarios?id_USUARIO=' . (int)$u['id_USUARIOS']) ?>">Cambiar contraseña</a>
+          <?php post_button('opciones/passwordUsuarios', ['id_USUARIO' => (int)$u['id_USUARIOS']], 'Cambiar contraseña', 'btn btn-sec'); ?>
         </td>
       </tr>
     <?php endforeach; ?>

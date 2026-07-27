@@ -30,7 +30,7 @@
         <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span></td>
         <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('citas/editar?id=' . (int)$c['id_CITA']) ?>">Editar</a>
+          <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
         </td>
       </tr>
     <?php endforeach; endif; ?>

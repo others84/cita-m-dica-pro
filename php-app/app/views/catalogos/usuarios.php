@@ -31,7 +31,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId?'Actualizar':'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('catalogos/usuarios') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): post_button('catalogos/usuarios', ['edit' => ''], 'Cancelar', 'btn btn-sec'); endif; ?>
     </div>
   </form>
 </div>
@@ -46,7 +46,7 @@
         <td><?= htmlspecialchars($u['clinica'] ?? '—') ?></td>
         <td><span class="badge <?= empty($u['activo'])?'off':'' ?>"><?= empty($u['activo'])?'No':'Si' ?></span></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('catalogos/usuarios?edit=' . (int)$u['id_USUARIOS']) ?>">Editar</a>
+          <?php post_button('catalogos/usuarios', ['edit' => (int)$u['id_USUARIOS']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($u['activo'])): ?>
             <form method="post" action="<?= url('catalogos/usuariosDesactivar') ?>" style="display:inline">
               <input type="hidden" name="id" value="<?= (int)$u['id_USUARIOS'] ?>"><button class="btn btn-danger">Desactivar</button>

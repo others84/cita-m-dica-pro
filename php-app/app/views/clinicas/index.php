@@ -18,7 +18,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><a class="btn btn-sec" href="<?= url('clinicas') ?>">Cancelar</a><?php endif; ?>
+      <?php if ($editId): post_button('clinicas', ['edit' => ''], 'Cancelar', 'btn btn-sec'); endif; ?>
     </div>
   </form>
 </div>
@@ -32,7 +32,7 @@
         <td><?= htmlspecialchars($c['telefono'] ?? '') ?></td>
         <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
-          <a class="btn btn-sec" href="<?= url('clinicas?edit=' . (int)$c['id_CLINICA']) ?>">Editar</a>
+          <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($c['activo'])): ?>
             <form method="post" action="<?= url('clinicas/desactivar') ?>" style="display:inline">
               <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>"><button class="btn btn-danger">Desactivar</button>
