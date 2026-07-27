@@ -48,6 +48,41 @@ class Controller {
     }
 
     /**
+     * Estado de pantalla (filtros, registro en edicion) guardado en sesion.
+     * Nunca se lee de la URL: si viene por POST se toma de ahi y se persiste,
+     * si no, se recupera el ultimo valor guardado.
+     */
+    protected function stateNs(?string $ns = null): string {
+        if ($ns !== null) return $ns;
+        $c = get_class($this);
+        return strtolower(preg_replace('/Controller$/', '', $c));
+    }
+
+    protected function stateParam(string $key, $default = null, ?string $ns = null) {
+        $ns = $this->stateNs($ns);
+        if (array_key_exists($key, $_POST)) {
+            $v = $_POST[$key];
+            if (is_string($v)) $v = trim($v);
+            if ($v === '' || $v === null) {
+                unset($_SESSION['ui'][$ns][$key]);
+                return $default;
+            }
+            $_SESSION['ui'][$ns][$key] = $v;
+            return $v;
+        }
+        return $_SESSION['ui'][$ns][$key] ?? $default;
+    }
+
+    protected function stateInt(string $key, ?string $ns = null): ?int {
+        return $this->intOrNull($this->stateParam($key, null, $ns));
+    }
+
+    protected function clearState(string $key, ?string $ns = null): void {
+        $ns = $this->stateNs($ns);
+        unset($_SESSION['ui'][$ns][$key]);
+    }
+
+    /**
      * Resuelve el contexto de filtro por clinica segun el rol.
      * Retorna ['clinicasFiltro' => array, 'fClinica' => ?int, 'rol' => string].
      *
@@ -60,17 +95,24 @@ class Controller {
         $rol = $_SESSION['user']['rol'] ?? '';
         $sessClinicas = $_SESSION['user']['clinicas'] ?? [];
         $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
-        $raw = $this->intOrNull($_GET['f_clinica'] ?? null);
+        // El filtro de clinica viaja por POST (nunca por la URL) y se
+        // persiste en sesion para conservarse entre navegaciones.
+        $posted = array_key_exists('f_clinica', $_POST);
+        $raw = $posted ? $this->intOrNull($_POST['f_clinica']) : null;
         $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
+        if ($posted) {
+            if ($raw === null) unset($_SESSION['f_clinica']);
+            else $_SESSION['f_clinica'] = $raw;
+        }
 
         if (class_exists('Database')) {
             $idsInicio = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
             Database::log(sprintf(
-                'resolveClinicaContext IN rol=%s user=%s uri=%s get_f_clinica=%s session_f_clinica=%s session_ids=[%s] user_id_CLINICA=%s',
+                'resolveClinicaContext IN rol=%s user=%s uri=%s post_f_clinica=%s session_f_clinica=%s session_ids=[%s] user_id_CLINICA=%s',
                 $rol,
                 $_SESSION['user']['usuario'] ?? '?',
                 $_SERVER['REQUEST_URI'] ?? '?',
-                $raw === null ? 'NULL' : (string)$raw,
+                $posted ? ($raw === null ? 'TODAS' : (string)$raw) : 'NO_POST',
                 $last ?: 'NULL',
                 implode(',', $idsInicio),
                 $userClin === null ? 'NULL' : (string)$userClin
@@ -78,21 +120,20 @@ class Controller {
         }
 
         if ($rol === 'admin_sistema') {
-            if ($raw !== null) {
-                $_SESSION['f_clinica'] = $raw;
-            }
+            // Si no vino por POST, se conserva la ultima seleccion de sesion.
+            $fAdmin = $posted ? $raw : ($last ?: null);
             if (class_exists('Database')) {
                 Database::log(sprintf(
                     'resolveClinicaContext OUT rol=%s user=%s modo=admin_sistema fClinica=%s',
                     $rol,
                     $_SESSION['user']['usuario'] ?? '?',
-                    $raw === null ? 'NULL' : (string)$raw
+                    $fAdmin === null ? 'NULL' : (string)$fAdmin
                 ));
             }
             require_once __DIR__ . '/../models/ClinicaModel.php';
             return [
                 'clinicasFiltro' => ClinicaModel::listar(),
-                'fClinica' => $raw,
+                'fClinica' => $fAdmin,
                 'rol' => $rol,
             ];
         }
@@ -142,11 +183,11 @@ class Controller {
         }
         if (class_exists('Database')) {
             Database::log(sprintf(
-                'resolveClinicaContext OUT rol=%s user=%s ids=[%s] get_f_clinica=%s session_f_clinica_previa=%s fClinica=%s motivo=%s session_f_clinica_final=%s',
+                'resolveClinicaContext OUT rol=%s user=%s ids=[%s] post_f_clinica=%s session_f_clinica_previa=%s fClinica=%s motivo=%s session_f_clinica_final=%s',
                 $rol,
                 $_SESSION['user']['usuario'] ?? '?',
                 implode(',', $ids),
-                $raw === null ? 'NULL' : (string)$raw,
+                $posted ? ($raw === null ? 'TODAS' : (string)$raw) : 'NO_POST',
                 $last ?: 'NULL',
                 $fClinica === null ? 'NULL' : (string)$fClinica,
                 $motivo,
