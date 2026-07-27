@@ -7,6 +7,11 @@ class AuthController extends Controller {
 
     public function login(): void {
         $error = null;
+        // Evita que el navegador reutilice una copia cacheada del formulario
+        // (una version vieja sin token CSRF provoca "enviado=NO").
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         if (!empty($_SESSION['flash_error'])) {
             $error = $_SESSION['flash_error'];
             unset($_SESSION['flash_error']);
