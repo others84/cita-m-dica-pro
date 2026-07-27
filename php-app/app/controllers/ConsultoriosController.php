@@ -8,7 +8,7 @@ class ConsultoriosController extends Controller {
         $this->requireLogin(['administrador','admin_sistema']);
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
-        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editId = $this->stateInt('edit');
         $rows = ConsultorioModel::listar($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CONSULTORIO']===$editId) { $editRow=$r; break; }
@@ -30,12 +30,14 @@ class ConsultoriosController extends Controller {
             else     ConsultorioModel::alta($idClinica, $nombre);
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('consultorios');
     }
     public function eliminar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         try { ConsultorioModel::baja((int)$this->input('id')); $this->flash('ok','Eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('consultorios');
     }
 }

@@ -9,7 +9,7 @@ class EspecialidadesController extends Controller {
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
-        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editId = $this->stateInt('edit');
         $rows = EspecialidadModel::listar($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_ESPECIALIDAD']===$editId) { $editRow=$r; break; }
@@ -41,6 +41,7 @@ class EspecialidadesController extends Controller {
             Database::log("ESPECIALIDAD {$accion} nombre='{$nombre}' clinica='{$cliNombre}' por usuario='{$usr}'");
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('edit');
         $this->redirect('especialidades');
     }
 }

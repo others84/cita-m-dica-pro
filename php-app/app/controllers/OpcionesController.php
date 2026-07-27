@@ -34,7 +34,7 @@ class OpcionesController extends Controller {
         $this->requireLogin(['administrador']);
         $ctx = $this->resolveClinicaContext();
         $usuarios = $this->usuariosDeClinicas($ctx);
-        $idSel = $this->intOrNull($_GET['id_USUARIO'] ?? null);
+        $idSel = $this->stateInt('id_USUARIO');
         $usuarioSel = null;
         foreach ($usuarios as $u) {
             if ($idSel && (int)$u['id_USUARIOS'] === $idSel) { $usuarioSel = $u; break; }
@@ -69,6 +69,7 @@ class OpcionesController extends Controller {
         } catch (Throwable $e) {
             $this->flash('error', $e->getMessage());
         }
+        $this->clearState('id_USUARIO');
         $this->redirect('opciones/passwordUsuarios');
     }
 

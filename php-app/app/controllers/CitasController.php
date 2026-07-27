@@ -46,7 +46,7 @@ class CitasController extends Controller {
 
     private function form(): void {
         $this->requireLogin();
-        $editId = $this->intOrNull($_GET['id'] ?? null);
+        $editId = $this->stateInt('id');
         $editRow = null;
         if ($editId) {
             $rows = CitaModel::listar();

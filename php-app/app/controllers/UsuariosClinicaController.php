@@ -18,7 +18,7 @@ class UsuariosClinicaController extends Controller {
             return $rol !== 'admin_sistema' && strpos($rol, 'sistema') === false;
         }));
 
-        $idUsuario = $this->intOrNull($_GET['id_USUARIO'] ?? null);
+        $idUsuario = $this->stateInt('id_USUARIO');
         $usuarioSel = null;
         $asignadas = [];
         $asignadasIds = [];
@@ -58,7 +58,8 @@ class UsuariosClinicaController extends Controller {
             foreach ($ya as $r) {
                 if ((int)$r['id_CLINICA'] === $idClinica) {
                     $this->flash('ok', 'La clínica ya estaba asignada.');
-                    $this->redirect('usuariosClinica?id_USUARIO=' . $idUsuario);
+                    $_SESSION['ui']['usuariosclinica']['id_USUARIO'] = $idUsuario;
+                    $this->redirect('usuariosClinica');
                     return;
                 }
             }
@@ -69,7 +70,8 @@ class UsuariosClinicaController extends Controller {
         } catch (Throwable $e) {
             $this->flash('error', $e->getMessage());
         }
-        $this->redirect('usuariosClinica?id_USUARIO=' . $idUsuario);
+        $_SESSION['ui']['usuariosclinica']['id_USUARIO'] = $idUsuario;
+        $this->redirect('usuariosClinica');
     }
 
     public function remover(): void {
@@ -90,6 +92,7 @@ class UsuariosClinicaController extends Controller {
         } catch (Throwable $e) {
             $this->flash('error', $e->getMessage());
         }
-        $this->redirect('usuariosClinica?id_USUARIO=' . $idUsuario);
+        $_SESSION['ui']['usuariosclinica']['id_USUARIO'] = $idUsuario;
+        $this->redirect('usuariosClinica');
     }
 }

@@ -10,7 +10,7 @@ require_once __DIR__ . '/../models/EstadoModel.php';
 class PacientesController extends Controller {
     public function index(): void {
         $this->requireLogin();
-        $editId = $this->intOrNull($_GET['edit'] ?? null);
+        $editId = $this->stateInt('edit');
         $editRow = null;
         $rows = [];
         $ctx = $this->resolveClinicaContext();
@@ -21,10 +21,10 @@ class PacientesController extends Controller {
             if (class_exists('Database')) {
                 $idsFiltro = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $clinicasFiltro);
                 Database::log(sprintf(
-                    'PACIENTES.index rol=%s user=%s get_f_clinica=%s session_f_clinica=%s fClinica=%s clinicasFiltro=[%s] rows=%d editId=%s editFound=%s',
+                    'PACIENTES.index rol=%s user=%s post_f_clinica=%s session_f_clinica=%s fClinica=%s clinicasFiltro=[%s] rows=%d editId=%s editFound=%s',
                     $rol,
                     $_SESSION['user']['usuario'] ?? '?',
-                    $_GET['f_clinica'] ?? 'NULL',
+                    $_POST['f_clinica'] ?? 'NO_POST',
                     $_SESSION['f_clinica'] ?? 'NULL',
                     $fClinica ?? 'NULL',
                     implode(',', $idsFiltro),
@@ -89,7 +89,8 @@ class PacientesController extends Controller {
                 $this->flash('ok', 'Paciente registrado.');
             }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        $this->redirect('pacientes' . ($idClinica ? '?f_clinica=' . $idClinica : ''));
+        $this->clearState('edit');
+        $this->redirect('pacientes');
     }
 
     public function eliminar(): void {
@@ -106,6 +107,7 @@ class PacientesController extends Controller {
                 $fClinica ?: 'NULL'
             ));
         }
-        $this->redirect('pacientes' . ($fClinica ? '?f_clinica=' . $fClinica : ''));
+        $this->clearState('edit');
+        $this->redirect('pacientes');
     }
 }
