@@ -18,7 +18,7 @@
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
-      <?php if ($editId): ?><button class="btn btn-sec" type="submit" name="edit" value="" formaction="<?= url('consultorios') ?>">Cancelar</button><?php  endif; ?>
+      <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('consultorios') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
