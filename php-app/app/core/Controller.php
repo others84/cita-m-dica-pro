@@ -98,13 +98,14 @@ class Controller {
         $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
         // El filtro de clinica viaja por POST (nunca por la URL) y se
         // persiste en sesion para conservarse entre navegaciones.
+        // El filtro lo fija FiltroController::clinica() y se guarda en sesion
+        // (0 = "todas"). Aqui solo se lee: asi la seleccion nunca se pierde.
         $posted = array_key_exists('f_clinica', $_POST);
         $raw = $posted ? $this->intOrNull($_POST['f_clinica']) : null;
-        $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
         if ($posted) {
-            if ($raw === null) unset($_SESSION['f_clinica']);
-            else $_SESSION['f_clinica'] = $raw;
+            $_SESSION['f_clinica'] = $raw === null ? 0 : $raw;
         }
+        $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
 
         if (class_exists('Database')) {
             $idsInicio = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
@@ -121,8 +122,8 @@ class Controller {
         }
 
         if ($rol === 'admin_sistema') {
-            // Si no vino por POST, se conserva la ultima seleccion de sesion.
-            $fAdmin = $posted ? $raw : ($last ?: null);
+            // Siempre manda la ultima seleccion guardada (0 => todas).
+            $fAdmin = $last ?: null;
             if (class_exists('Database')) {
                 Database::log(sprintf(
                     'resolveClinicaContext OUT rol=%s user=%s modo=admin_sistema fClinica=%s',
@@ -159,20 +160,12 @@ class Controller {
         $ids = array_map(fn($c) => (int)$c['id_CLINICA'], $sessClinicas);
         $fClinica = null;
         $motivo = 'sin_clinica';
-        if ($raw && in_array($raw, $ids, true)) {
-            $fClinica = $raw;
-            $motivo = 'get_valido';
+        if ($last && in_array($last, $ids, true)) {
+            $fClinica = $last;
+            $motivo = 'session_valida';
         } elseif (!empty($ids)) {
-            // Si el usuario intento seleccionar una clinica valida pero por
-            // algun motivo no matcheo, respetamos el raw solo si esta en $ids.
-            // De lo contrario mantenemos la ultima seleccion valida guardada.
-            if ($last && in_array($last, $ids, true)) {
-                $fClinica = $last;
-                $motivo = 'session_valida';
-            } else {
-                $fClinica = $ids[0];
-                $motivo = $raw ? 'get_no_permitido_default' : 'default_primera';
-            }
+            $fClinica = $ids[0];
+            $motivo = 'default_primera';
         } elseif ($userClin) {
             $fClinica = (int)$userClin;
             $motivo = 'user_id_CLINICA';
