@@ -3,24 +3,17 @@
   <h2 style="margin-top:0"><?= $editId ? 'Editar especialidad' : 'Nueva especialidad' ?></h2>
   <form method="post" action="<?= url('especialidades/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <?php
+      // La clinica se toma del filtro superior; no se elige en el formulario.
+      $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0);
+    ?>
+    <input type="hidden" name="id_CLINICA" value="<?= $clinicaForm ?>">
+    <?php if ($clinicaForm <= 0): ?>
+      <p style="grid-column:1/-1;color:var(--c5);margin:0">Selecciona una clinica en el filtro para registrar una especialidad.</p>
+    <?php endif; ?>
     <label>Nombre
       <input name="nombre" required maxlength="120" value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>">
     </label>
-    <?php if (($rol ?? '') === 'admin_sistema'): ?>
-      <label>Clinica
-        <select name="id_CLINICA" required>
-          <option value="">-- selecciona --</option>
-          <?php foreach (($clinicas ?? []) as $cl):
-            $sel = ((int)($editRow['id_CLINICA'] ?? 0) === (int)$cl['id_CLINICA']) ? 'selected' : '';
-            if (!$editRow && (int)($fClinica ?? 0) === (int)$cl['id_CLINICA']) $sel = 'selected';
-          ?>
-            <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= $sel ?>><?= htmlspecialchars($cl['nombre']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-    <?php else: ?>
-      <input type="hidden" name="id_CLINICA" value="<?= (int)($userClin ?? 0) ?>">
-    <?php endif; ?>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('especialidades') ?>">Cancelar</button><?php  endif; ?>
