@@ -24,14 +24,23 @@ class EspecialidadesController extends Controller {
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
-        $nombre = $this->input('nombre');
-        $rol      = $_SESSION['user']['rol'] ?? '';
-        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
-        $idClinica = $rol === 'admin_sistema'
-            ? (int)$this->input('id_CLINICA')
-            : (int)($userClin ?? 0);
+        $nombre = trim((string)$this->input('nombre', ''));
+        $idClinica = (int)$this->input('id_CLINICA', 0);
+        if ($idClinica <= 0) {
+            // Fallback: la clinica del filtro en sesion o la del usuario.
+            $idClinica = (int)($_SESSION['f_clinica'] ?? 0);
+            if ($idClinica <= 0) {
+                $asignadas = $_SESSION['user']['clinicas'] ?? [];
+                if (count($asignadas) === 1) $idClinica = (int)($asignadas[0]['id_CLINICA'] ?? 0);
+            }
+            if ($idClinica <= 0) $idClinica = (int)($_SESSION['user']['id_CLINICA'] ?? 0);
+        }
+        if ($idClinica <= 0 || $nombre === '') {
+            Database::log('ESPECIALIDAD GUARDAR datos incompletos id_CLINICA=' . $idClinica . " nombre='" . $nombre . "' campos=[" . implode(',', array_keys($_POST)) . ']');
+            $this->flash('error', 'Selecciona la clinica y captura el nombre de la especialidad.');
+            $this->redirect('especialidades');
+        }
         try {
-            if ($idClinica <= 0) throw new RuntimeException('Seleccione una clinica.');
             if ($id) EspecialidadModel::cambio($id, $nombre, $idClinica);
             else     EspecialidadModel::alta($nombre, $idClinica);
             $cliNombre = '?';
