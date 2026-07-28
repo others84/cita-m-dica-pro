@@ -6,18 +6,10 @@
     <?php
       // La clinica se toma del filtro superior; no se elige en el formulario.
       $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0);
-      $nombreClinica = '';
-      foreach (($clinicas ?? []) as $cl) {
-        if ((int)$cl['id_CLINICA'] === $clinicaForm) { $nombreClinica = (string)$cl['nombre']; break; }
-      }
     ?>
     <input type="hidden" name="id_CLINICA" value="<?= $clinicaForm ?>">
     <?php if ($clinicaForm <= 0): ?>
       <p style="grid-column:1/-1;color:var(--c5);margin:0">Selecciona una clinica en el filtro para registrar un medico.</p>
-    <?php else: ?>
-      <label>Clinica
-        <input type="text" value="<?= htmlspecialchars($nombreClinica) ?>" readonly>
-      </label>
     <?php endif; ?>
     <label>Nombre completo
       <input name="nombre_completo" required maxlength="150" value="<?= htmlspecialchars($editRow['nombre_completo'] ?? '') ?>">
