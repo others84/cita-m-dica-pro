@@ -3,16 +3,14 @@
   <h2 style="margin-top:0"><?= $editId ? 'Editar consultorio' : 'Nuevo consultorio' ?></h2>
   <form method="post" action="<?= url('consultorios/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
-    <label>Clinica
-      <select name="id_CLINICA" required>
-        <option value="">--</option>
-        <?php foreach ($clinicas as $cl): ?>
-          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= isset($editRow)&&(int)($editRow['id_CLINICA']??0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
-            <?= htmlspecialchars($cl['nombre']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
+    <?php
+      // La clinica se toma del filtro superior; no se elige en el formulario.
+      $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0);
+    ?>
+    <input type="hidden" name="id_CLINICA" value="<?= $clinicaForm ?>">
+    <?php if ($clinicaForm <= 0): ?>
+      <p style="grid-column:1/-1;color:var(--c5);margin:0">Selecciona una clinica en el filtro para registrar un consultorio.</p>
+    <?php endif; ?>
     <label>Nombre
       <input name="nombre" required maxlength="100" value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>">
     </label>
