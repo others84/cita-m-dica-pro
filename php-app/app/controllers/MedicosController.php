@@ -23,6 +23,15 @@ class MedicosController extends Controller {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
         $idClinica = (int)$this->input('id_CLINICA', 0);
+        if ($idClinica <= 0) {
+            // Fallback: la clinica del filtro en sesion o la del usuario.
+            $idClinica = (int)($_SESSION['f_clinica'] ?? 0);
+            if ($idClinica <= 0) {
+                $asignadas = $_SESSION['user']['clinicas'] ?? [];
+                if (count($asignadas) === 1) $idClinica = (int)($asignadas[0]['id_CLINICA'] ?? 0);
+            }
+            if ($idClinica <= 0) $idClinica = (int)($_SESSION['user']['id_CLINICA'] ?? 0);
+        }
         $nombre = trim((string)$this->input('nombre_completo', ''));
         if ($idClinica <= 0 || $nombre === '') {
             Database::log('MEDICO GUARDAR datos incompletos id_CLINICA=' . $idClinica . " nombre='" . $nombre . "' campos=[" . implode(',', array_keys($_POST)) . ']');
