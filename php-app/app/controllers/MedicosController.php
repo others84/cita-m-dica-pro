@@ -22,8 +22,13 @@ class MedicosController extends Controller {
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
-        $idClinica = (int)$this->input('id_CLINICA');
-        $nombre = $this->input('nombre_completo');
+        $idClinica = (int)$this->input('id_CLINICA', 0);
+        $nombre = trim((string)$this->input('nombre_completo', ''));
+        if ($idClinica <= 0 || $nombre === '') {
+            Database::log('MEDICO GUARDAR datos incompletos id_CLINICA=' . $idClinica . " nombre='" . $nombre . "' campos=[" . implode(',', array_keys($_POST)) . ']');
+            $this->flash('error', 'Selecciona la clinica y captura el nombre completo del medico.');
+            $this->redirect('medicos');
+        }
         try {
             if ($id) { MedicoModel::cambio($id, $idClinica, $nombre); $this->flash('ok','Actualizado.'); }
             else     { MedicoModel::alta($idClinica, $nombre);        $this->flash('ok','Registrado.'); }
