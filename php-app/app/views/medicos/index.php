@@ -3,28 +3,27 @@
   <h2 style="margin-top:0"><?= $editId ? 'Editar medico #' . (int)$editId : 'Nuevo medico' ?></h2>
   <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
-    <?php if (($rol ?? '') !== 'admin_sistema'): ?>
-      <input type="hidden" name="id_CLINICA" value="<?= (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0) ?>">
+    <?php
+      // La clinica se toma del filtro superior; no se elige en el formulario.
+      $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0);
+      $nombreClinica = '';
+      foreach (($clinicas ?? []) as $cl) {
+        if ((int)$cl['id_CLINICA'] === $clinicaForm) { $nombreClinica = (string)$cl['nombre']; break; }
+      }
+    ?>
+    <input type="hidden" name="id_CLINICA" value="<?= $clinicaForm ?>">
+    <?php if ($clinicaForm <= 0): ?>
+      <p style="grid-column:1/-1;color:var(--c5);margin:0">Selecciona una clinica en el filtro para registrar un medico.</p>
     <?php else: ?>
-    <label>Clinica
-      <select name="id_CLINICA" required>
-        <option value="">-- selecciona --</option>
-        <?php foreach (($clinicas ?? []) as $cl):
-          $sel = ((int)($editRow['id_CLINICA'] ?? 0) === (int)$cl['id_CLINICA']) ? 'selected' : '';
-          if (!$editRow && (int)($fClinica ?? 0) === (int)$cl['id_CLINICA']) $sel = 'selected';
-        ?>
-          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= $sel ?>>
-            <?= htmlspecialchars($cl['nombre']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
+      <label>Clinica
+        <input type="text" value="<?= htmlspecialchars($nombreClinica) ?>" readonly>
+      </label>
     <?php endif; ?>
     <label>Nombre completo
       <input name="nombre_completo" required maxlength="150" value="<?= htmlspecialchars($editRow['nombre_completo'] ?? '') ?>">
     </label>
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
+      <button class="btn" <?= $clinicaForm <= 0 ? 'disabled' : '' ?>><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('medicos') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
