@@ -9,6 +9,7 @@ $f  = $f  ? substr((string)$f,0,10)  : '';
 $hi = $hi ? substr((string)$hi,0,5) : '';
 $hf = $hf ? substr((string)$hf,0,5) : '';
 ?>
+<?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card">
   <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita' ?></h2>
   <form method="post" action="<?= url('citas/guardar') ?>" class="form-grid"><?= csrf_field() ?>

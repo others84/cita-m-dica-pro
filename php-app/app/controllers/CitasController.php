@@ -46,21 +46,36 @@ class CitasController extends Controller {
 
     private function form(): void {
         $this->requireLogin();
+        $ctx = $this->resolveClinicaContext();
+        $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         $editId = $this->stateInt('id');
         $editRow = null;
         if ($editId) {
             $rows = CitaModel::listar();
             foreach ($rows as $r) if ((int)$r['id_CITA'] === $editId) { $editRow = $r; break; }
         }
+        // Solo estados activos; en alta se limita a "Agendada".
+        $estados = EstadoCitaModel::listar();
+        if (!$editId) {
+            $agendada = array_values(array_filter($estados, function ($e) {
+                $n = strtolower(trim((string)($e['nombre'] ?? '')));
+                return $n === 'agendada' || $n === 'agendado';
+            }));
+            if (!empty($agendada)) $estados = $agendada;
+        }
         $this->view('citas/form', [
             'title'         => $editId ? 'Modificar Cita' : 'Agendar Cita',
             'editId'        => $editId,
             'editRow'       => $editRow,
-            'pacientes'     => PacienteModel::listar(),
-            'medicos'       => MedicoModel::listar(),
-            'consultorios'  => ConsultorioModel::listar(),
-            'especialidades'=> EspecialidadModel::listar(),
-            'estados'       => EstadoCitaModel::listar(),
+            'pacientes'     => PacienteModel::listar($fClinica),
+            'medicos'       => MedicoModel::listar($fClinica),
+            'consultorios'  => ConsultorioModel::listar($fClinica),
+            'especialidades'=> EspecialidadModel::listar($fClinica),
+            'estados'       => $estados,
+            'clinicas'      => ClinicaModel::listar(),
+            'clinicasFiltro'=> $clinicasFiltro,
+            'fClinica'      => $fClinica,
+            'rol'           => $rol,
         ]);
     }
 
