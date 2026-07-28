@@ -3,6 +3,9 @@
   <h2 style="margin-top:0"><?= $editId ? 'Editar medico #' . (int)$editId : 'Nuevo medico' ?></h2>
   <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <?php if (($rol ?? '') !== 'admin_sistema'): ?>
+      <input type="hidden" name="id_CLINICA" value="<?= (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0) ?>">
+    <?php else: ?>
     <label>Clinica
       <select name="id_CLINICA" required>
         <option value="">-- selecciona --</option>
@@ -16,6 +19,7 @@
         <?php endforeach; ?>
       </select>
     </label>
+    <?php endif; ?>
     <label>Nombre completo
       <input name="nombre_completo" required maxlength="150" value="<?= htmlspecialchars($editRow['nombre_completo'] ?? '') ?>">
     </label>
