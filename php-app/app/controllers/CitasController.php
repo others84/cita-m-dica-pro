@@ -51,8 +51,15 @@ class CitasController extends Controller {
         $editId = $this->stateInt('id');
         $editRow = null;
         if ($editId) {
-            $rows = CitaModel::listar();
-            foreach ($rows as $r) if ((int)$r['id_CITA'] === $editId) { $editRow = $r; break; }
+            $editRow = CitaModel::obtener($editId);
+            if ($editRow) {
+                // El contexto se fija a la clinica de la cita para que los
+                // catalogos contengan los valores guardados.
+                $cl = (int)($editRow['id_CLINICA'] ?? 0);
+                if ($cl > 0) $fClinica = $cl;
+            } else {
+                $this->flash('error', 'No se encontro la cita seleccionada.');
+            }
         }
         // Solo estados activos; en alta se limita a "Agendada".
         $estados = EstadoCitaModel::listar();

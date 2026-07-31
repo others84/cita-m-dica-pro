@@ -7,8 +7,9 @@
 <table class="data">
   <thead>
     <tr>
-      <th>ID</th><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Medico</th>
-      <th>Especialidad</th><th>Consultorio</th><th>Estado</th><th>Precio</th><th>Acciones</th>
+      <th>Fecha</th><th>Hora</th><th>Paciente</th><th>Medico</th>
+      <th>Especialidad</th><th>Consultorio</th><th>Estado</th><th>Precio</th>
+      <th>Observaciones</th><th>Acciones</th>
     </tr>
   </thead>
   <tbody>
@@ -18,9 +19,10 @@
         $f  = $c['fecha_cita']  instanceof DateTime ? $c['fecha_cita']->format('Y-m-d')   : substr((string)$c['fecha_cita'],0,10);
         $hi = $c['hora_inicio'] instanceof DateTime ? $c['hora_inicio']->format('H:i')    : substr((string)$c['hora_inicio'],0,5);
         $hf = $c['hora_fin']    instanceof DateTime ? $c['hora_fin']->format('H:i')      : substr((string)$c['hora_fin'],0,5);
+        $obs = trim((string)($c['observaciones'] ?? ''));
+        $obsCorta = mb_strlen($obs) > 40 ? mb_substr($obs, 0, 40) . '...' : $obs;
     ?>
       <tr>
-        <td><?= (int)$c['id_CITA'] ?></td>
         <td><?= htmlspecialchars($f) ?></td>
         <td><?= htmlspecialchars($hi . ' - ' . $hf) ?></td>
         <td><?= htmlspecialchars($c['paciente'] ?? '') ?></td>
@@ -29,6 +31,7 @@
         <td><?= htmlspecialchars($c['consultorio'] ?? '') ?></td>
         <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span></td>
         <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
+        <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td class="acts">
           <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
         </td>
