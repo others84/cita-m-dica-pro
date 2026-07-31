@@ -8,8 +8,6 @@ class CitaModel extends Model {
         );
     }
     public static function alta(array $d): int {
-        // (ver obtener() abajo)
-        $noop = null;
         return self::executeWithOutput('spAltaCita', [
             '@id_PACIENTE'=>$d['id_PACIENTE'],
             '@fecha_cita'=>$d['fecha_cita'], '@hora_inicio'=>$d['hora_inicio'], '@hora_fin'=>$d['hora_fin'],
@@ -38,5 +36,12 @@ class CitaModel extends Model {
     public static function cancela(int $id, int $idEstado): void {
         self::execute('EXEC citas.spCancelaCita @id_CITA=:id, @id_CATALOGO_ESTADO_CITAS=:e, @id_usuario=:u',
             [':id'=>$id, ':e'=>$idEstado, ':u'=>self::currentUserId()]);
+    }
+    /** Regresa una cita puntual (sin filtro de clinica ni de fechas). */
+    public static function obtener(int $id): ?array {
+        foreach (self::listar() as $r) {
+            if ((int)($r['id_CITA'] ?? 0) === $id) return $r;
+        }
+        return null;
     }
 }
