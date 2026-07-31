@@ -59,6 +59,12 @@ class PacientesController extends Controller {
         if (($ctx['rol'] ?? '') !== 'admin_sistema' && !empty($idsPermitidos) && !in_array($idClinica, $idsPermitidos, true)) {
             $idClinica = (int)($ctx['fClinica'] ?? 0);
         }
+        if ($idClinica <= 0) $idClinica = (int)($ctx['fClinica'] ?? $_SESSION['f_clinica'] ?? 0);
+        if ($idClinica <= 0) {
+            $this->flash('error', 'Selecciona una clinica en el filtro antes de guardar el paciente.');
+            $this->redirect('pacientes');
+            return;
+        }
         $apPat = trim((string)$this->input('ap_paterno'));
         $apMat = trim((string)$this->input('ap_materno'));
         $nombre = trim((string)$this->input('nombre'));
