@@ -16,11 +16,14 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
 
     <label>Paciente
-      <select name="id_PACIENTE" required>
+      <select name="id_PACIENTE" id="sel_paciente" required>
         <option value="">-- seleccione --</option>
         <?php foreach ($pacientes as $p):
           $nom = trim(($p['ap_paterno']??'') . ' ' . ($p['ap_materno']??'') . ' ' . ($p['nombre']??'')); ?>
-          <option value="<?= (int)$p['id_PACIENTE'] ?>" <?= isset($editRow) && (int)($editRow['id_PACIENTE']??0)===(int)$p['id_PACIENTE'] ? 'selected':'' ?>>
+          <option value="<?= (int)$p['id_PACIENTE'] ?>"
+                  data-email="<?= htmlspecialchars((string)($p['email'] ?? '')) ?>"
+                  data-tel="<?= htmlspecialchars((string)($p['telefono'] ?? '')) ?>"
+                  <?= isset($editRow) && (int)($editRow['id_PACIENTE']??0)===(int)$p['id_PACIENTE'] ? 'selected':'' ?>>
             <?= htmlspecialchars($nom) ?>
           </option>
         <?php endforeach; ?>
@@ -86,10 +89,12 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Email notificacion
-      <input type="email" name="email_notif" value="<?= htmlspecialchars($editRow['email_notif'] ?? '') ?>">
+      <input type="email" id="email_notif" name="email_notif" readonly
+             value="<?= htmlspecialchars((string)($editRow['email_notif'] ?? '')) ?>">
     </label>
     <label>Celular notificacion (WA)
-      <input type="text" name="celular_notif" value="<?= htmlspecialchars($editRow['celular_notif'] ?? '') ?>">
+      <input type="text" id="celular_notif" name="celular_notif" readonly
+             value="<?= htmlspecialchars((string)($editRow['celular_notif'] ?? '')) ?>">
     </label>
     <label>Horas anticipacion
       <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>">
@@ -114,3 +119,19 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </div>
   </form>
 </div>
+<script>
+(function () {
+  var sel = document.getElementById('sel_paciente');
+  var em  = document.getElementById('email_notif');
+  var tel = document.getElementById('celular_notif');
+  if (!sel || !em || !tel) return;
+  function sync() {
+    var o = sel.options[sel.selectedIndex];
+    if (!o || !o.value) { em.value = ''; tel.value = ''; return; }
+    em.value  = o.getAttribute('data-email') || '';
+    tel.value = o.getAttribute('data-tel') || '';
+  }
+  sel.addEventListener('change', sync);
+  if (!em.value && !tel.value) sync();
+})();
+</script>
