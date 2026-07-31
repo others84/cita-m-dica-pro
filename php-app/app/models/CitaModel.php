@@ -8,6 +8,7 @@ class CitaModel extends Model {
         );
     }
     public static function alta(array $d): int {
+        // (ver obtener() abajo)
         return self::executeWithOutput('spAltaCita', [
             '@id_PACIENTE'=>$d['id_PACIENTE'],
             '@fecha_cita'=>$d['fecha_cita'], '@hora_inicio'=>$d['hora_inicio'], '@hora_fin'=>$d['hora_fin'],
