@@ -1,4 +1,38 @@
 <?php $controller='citas'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
+<?php
+  $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
+  $ord = $ord ?? 'fecha';
+  $dir = $dir ?? 'asc';
+  $th = function (string $col, string $label) use ($ord, $dir) {
+      $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
+      echo '<th>';
+      post_button('citas/ordenar', ['ord' => $col], $label . $flecha, 'btn-link');
+      echo '</th>';
+  };
+?>
+<?php if ($rol !== 'medico'): ?>
+<div class="card" style="margin-bottom:1rem">
+  <h3 style="margin-top:0;color:var(--c5)">Filtros de citas</h3>
+  <form method="post" action="<?= url('citas/filtrar') ?>" class="form-grid"><?= csrf_field() ?>
+    <label>Fecha
+      <input type="date" name="f_fecha" value="<?= htmlspecialchars((string)($fFecha ?? '')) ?>" onchange="this.form.submit()">
+    </label>
+    <label>Estado de la cita
+      <select name="f_estado" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach (($estados ?? []) as $e): ?>
+          <option value="<?= (int)$e['id_CATALOGO_ESTADO_CITAS'] ?>" <?= (int)($fEstado ?? 0) === (int)$e['id_CATALOGO_ESTADO_CITAS'] ? 'selected' : '' ?>>
+            <?= htmlspecialchars($e['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+  <div style="margin-top:.5rem">
+    <?php post_button('citas/filtrar', ['f_fecha' => '', 'f_estado' => ''], 'Limpiar filtros', 'btn btn-sec'); ?>
+  </div>
+</div>
+<?php endif; ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)">Citas registradas</h2>
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>
@@ -7,8 +41,8 @@
 <table class="data">
   <thead>
     <tr>
-      <th>Fecha</th><th>Hora</th><th>Paciente</th><th>Medico</th>
-      <th>Especialidad</th><th>Consultorio</th><th>Estado</th><th>Precio</th>
+      <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico'); ?>
+      <th>Especialidad</th><?php $th('consultorio','Consultorio'); ?><th>Estado</th><th>Precio</th>
       <th>Observaciones</th><th>Acciones</th>
     </tr>
   </thead>

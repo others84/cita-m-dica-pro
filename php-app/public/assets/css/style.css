@@ -87,3 +87,18 @@ table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
 .modal dl{display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;font-size:.9rem;margin:0}
 .modal dt{color:var(--c4);font-weight:600}
 .modal .modal-actions{margin-top:1rem;display:flex;justify-content:flex-end;gap:.5rem}
+
+/* Encabezados de tabla ordenables */
+.data thead form { display: inline; }
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-link:hover { text-decoration: underline; }
