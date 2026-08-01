@@ -3,6 +3,7 @@ require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/CitaModel.php';
 require_once __DIR__ . '/../models/PacienteModel.php';
 require_once __DIR__ . '/../models/MedicoModel.php';
+require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/ConsultorioModel.php';
 require_once __DIR__ . '/../models/EspecialidadModel.php';
 require_once __DIR__ . '/../models/EstadoCitaModel.php';
@@ -75,7 +76,7 @@ class CitasController extends Controller {
             'editId'        => $editId,
             'editRow'       => $editRow,
             'pacientes'     => PacienteModel::listar($fClinica),
-            'medicos'       => MedicoModel::listar($fClinica),
+            'medicos'       => UsuarioModel::listarMedicos($fClinica),
             'consultorios'  => ConsultorioModel::listar($fClinica),
             'especialidades'=> EspecialidadModel::listar($fClinica),
             'estados'       => $estados,
