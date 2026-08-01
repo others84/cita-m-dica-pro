@@ -276,6 +276,14 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/usuarios');
     }
 
+    public function usuariosEliminar(): void {
+        $this->guard();
+        try { UsuarioModel::baja((int)$this->input('id')); $this->flash('ok','Usuario eliminado.'); }
+        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
+        $this->clearState('edit', 'catalogos.usuarios');
+        $this->redirect('catalogos/usuarios');
+    }
+
     /* ---- Respaldo ---- */
     public function respaldo(): void {
         $this->guard();

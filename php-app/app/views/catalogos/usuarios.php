@@ -56,6 +56,10 @@
               <input type="hidden" name="id" value="<?= (int)$u['id_USUARIOS'] ?>"><button class="btn">Activar</button>
             </form>
           <?php endif; ?>
+          <form method="post" action="<?= url('catalogos/usuariosEliminar') ?>" style="display:inline"
+                onsubmit="return confirm('¿Eliminar definitivamente al usuario <?= htmlspecialchars(addslashes($u['usuario'])) ?>? Esta acción no se puede deshacer.');"><?= csrf_field() ?>
+            <input type="hidden" name="id" value="<?= (int)$u['id_USUARIOS'] ?>"><button class="btn btn-danger">Eliminar</button>
+          </form>
         </td>
       </tr>
     <?php endforeach; ?>
