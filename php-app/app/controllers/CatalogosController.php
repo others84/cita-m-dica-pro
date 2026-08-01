@@ -12,12 +12,32 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 class CatalogosController extends Controller {
     private function guard(): void { $this->requireLogin(['administrador','admin_sistema']); }
 
+    /**
+     * Busca la fila a editar dentro del listado, tolerando diferencias de tipo
+     * o de mayusculas/minusculas en los nombres de columna que devuelve el SP.
+     */
+    private function pickRow(array $rows, string $idField, ?int $editId): ?array {
+        if (!$editId) return null;
+        $key = strtolower($idField);
+        foreach ($rows as $r) {
+            foreach ($r as $col => $val) {
+                if (strtolower((string)$col) === $key && (int)$val === $editId) {
+                    return $r;
+                }
+            }
+        }
+        return null;
+    }
+
     /* ---- Paises ---- */
     public function paises(): void {
         $this->guard();
         $editId = $this->stateInt('edit', 'catalogos.paises');
-        $rows = PaisModel::listar(); $editRow=null;
-        if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_PAIS']===$editId) { $editRow=$r; break; }
+        $rows = PaisModel::listar();
+        $editRow = $this->pickRow($rows, 'id_CATALOGO_PAIS', $editId);
+        if ($editId && !$editRow) $editRow = PaisModel::obtener($editId);
+        Database::log('CatalogosController::paises editId=' . var_export($editId, true)
+            . ' editRow=' . ($editRow ? json_encode($editRow, JSON_UNESCAPED_UNICODE) : 'NULL'));
         $this->view('_partials/simple_catalog', [
             'title'=>'Paises','rows'=>$rows,'idField'=>'id_CATALOGO_PAIS',
             'controller'=>'catalogos/paises','editId'=>$editId,'editRow'=>$editRow,
@@ -50,8 +70,8 @@ class CatalogosController extends Controller {
     public function generos(): void {
         $this->guard();
         $editId = $this->stateInt('edit', 'catalogos.generos');
-        $rows = GeneroModel::listar(); $editRow=null;
-        if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_GENERO']===$editId) { $editRow=$r; break; }
+        $rows = GeneroModel::listar();
+        $editRow = $this->pickRow($rows, 'id_CATALOGO_GENERO', $editId);
         $this->view('_partials/simple_catalog', [
             'title'=>'Generos','rows'=>$rows,'idField'=>'id_CATALOGO_GENERO',
             'controller'=>'catalogos/generos','editId'=>$editId,'editRow'=>$editRow,
@@ -77,8 +97,8 @@ class CatalogosController extends Controller {
     public function estadosCita(): void {
         $this->guard();
         $editId = $this->stateInt('edit', 'catalogos.estadosCita');
-        $rows = EstadoCitaModel::listar(); $editRow=null;
-        if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_ESTADO_CITAS']===$editId) { $editRow=$r; break; }
+        $rows = EstadoCitaModel::listar();
+        $editRow = $this->pickRow($rows, 'id_CATALOGO_ESTADO_CITAS', $editId);
         $this->view('_partials/simple_catalog', [
             'title'=>'Estados de cita','rows'=>$rows,'idField'=>'id_CATALOGO_ESTADO_CITAS',
             'controller'=>'catalogos/estadosCita','editId'=>$editId,'editRow'=>$editRow,
