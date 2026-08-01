@@ -3,6 +3,7 @@ require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
+require_once __DIR__ . '/../models/RolModel.php';
 
 class UsuariosClinicaController extends Controller {
     public function index(): void {
@@ -11,30 +12,66 @@ class UsuariosClinicaController extends Controller {
         $clinicasAdmin = $ctx['clinicasFiltro']; // clinicas asignadas al admin
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $clinicasAdmin);
 
-        $usuarios = UsuarioModel::listar();
-        // Excluir admin_sistema y el propio usuario admin_clinica no se filtra.
-        $usuarios = array_values(array_filter($usuarios, function ($u) {
+        // spRegresaUsuarios devuelve una fila por clinica asignada: se
+        // deduplica por id_USUARIOS para que el combo no repita usuarios.
+        $todos = [];
+        foreach (UsuarioModel::listar() as $u) {
             $rol = strtolower((string)($u['rol'] ?? ''));
-            return $rol !== 'admin_sistema' && strpos($rol, 'sistema') === false;
-        }));
+            if (strpos($rol, 'sistema') !== false) continue; // no aplica a admin de sistema
+            $id = (int)($u['id_USUARIOS'] ?? 0);
+            if ($id <= 0 || isset($todos[$id])) continue;
+            $todos[$id] = $u;
+        }
+
+        // Filtro por rol.
+        $roles = RolModel::listar();
+        $roles = array_values(array_filter($roles, fn($r) => strpos(strtolower((string)($r['nombre'] ?? '')), 'sistema') === false));
+        $idRol = $this->stateInt('f_rol');
+        if ($idRol !== null) {
+            $existe = false;
+            foreach ($roles as $r) { if ((int)$r['id_ROLES'] === $idRol) { $existe = true; break; } }
+            if (!$existe) { $idRol = null; $this->clearState('f_rol'); }
+        }
+
+        $usuarios = array_values(array_filter(
+            $todos,
+            fn($u) => $idRol === null || (int)($u['id_ROLES'] ?? 0) === $idRol
+        ));
 
         $idUsuario = $this->stateInt('id_USUARIO');
+        // Si el usuario guardado ya no pertenece al rol filtrado, se limpia.
+        if ($idUsuario && $idRol !== null && isset($todos[$idUsuario])
+            && (int)($todos[$idUsuario]['id_ROLES'] ?? 0) !== $idRol) {
+            $idUsuario = null;
+            $this->clearState('id_USUARIO');
+        }
         $usuarioSel = null;
         $asignadas = [];
         $asignadasIds = [];
         if ($idUsuario) {
-            foreach ($usuarios as $u) {
-                if ((int)$u['id_USUARIOS'] === $idUsuario) { $usuarioSel = $u; break; }
-            }
+            $usuarioSel = $todos[$idUsuario] ?? null;
             if ($usuarioSel) {
                 $asignadas = UsuarioClinicaModel::listarPorUsuario($idUsuario);
                 $asignadasIds = array_map(fn($r) => (int)$r['id_CLINICA'], $asignadas);
             }
         }
 
+        if (class_exists('Database')) {
+            Database::log(sprintf(
+                'USUARIOS_CLINICA index rol_filtro=%s id_USUARIO=%s encontrado=%s usuarios=%d asignadas=%d',
+                $idRol === null ? 'TODOS' : (string)$idRol,
+                $idUsuario === null ? 'NULL' : (string)$idUsuario,
+                $usuarioSel ? 'SI' : 'NO',
+                count($usuarios),
+                count($asignadas)
+            ));
+        }
+
         $this->view('usuarios_clinica/index', [
             'title'         => 'Asignar clínicas a usuarios',
             'usuarios'      => $usuarios,
+            'roles'         => $roles,
+            'idRol'         => $idRol,
             'clinicasAdmin' => $clinicasAdmin,
             'idsAdmin'      => $idsAdmin,
             'idUsuario'     => $idUsuario,

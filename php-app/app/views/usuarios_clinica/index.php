@@ -1,6 +1,19 @@
 <div class="card" style="margin-bottom:1rem">
-  <h3 style="margin-top:0;color:var(--c5)">Seleccionar usuario</h3>
-  <form method="post" action="<?= url('usuariosClinica') ?>" class="form-grid"><?= csrf_field() ?>
+  <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
+  <div class="form-grid">
+    <form method="post" action="<?= url('usuariosClinica') ?>"><?= csrf_field() ?>
+      <label>Rol
+        <select name="f_rol" onchange="this.form.submit()">
+          <option value="">-- todos --</option>
+          <?php foreach ($roles as $r): ?>
+            <option value="<?= (int)$r['id_ROLES'] ?>" <?= (int)($idRol ?? 0)===(int)$r['id_ROLES']?'selected':'' ?>>
+              <?= htmlspecialchars($r['nombre']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+    </form>
+    <form method="post" action="<?= url('usuariosClinica') ?>"><?= csrf_field() ?>
     <label>Usuario
       <select name="id_USUARIO" onchange="this.form.submit()">
         <option value="">-- seleccione --</option>
@@ -11,7 +24,11 @@
         <?php endforeach; ?>
       </select>
     </label>
-  </form>
+    </form>
+  </div>
+  <?php if (empty($usuarios)): ?>
+    <p style="margin:.5rem 0 0">No hay usuarios para el rol seleccionado.</p>
+  <?php endif; ?>
 </div>
 
 <?php if ($usuarioSel): ?>
