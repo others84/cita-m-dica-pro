@@ -116,5 +116,5 @@ BEGIN
 END
 GO
 
-GRANT EXECUTE ON citas.spRegresaMedicosUsuarios TO citasapp;
+GRANT EXECUTE ON citas.spRegresaMedicosUsuarios TO citasadmin;
 GO
