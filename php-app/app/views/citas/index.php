@@ -27,8 +27,10 @@
         <?php endforeach; ?>
       </select>
     </label>
-    <div style="align-self:end"><button class="btn btn-sec" type="submit" name="f_fecha" value="">Limpiar fecha</button></div>
   </form>
+  <div style="margin-top:.5rem">
+    <?php post_button('citas/filtrar', ['f_fecha' => '', 'f_estado' => ''], 'Limpiar filtros', 'btn btn-sec'); ?>
+  </div>
 </div>
 <?php endif; ?>
 <div class="toolbar">
