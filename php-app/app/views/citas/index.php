@@ -6,7 +6,7 @@
   $th = function (string $col, string $label) use ($ord, $dir) {
       $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
       echo '<th>';
-      post_button('citas/ordenar', ['ord' => $col], $label . $flecha, 'btn-link');
+      post_button('citas/ordenar', ['ord' => $col], $label . $flecha, 'sort-btn');
       echo '</th>';
   };
 ?>
@@ -41,8 +41,8 @@
 <table class="data">
   <thead>
     <tr>
-      <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico'); ?>
-      <th>Especialidad</th><?php $th('consultorio','Consultorio'); ?><th>Estado</th><th>Precio</th>
+      <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico');
+            $th('especialidad','Especialidad'); $th('consultorio','Consultorio'); ?><th>Estado</th><th>Precio</th>
       <th>Observaciones</th><th>Acciones</th>
     </tr>
   </thead>
@@ -55,6 +55,7 @@
         $hf = $c['hora_fin']    instanceof DateTime ? $c['hora_fin']->format('H:i')      : substr((string)$c['hora_fin'],0,5);
         $obs = trim((string)($c['observaciones'] ?? ''));
         $obsCorta = mb_strlen($obs) > 40 ? mb_substr($obs, 0, 40) . '...' : $obs;
+        $estadoNom = strtolower(trim((string)($c['estado'] ?? '')));
     ?>
       <tr>
         <td><?= htmlspecialchars($f) ?></td>
@@ -68,7 +69,11 @@
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td class="acts">
           <?php if (($rol ?? '') === 'medico'): ?>
-            <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
+            <?php if (in_array($estadoNom, ['agendada','agendado'], true)): ?>
+              <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
+            <?php elseif (in_array($estadoNom, ['confirmada','confirmado'], true)): ?>
+              <?php post_button('citas/atendida', ['id' => (int)$c['id_CITA']], 'Atendida', 'btn', '¿Marcar esta cita como Atendida?'); ?>
+            <?php endif; ?>
           <?php else: ?>
             <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
             <?php post_button('citas/cancelarForm', ['id' => (int)$c['id_CITA']], 'Cancelada', 'btn btn-sec'); ?>

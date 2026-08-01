@@ -60,6 +60,7 @@ class CitasController extends Controller {
                 case 'hora':        return substr($val($c['hora_inicio'] ?? '', 'H:i:s'), 0, 8);
                 case 'paciente':    return mb_strtolower((string)($c['paciente'] ?? ''));
                 case 'medico':      return mb_strtolower((string)($c['medico'] ?? ''));
+                case 'especialidad':return mb_strtolower((string)($c['especialidad'] ?? ''));
                 case 'consultorio': return mb_strtolower((string)($c['consultorio'] ?? ''));
                 case 'fecha':
                 default:
@@ -99,7 +100,7 @@ class CitasController extends Controller {
     public function ordenar(): void {
         $this->requireLogin();
         $col = (string)($this->input('ord') ?? 'fecha');
-        $permitidas = ['fecha', 'hora', 'paciente', 'medico', 'consultorio'];
+        $permitidas = ['fecha', 'hora', 'paciente', 'medico', 'especialidad', 'consultorio'];
         if (!in_array($col, $permitidas, true)) $col = 'fecha';
         $actual = (string)($this->stateParam('ord', 'fecha') ?? 'fecha');
         $dir    = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc'));
@@ -212,6 +213,12 @@ class CitasController extends Controller {
     public function noAsistio(): void {
         $this->requireLogin();
         $this->cambiaEstado((int)$this->input('id'), ['no asistio', 'no asistió', 'no asistio.', 'noasistio'], 'Cita marcada como No asistio.');
+    }
+
+    /** El medico marca la cita como atendida. */
+    public function atendida(): void {
+        $this->requireLogin();
+        $this->cambiaEstado((int)$this->input('id'), ['atendida', 'atendido'], 'Cita marcada como Atendida.');
     }
 
     /** El medico confirma la cita. */
