@@ -64,7 +64,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .btn-danger:hover{background:#922d22}
 table.data{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
 table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1)}
-table.data thead{background:var(--c2);color:var(--c5)}
+table.data thead{background:transparent;color:var(--c5)}
 table.data tr:last-child td{border-bottom:none}
 table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
