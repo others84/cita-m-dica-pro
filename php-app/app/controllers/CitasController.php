@@ -44,8 +44,10 @@ class CitasController extends Controller {
 
     public function nueva(): void { $this->clearState('id'); $this->form(); }
     public function editar(): void { $this->form(); }
+    /** Muestra la cita en solo lectura para capturar el motivo de cancelacion. */
+    public function cancelarForm(): void { $this->form('cancelar'); }
 
-    private function form(): void {
+    private function form(string $modo = 'edicion'): void {
         $this->requireLogin();
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
@@ -75,6 +77,7 @@ class CitasController extends Controller {
             'title'         => $editId ? 'Modificar Cita' : 'Agendar Cita',
             'editId'        => $editId,
             'editRow'       => $editRow,
+            'modo'          => $modo,
             'pacientes'     => PacienteModel::listar($fClinica),
             'medicos'       => UsuarioModel::listarMedicos($fClinica),
             'consultorios'  => ConsultorioModel::listar($fClinica),
