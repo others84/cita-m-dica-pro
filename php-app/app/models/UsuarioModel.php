@@ -22,6 +22,27 @@ class UsuarioModel extends Model {
         return self::query('EXEC citas.spRegresaUsuarios');
     }
 
+    /**
+     * Usuarios activos con perfil "medico" asignados a la clinica indicada.
+     * Se deduplica por id_USUARIOS (spRegresaUsuarios devuelve una fila por clinica).
+     * @return array<int,array<string,mixed>>
+     */
+    public static function listarMedicos(?int $idClinica = null): array {
+        $out = [];
+        foreach (self::listar() as $u) {
+            $rol = strtolower((string)($u['rol'] ?? ''));
+            if (strpos($rol, 'medico') === false && strpos($rol, 'médico') === false) continue;
+            if ((int)($u['activo'] ?? 1) !== 1) continue;
+            if ($idClinica !== null && (int)($u['id_CLINICA'] ?? 0) !== (int)$idClinica) continue;
+            $id = (int)($u['id_USUARIOS'] ?? 0);
+            if ($id <= 0 || isset($out[$id])) continue;
+            $out[$id] = $u;
+        }
+        $rows = array_values($out);
+        usort($rows, fn($a, $b) => strcasecmp((string)($a['nombre_completo'] ?? ''), (string)($b['nombre_completo'] ?? '')));
+        return $rows;
+    }
+
     public static function alta(int $idRol, ?int $idClinica, string $usuario, string $password, string $nombre, string $email): int {
         $idNuevo = self::executeWithOutput('spAltaUsuario', [
             '@id_ROLES'        => $idRol,
