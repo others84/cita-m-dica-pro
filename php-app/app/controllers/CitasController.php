@@ -127,4 +127,67 @@ class CitasController extends Controller {
         $this->clearState('id');
         $this->redirect('citas');
     }
+
+    /** Guarda la cancelacion con el motivo capturado en observaciones. */
+    public function cancelarGuardar(): void {
+        $this->requireLogin();
+        $id  = (int)$this->input('id');
+        $obs = (string)($this->input('observaciones') ?? '');
+        if (trim($obs) === '') {
+            $this->flash('error', 'Escriba el motivo de la cancelacion.');
+            $this->redirect('citas');
+        }
+        $this->cambiaEstado($id, ['cancelada', 'cancelado'], 'Cita cancelada.', $obs);
+    }
+
+    /** Marca la cita como "No asistio". */
+    public function noAsistio(): void {
+        $this->requireLogin();
+        $this->cambiaEstado((int)$this->input('id'), ['no asistio', 'no asistió', 'no asistio.', 'noasistio'], 'Cita marcada como No asistio.');
+    }
+
+    /** El medico confirma la cita. */
+    public function confirmar(): void {
+        $this->requireLogin();
+        $this->cambiaEstado((int)$this->input('id'), ['confirmada', 'confirmado'], 'Cita confirmada.');
+    }
+
+    /** Cambia el estado de una cita conservando el resto de los datos. */
+    private function cambiaEstado(int $id, array $nombresEstado, string $okMsg, ?string $observaciones = null): void {
+        try {
+            $c = $id ? CitaModel::obtener($id) : null;
+            if (!$c) throw new RuntimeException('No se encontro la cita.');
+            $idEstado = 0;
+            foreach (EstadoCitaModel::listar() as $e) {
+                $n = strtolower(trim((string)($e['nombre'] ?? '')));
+                if (in_array($n, $nombresEstado, true)) { $idEstado = (int)$e['id_CATALOGO_ESTADO_CITAS']; break; }
+            }
+            if (!$idEstado) throw new RuntimeException('No existe el estado requerido en el catalogo de estados de cita.');
+            $fmt = function ($v, string $f) {
+                if ($v instanceof DateTime) return $v->format($f);
+                return (string)$v;
+            };
+            CitaModel::cambio($id, [
+                'id_PACIENTE'              => (int)$c['id_PACIENTE'],
+                'id_MEDICO'                => (int)$c['id_MEDICO'],
+                'id_CONSULTORIO'           => (int)$c['id_CONSULTORIO'],
+                'id_CATALOGO_ESPECIALIDAD' => (int)$c['id_CATALOGO_ESPECIALIDAD'],
+                'fecha_cita'               => substr($fmt($c['fecha_cita'], 'Y-m-d'), 0, 10),
+                'hora_inicio'              => substr($fmt($c['hora_inicio'], 'H:i:s'), 0, 8),
+                'hora_fin'                 => substr($fmt($c['hora_fin'], 'H:i:s'), 0, 8),
+                'id_CATALOGO_ESTADO_CITAS' => $idEstado,
+                'observaciones'            => $observaciones !== null ? $observaciones : (string)($c['observaciones'] ?? ''),
+                'notifica_email'           => (int)($c['notifica_email'] ?? 0),
+                'notifica_wa'              => (int)($c['notifica_wa'] ?? 0),
+                'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
+                'precio'                   => (float)($c['precio'] ?? 0),
+            ]);
+            Database::log(sprintf('CITAS.cambiaEstado id=%d estado=%d user=%s', $id, $idEstado, $_SESSION['user']['usuario'] ?? '?'));
+            $this->flash('ok', $okMsg);
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo actualizar la cita: ' . $e->getMessage());
+        }
+        $this->clearState('id');
+        $this->redirect('citas');
+    }
 }
