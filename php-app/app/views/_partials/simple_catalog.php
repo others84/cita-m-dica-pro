@@ -18,6 +18,13 @@ if (strpos($controller, '/') !== false) {
     $saveAction   = $controller . '/guardar';
     $deleteAction = $controller . '/eliminar';
 }
+// Nombre a precargar al editar (tolerante a la capitalizacion del SP).
+$editNombre = '';
+if (!empty($editRow) && is_array($editRow)) {
+    foreach ($editRow as $col => $val) {
+        if (strtolower((string)$col) === 'nombre') { $editNombre = (string)$val; break; }
+    }
+}
 ?>
 <?php if (!empty($rol) && $rol==='admin_sistema' && !empty($clinicas)): ?>
 <div class="card" style="margin-bottom:1rem">
@@ -46,7 +53,7 @@ if (strpos($controller, '/') !== false) {
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <label>Nombre
       <input type="text" name="nombre" required maxlength="120"
-             value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>">
+             value="<?= htmlspecialchars($editNombre) ?>">
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
