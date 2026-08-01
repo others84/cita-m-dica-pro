@@ -135,6 +135,15 @@ class CatalogosController extends Controller {
         $editId  = $this->stateInt('edit', 'catalogos.municipios');
         $fPais   = $this->stateInt('f_pais', 'catalogos.municipios');
         $fEstado = $this->stateInt('f_estado', 'catalogos.municipios');
+        $estados = EstadoModel::listar($fPais);
+        // Si el estado guardado no pertenece al pais seleccionado, se descarta.
+        if ($fEstado) {
+            $idsEstado = array_map(fn($e) => (int)$e['id_CATALOGO_ESTADOS'], $estados);
+            if (!in_array($fEstado, $idsEstado, true)) {
+                $fEstado = null;
+                $this->clearState('f_estado', 'catalogos.municipios');
+            }
+        }
         $rows = MunicipioModel::listar($fEstado);
         if ($fPais && !$fEstado) {
             $rows = array_values(array_filter($rows, fn($r) => (int)($r['id_CATALOGO_PAIS'] ?? 0) === $fPais));
@@ -143,7 +152,7 @@ class CatalogosController extends Controller {
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_MUNICIPIO']===$editId) { $editRow=$r; break; }
         $this->view('catalogos/municipios', [
             'title'=>'Municipios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'estados'=>EstadoModel::listar($fPais),
+            'estados'=>$estados,
             'paises'=>PaisModel::listar(),
             'fPais'=>$fPais, 'fEstado'=>$fEstado,
         ]);
@@ -151,7 +160,14 @@ class CatalogosController extends Controller {
     public function municipiosGuardar(): void {
         $this->guard();
         $id = $this->intOrNull($_POST['id'] ?? null);
-        $n = $this->input('nombre'); $e = (int)$this->input('id_CATALOGO_ESTADOS');
+        $n = $this->input('nombre');
+        // El estado se toma del filtro (ya no hay combo en el formulario).
+        $e = (int)($this->intOrNull($_POST['id_CATALOGO_ESTADOS'] ?? null)
+            ?? $this->stateInt('f_estado', 'catalogos.municipios'));
+        if ($n === null || !$e) {
+            $this->flash('error', 'Selecciona un estado en el filtro y captura el nombre del municipio.');
+            $this->redirect('catalogos/municipios');
+        }
         try { if ($id) MunicipioModel::cambio($id,$n,$e); else MunicipioModel::alta($n,$e); $this->flash('ok','Guardado.'); }
         catch (Throwable $ex) { $this->flash('error',$ex->getMessage()); }
         $this->clearState('edit', 'catalogos.municipios');
