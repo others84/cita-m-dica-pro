@@ -30,31 +30,25 @@
 
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0"><?= $editId ? 'Editar municipio' : 'Nuevo municipio' ?></h3>
+  <?php if (empty($fEstado)): ?>
+    <p style="color:var(--c4);margin:0 0 .5rem">Selecciona un <strong>País</strong> y un <strong>Estado</strong> en el filtro para dar de alta municipios.</p>
+  <?php endif; ?>
   <form method="post" action="<?= url('catalogos/municipiosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <input type="hidden" name="id_CATALOGO_ESTADOS" value="<?= (int)($fEstado ?? 0) ?>">
     <label>Nombre
       <input name="nombre" required maxlength="120"
              value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>">
     </label>
-    <label>Estado
-      <select name="id_CATALOGO_ESTADOS" required>
-        <?php foreach ($estados as $e): ?>
-          <option value="<?= (int)$e['id_CATALOGO_ESTADOS'] ?>"
-            <?= isset($editRow)&&(int)($editRow['id_CATALOGO_ESTADOS']??0)===(int)$e['id_CATALOGO_ESTADOS']?'selected':'' ?>>
-            <?= htmlspecialchars($e['nombre']) ?> — <?= htmlspecialchars($e['pais'] ?? '') ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn"><?= $editId?'Actualizar':'Guardar' ?></button>
+      <button class="btn" <?= empty($fEstado)?'disabled':'' ?>><?= $editId?'Actualizar':'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('catalogos/municipios') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
 
 <table class="data">
-  <thead><tr><th>Nombre</th><th>Estado</th><th>País</th><th style="width:160px">Acciones</th></tr></thead>
+  <thead><tr><th>Municipio</th><th>Estado</th><th>País</th><th style="width:160px">Acciones</th></tr></thead>
   <tbody>
     <?php if (empty($rows)): ?>
       <tr><td colspan="4" style="text-align:center;color:var(--c4);padding:1rem">Sin registros</td></tr>
