@@ -353,8 +353,9 @@ CREATE TABLE citas.CITA (
         FOREIGN KEY (id_PACIENTE) REFERENCES citas.PACIENTE(id_PACIENTE),
     CONSTRAINT FK_id_CATALOGO_ESTADO_CITAS_CATALOGO_ESTADO_CITAS_id_CATALOGO_ESTADO_CITAS_CITA
         FOREIGN KEY (id_CATALOGO_ESTADO_CITAS) REFERENCES citas.CATALOGO_ESTADO_CITAS(id_CATALOGO_ESTADO_CITAS),
-    CONSTRAINT FK_id_MEDICO_MEDICO_id_MEDICO_CITA
-        FOREIGN KEY (id_MEDICO) REFERENCES citas.MEDICO(id_MEDICO),
+    -- El medico de la cita es un USUARIO con perfil "Medico" asignado a la clinica.
+    CONSTRAINT FK_id_MEDICO_USUARIOS_id_USUARIOS_CITA
+        FOREIGN KEY (id_MEDICO) REFERENCES citas.USUARIOS(id_USUARIOS),
     CONSTRAINT FK_id_CATALOGO_ESPECIALIDAD_CATALOGO_ESPECIALIDAD_id_CATALOGO_ESPECIALIDAD_CITA
         FOREIGN KEY (id_CATALOGO_ESPECIALIDAD) REFERENCES citas.CATALOGO_ESPECIALIDAD(id_CATALOGO_ESPECIALIDAD),
     CONSTRAINT FK_id_CONSULTORIO_CONSULTORIO_id_CONSULTORIO_CITA
@@ -1905,14 +1906,14 @@ BEGIN
             ci.id_PACIENTE,
             (p.ap_paterno + ' ' + p.ap_materno + ' ' + p.nombre) AS paciente,
             p.id_CLINICA, cl.nombre AS clinica,
-            ci.id_MEDICO, m.nombre_completo AS medico,
+            ci.id_MEDICO, u.nombre_completo AS medico,
             ci.id_CATALOGO_ESPECIALIDAD, es.nombre AS especialidad,
             ci.id_CONSULTORIO, co.nombre AS consultorio,
             ci.id_CATALOGO_ESTADO_CITAS, ec.nombre AS estado
       FROM citas.CITA ci
       JOIN citas.PACIENTE              p  ON p.id_PACIENTE              = ci.id_PACIENTE
       JOIN citas.CLINICA               cl ON cl.id_CLINICA              = p.id_CLINICA
-      JOIN citas.MEDICO                m  ON m.id_MEDICO                = ci.id_MEDICO
+      JOIN citas.USUARIOS              u  ON u.id_USUARIOS              = ci.id_MEDICO
       JOIN citas.CATALOGO_ESPECIALIDAD es ON es.id_CATALOGO_ESPECIALIDAD= ci.id_CATALOGO_ESPECIALIDAD
       JOIN citas.CONSULTORIO           co ON co.id_CONSULTORIO          = ci.id_CONSULTORIO
       JOIN citas.CATALOGO_ESTADO_CITAS ec ON ec.id_CATALOGO_ESTADO_CITAS= ci.id_CATALOGO_ESTADO_CITAS
