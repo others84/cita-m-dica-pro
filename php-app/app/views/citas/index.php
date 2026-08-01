@@ -33,7 +33,13 @@
         <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td class="acts">
-          <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
+          <?php if (($rol ?? '') === 'medico'): ?>
+            <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
+          <?php else: ?>
+            <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
+            <?php post_button('citas/cancelarForm', ['id' => (int)$c['id_CITA']], 'Cancelada', 'btn btn-sec'); ?>
+            <?php post_button('citas/noAsistio', ['id' => (int)$c['id_CITA']], 'No asistió', 'btn btn-sec', '¿Cambiar el estatus de esta cita a "No asistió"?'); ?>
+          <?php endif; ?>
         </td>
       </tr>
     <?php endforeach; endif; ?>

@@ -8,15 +8,21 @@ if ($hf instanceof DateTime) $hf = $hf->format('H:i');
 $f  = $f  ? substr((string)$f,0,10)  : '';
 $hi = $hi ? substr((string)$hi,0,5) : '';
 $hf = $hf ? substr((string)$hf,0,5) : '';
+$modo = $modo ?? 'edicion';
+$soloCancelar = ($modo === 'cancelar');
+$dis = $soloCancelar ? ' disabled' : '';
 ?>
 <?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card">
-  <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita' ?></h2>
-  <form method="post" action="<?= url('citas/guardar') ?>" class="form-grid"><?= csrf_field() ?>
+  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita') ?></h2>
+  <?php if ($soloCancelar): ?>
+    <p style="color:var(--c4);margin-top:0">Escriba el motivo de la cancelacion en Observaciones. Los demas campos no se pueden modificar.</p>
+  <?php endif; ?>
+  <form method="post" action="<?= url($soloCancelar ? 'citas/cancelarGuardar' : 'citas/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
 
     <label>Paciente
-      <select name="id_PACIENTE" id="sel_paciente" required>
+      <select name="id_PACIENTE" id="sel_paciente" required<?= $dis ?>>
         <option value="">-- seleccione --</option>
         <?php foreach ($pacientes as $p):
           $nom = trim(($p['ap_paterno']??'') . ' ' . ($p['ap_materno']??'') . ' ' . ($p['nombre']??'')); ?>
@@ -31,7 +37,7 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Medico
-      <select name="id_MEDICO" required>
+      <select name="id_MEDICO" required<?= $dis ?>>
         <option value="">-- seleccione --</option>
         <?php foreach ($medicos as $m):
           $idm = (int)($m['id_USUARIOS'] ?? 0); ?>
@@ -46,7 +52,7 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Consultorio
-      <select name="id_CONSULTORIO" required>
+      <select name="id_CONSULTORIO" required<?= $dis ?>>
         <option value="">-- seleccione --</option>
         <?php foreach ($consultorios as $co): ?>
           <option value="<?= (int)$co['id_CONSULTORIO'] ?>" <?= isset($editRow) && (int)($editRow['id_CONSULTORIO']??0)===(int)$co['id_CONSULTORIO'] ? 'selected':'' ?>>
@@ -57,7 +63,7 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Especialidad
-      <select name="id_CATALOGO_ESPECIALIDAD" required>
+      <select name="id_CATALOGO_ESPECIALIDAD" required<?= $dis ?>>
         <option value="">-- seleccione --</option>
         <?php foreach ($especialidades as $e): ?>
           <option value="<?= (int)$e['id_CATALOGO_ESPECIALIDAD'] ?>" <?= isset($editRow) && (int)($editRow['id_CATALOGO_ESPECIALIDAD']??0)===(int)$e['id_CATALOGO_ESPECIALIDAD'] ? 'selected':'' ?>>
@@ -68,17 +74,17 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Fecha
-      <input type="date" name="fecha_cita" required value="<?= htmlspecialchars($f) ?>">
+      <input type="date" name="fecha_cita" required value="<?= htmlspecialchars($f) ?>"<?= $dis ?>>
     </label>
     <label>Hora inicio
-      <input type="time" name="hora_inicio" required value="<?= htmlspecialchars($hi) ?>">
+      <input type="time" name="hora_inicio" required value="<?= htmlspecialchars($hi) ?>"<?= $dis ?>>
     </label>
     <label>Hora fin
-      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>">
+      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>"<?= $dis ?>>
     </label>
 
     <label>Estado
-      <select name="id_CATALOGO_ESTADO_CITAS" required>
+      <select name="id_CATALOGO_ESTADO_CITAS" required<?= $dis ?>>
         <?php foreach ($estados as $es): ?>
           <option value="<?= (int)$es['id_CATALOGO_ESTADO_CITAS'] ?>"
             <?= isset($editRow) && (int)($editRow['id_CATALOGO_ESTADO_CITAS']??0)===(int)$es['id_CATALOGO_ESTADO_CITAS'] ? 'selected':'' ?>>
@@ -89,7 +95,7 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     </label>
 
     <label>Precio
-      <input type="number" name="precio" step="0.01" min="0" value="<?= htmlspecialchars((string)($editRow['precio'] ?? '0.00')) ?>">
+      <input type="number" name="precio" step="0.01" min="0" value="<?= htmlspecialchars((string)($editRow['precio'] ?? '0.00')) ?>"<?= $dis ?>>
     </label>
 
     <label>Email notificacion
@@ -101,24 +107,24 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
              value="<?= htmlspecialchars((string)($editRow['celular_notif'] ?? '')) ?>">
     </label>
     <label>Horas anticipacion
-      <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>">
+      <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>"<?= $dis ?>>
     </label>
 
     <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?>>
+      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?><?= $dis ?>>
       Notificar por email
     </label>
     <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked':'' ?>>
+      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked':'' ?><?= $dis ?>>
       Notificar por WhatsApp
     </label>
 
-    <label style="grid-column:1/-1">Observaciones
-      <textarea name="observaciones" rows="3"><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
+    <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : 'Observaciones' ?>
+      <textarea name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
     </label>
 
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit"><?= $editId ? 'Actualizar' : 'Agendar' ?></button>
+      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return confirm(\'¿Cambiar el estatus de esta cita a Cancelada?\');"' : '' ?>><?= $soloCancelar ? 'Cancelar cita' : ($editId ? 'Actualizar' : 'Agendar') ?></button>
       <a class="btn btn-sec" href="<?= url('citas') ?>">Cancelar</a>
     </div>
   </form>
