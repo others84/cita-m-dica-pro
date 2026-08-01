@@ -32,6 +32,46 @@ class CitasController extends Controller {
             $this->flash('error', 'Error al cargar citas: ' . $e->getMessage());
             $citas = [];
         }
+
+        // --- Filtros de la tabla (fecha y estado) y ordenamiento ---
+        $fFecha  = (string)($this->stateParam('f_fecha', '') ?? '');
+        $fEstado = $this->stateInt('f_estado');
+        $ord     = (string)($this->stateParam('ord', 'fecha') ?? 'fecha');
+        $dir     = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $val = function ($v, string $f) {
+            if ($v instanceof DateTime) return $v->format($f);
+            return (string)$v;
+        };
+
+        if ($fFecha !== '') {
+            $citas = array_values(array_filter($citas, function ($c) use ($val, $fFecha) {
+                return substr($val($c['fecha_cita'] ?? '', 'Y-m-d'), 0, 10) === $fFecha;
+            }));
+        }
+        if ($fEstado) {
+            $citas = array_values(array_filter($citas, function ($c) use ($fEstado) {
+                return (int)($c['id_CATALOGO_ESTADO_CITAS'] ?? 0) === $fEstado;
+            }));
+        }
+
+        $key = function (array $c) use ($ord, $val) {
+            switch ($ord) {
+                case 'hora':        return substr($val($c['hora_inicio'] ?? '', 'H:i:s'), 0, 8);
+                case 'paciente':    return mb_strtolower((string)($c['paciente'] ?? ''));
+                case 'medico':      return mb_strtolower((string)($c['medico'] ?? ''));
+                case 'consultorio': return mb_strtolower((string)($c['consultorio'] ?? ''));
+                case 'fecha':
+                default:
+                    return substr($val($c['fecha_cita'] ?? '', 'Y-m-d'), 0, 10)
+                         . ' ' . substr($val($c['hora_inicio'] ?? '', 'H:i:s'), 0, 8);
+            }
+        };
+        usort($citas, function ($a, $b) use ($key, $dir) {
+            $r = strcmp($key($a), $key($b));
+            return $dir === 'desc' ? -$r : $r;
+        });
+
         $this->view('citas/index', [
             'title'    => 'Citas',
             'citas'    => $citas,
@@ -39,7 +79,34 @@ class CitasController extends Controller {
             'fClinica' => $fClinica,
             'rol'      => $rol,
             'clinicasFiltro' => $clinicasFiltro,
+            'estados'  => EstadoCitaModel::listar(),
+            'fFecha'   => $fFecha,
+            'fEstado'  => $fEstado,
+            'ord'      => $ord,
+            'dir'      => $dir,
         ]);
+    }
+
+    /** Aplica los filtros de fecha/estado de la tabla de citas. */
+    public function filtrar(): void {
+        $this->requireLogin();
+        $this->stateParam('f_fecha', '');
+        $this->stateParam('f_estado', null);
+        $this->redirect('citas');
+    }
+
+    /** Cambia la columna/direccion de ordenamiento de la tabla de citas. */
+    public function ordenar(): void {
+        $this->requireLogin();
+        $col = (string)($this->input('ord') ?? 'fecha');
+        $permitidas = ['fecha', 'hora', 'paciente', 'medico', 'consultorio'];
+        if (!in_array($col, $permitidas, true)) $col = 'fecha';
+        $actual = (string)($this->stateParam('ord', 'fecha') ?? 'fecha');
+        $dir    = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc'));
+        $nuevo  = ($actual === $col && $dir === 'asc') ? 'desc' : 'asc';
+        $_SESSION['ui']['citas']['ord'] = $col;
+        $_SESSION['ui']['citas']['dir'] = $nuevo;
+        $this->redirect('citas');
     }
 
     public function nueva(): void { $this->clearState('id'); $this->form(); }
