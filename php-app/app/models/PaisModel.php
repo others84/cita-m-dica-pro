@@ -5,6 +5,13 @@ class PaisModel extends Model {
         Database::log('PaisModel::listar -> EXEC citas.spRegresaPaises');
         return self::query('EXEC citas.spRegresaPaises');
     }
+    /** Devuelve un pais por id (o null) buscando en el listado del SP. */
+    public static function obtener(int $id): ?array {
+        foreach (self::listar() as $r) {
+            if ((int)($r['id_CATALOGO_PAIS'] ?? 0) === $id) return $r;
+        }
+        return null;
+    }
     public static function alta(string $nombre): int {
         $uid = self::currentUserId();
         Database::log("PaisModel::alta INICIO nombre='{$nombre}' id_usuario={$uid}");
