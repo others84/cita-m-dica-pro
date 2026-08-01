@@ -278,8 +278,17 @@ class CatalogosController extends Controller {
 
     public function usuariosEliminar(): void {
         $this->guard();
-        try { UsuarioModel::baja((int)$this->input('id')); $this->flash('ok','Usuario eliminado.'); }
-        catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
+        $id    = (int)$this->input('id');
+        $quien = $_SESSION['user']['usuario'] ?? 'anonimo';
+        Database::log("USUARIOS accion=ELIMINAR intento id_USUARIOS={$id} solicitado_por='{$quien}'");
+        try {
+            UsuarioModel::baja($id);
+            Database::log("USUARIOS accion=ELIMINAR resultado=OK id_USUARIOS={$id} solicitado_por='{$quien}'");
+            $this->flash('ok','Usuario eliminado.');
+        } catch (Throwable $e) {
+            Database::log("USUARIOS accion=ELIMINAR resultado=RECHAZADA id_USUARIOS={$id} solicitado_por='{$quien}' motivo=" . $e->getMessage());
+            $this->flash('error','No se pudo eliminar: ' . $e->getMessage());
+        }
         $this->clearState('edit', 'catalogos.usuarios');
         $this->redirect('catalogos/usuarios');
     }
