@@ -133,9 +133,10 @@ class CitasController extends Controller {
         $this->requireLogin();
         $id  = (int)$this->input('id');
         $obs = (string)($this->input('observaciones') ?? '');
-        if (trim($obs) === '') {
-            $this->flash('error', 'Escriba el motivo de la cancelacion.');
-            $this->redirect('citas');
+        if (mb_strlen(trim($obs)) < 5) {
+            $this->flash('error', 'Debe capturar la razon de la cancelacion en Observaciones (minimo 5 caracteres).');
+            $this->redirect('citas/cancelarForm');
+            return;
         }
         $this->cambiaEstado($id, ['cancelada', 'cancelado'], 'Cita cancelada.', $obs);
     }

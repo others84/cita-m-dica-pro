@@ -120,15 +120,30 @@ $dis = $soloCancelar ? ' disabled' : '';
     </label>
 
     <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : 'Observaciones' ?>
-      <textarea name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
+      <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
+      <?php if ($soloCancelar): ?><small style="color:#b00020">Obligatorio: capture la razon de la cancelacion.</small><?php endif; ?>
     </label>
 
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return confirm(\'¿Cambiar el estatus de esta cita a Cancelada?\');"' : '' ?>><?= $soloCancelar ? 'Cancelar cita' : ($editId ? 'Actualizar' : 'Agendar') ?></button>
+      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : '' ?>><?= $soloCancelar ? 'Cancelar cita' : ($editId ? 'Actualizar' : 'Agendar') ?></button>
       <a class="btn btn-sec" href="<?= url('citas') ?>">Cancelar</a>
     </div>
   </form>
 </div>
+<?php if ($soloCancelar): ?>
+<script>
+function validaMotivoCancelacion() {
+  var t = document.getElementById('txt_observaciones');
+  var v = (t && t.value ? t.value : '').trim();
+  if (v.length < 5) {
+    alert('Debe capturar la razon de la cancelacion en Observaciones (minimo 5 caracteres).');
+    if (t) { t.focus(); }
+    return false;
+  }
+  return confirm('\u00bfCambiar el estatus de esta cita a Cancelada?');
+}
+</script>
+<?php endif; ?>
 <script>
 (function () {
   var sel = document.getElementById('sel_paciente');
