@@ -1906,7 +1906,7 @@ BEGIN
             ci.id_PACIENTE,
             (p.ap_paterno + ' ' + p.ap_materno + ' ' + p.nombre) AS paciente,
             p.id_CLINICA, cl.nombre AS clinica,
-            ci.id_MEDICO, m.nombre_completo AS medico,
+            ci.id_MEDICO, u.nombre_completo AS medico,
             ci.id_CATALOGO_ESPECIALIDAD, es.nombre AS especialidad,
             ci.id_CONSULTORIO, co.nombre AS consultorio,
             ci.id_CATALOGO_ESTADO_CITAS, ec.nombre AS estado
