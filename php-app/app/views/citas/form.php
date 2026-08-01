@@ -33,11 +33,15 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
     <label>Medico
       <select name="id_MEDICO" required>
         <option value="">-- seleccione --</option>
-        <?php foreach ($medicos as $m): ?>
-          <option value="<?= (int)$m['id_MEDICO'] ?>" <?= isset($editRow) && (int)($editRow['id_MEDICO']??0)===(int)$m['id_MEDICO'] ? 'selected':'' ?>>
-            <?= htmlspecialchars($m['nombre_completo']) ?>
+        <?php foreach ($medicos as $m):
+          $idm = (int)($m['id_USUARIOS'] ?? 0); ?>
+          <option value="<?= $idm ?>" <?= isset($editRow) && (int)($editRow['id_MEDICO']??0)===$idm ? 'selected':'' ?>>
+            <?= htmlspecialchars((string)($m['nombre_completo'] ?? $m['usuario'] ?? '')) ?>
           </option>
         <?php endforeach; ?>
+        <?php if (empty($medicos)): ?>
+          <option value="" disabled>Sin usuarios con perfil medico en esta clinica</option>
+        <?php endif; ?>
       </select>
     </label>
 
