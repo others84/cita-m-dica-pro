@@ -135,6 +135,18 @@ class CatalogosController extends Controller {
         $editId  = $this->stateInt('edit', 'catalogos.municipios');
         $fPais   = $this->stateInt('f_pais', 'catalogos.municipios');
         $fEstado = $this->stateInt('f_estado', 'catalogos.municipios');
+        // Al presionar "Editar", los filtros se ajustan al pais/estado del municipio.
+        if ($editId && isset($_POST['edit'])) {
+            foreach (MunicipioModel::listar(null) as $m) {
+                if ((int)$m['id_CATALOGO_MUNICIPIO'] === $editId) {
+                    $fPais   = (int)($m['id_CATALOGO_PAIS'] ?? 0) ?: null;
+                    $fEstado = (int)($m['id_CATALOGO_ESTADOS'] ?? 0) ?: null;
+                    $_SESSION['ui']['catalogos.municipios']['f_pais']   = $fPais;
+                    $_SESSION['ui']['catalogos.municipios']['f_estado'] = $fEstado;
+                    break;
+                }
+            }
+        }
         $estados = EstadoModel::listar($fPais);
         // Si el estado guardado no pertenece al pais seleccionado, se descarta.
         if ($fEstado) {
