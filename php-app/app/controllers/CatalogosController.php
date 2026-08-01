@@ -125,6 +125,16 @@ class CatalogosController extends Controller {
         $this->guard();
         $editId = $this->stateInt('edit', 'catalogos.estados');
         $fPais  = $this->stateInt('f_pais', 'catalogos.estados');
+        // Al presionar "Editar", el filtro se ajusta al pais del estado.
+        if ($editId && isset($_POST['edit'])) {
+            foreach (EstadoModel::listar(null) as $e) {
+                if ((int)$e['id_CATALOGO_ESTADOS'] === $editId) {
+                    $fPais = (int)($e['id_CATALOGO_PAIS'] ?? 0) ?: null;
+                    $_SESSION['ui']['catalogos.estados']['f_pais'] = $fPais;
+                    break;
+                }
+            }
+        }
         $rows = EstadoModel::listar($fPais); $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_CATALOGO_ESTADOS']===$editId) { $editRow=$r; break; }
         $this->view('catalogos/estados', [
@@ -135,7 +145,13 @@ class CatalogosController extends Controller {
     public function estadosGuardar(): void {
         $this->guard();
         $id = $this->intOrNull($_POST['id'] ?? null);
-        $n = $this->input('nombre'); $p = (int)$this->input('id_CATALOGO_PAIS');
+        $n = $this->input('nombre');
+        $p = (int)($this->intOrNull($_POST['id_CATALOGO_PAIS'] ?? null)
+            ?? $this->stateInt('f_pais', 'catalogos.estados'));
+        if ($n === null || !$p) {
+            $this->flash('error', 'Selecciona un país en el filtro y captura el nombre del estado.');
+            $this->redirect('catalogos/estados');
+        }
         try { if ($id) EstadoModel::cambio($id,$n,$p); else EstadoModel::alta($n,$p); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->clearState('edit', 'catalogos.estados');

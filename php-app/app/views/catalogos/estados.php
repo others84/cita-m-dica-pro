@@ -17,18 +17,13 @@
   <h2 style="margin-top:0"><?= $editId ? 'Editar estado' : 'Nuevo estado' ?></h2>
   <form method="post" action="<?= url('catalogos/estadosGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <input type="hidden" name="id_CATALOGO_PAIS" value="<?= (int)($fPais ?? 0) ?>">
     <label>Nombre <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
-    <label>Pais
-      <select name="id_CATALOGO_PAIS" required>
-        <?php foreach ($paises as $p): ?>
-          <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_PAIS']??0)===(int)$p['id_CATALOGO_PAIS']?'selected':'' ?>>
-            <?= htmlspecialchars($p['nombre']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
+    <?php if (empty($fPais)): ?>
+      <p style="grid-column:1/-1;color:#b45309;margin:0">Selecciona un país en el filtro para poder guardar.</p>
+    <?php endif; ?>
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn"><?= $editId?'Actualizar':'Guardar' ?></button>
+      <button class="btn" <?= empty($fPais)?'disabled':'' ?>><?= $editId?'Actualizar':'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('catalogos/estados') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
