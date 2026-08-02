@@ -80,6 +80,10 @@ $rol  = $user['rol'];
         <details class="menu-group">
           <summary>Reportes</summary>
           <a href="<?= url('reportes/ingresos') ?>">Ingresos</a>
+          <a href="<?= url('reportes/repIngresos') ?>">Ingresos (grafica)</a>
+          <a href="<?= url('reportes/repAtencion') ?>">Atención</a>
+          <a href="<?= url('reportes/repTop10') ?>">Top 10 médicos</a>
+          <a href="<?= url('reportes/repEspecialidad') ?>">Atención por especialidad</a>
         </details>
         <a href="<?= url('sistema/bloquearClinicas') ?>">Bloquear acceso a clínicas</a>
       <?php endif; ?>
