@@ -253,6 +253,10 @@ class CitasController extends Controller {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if (!$c) throw new RuntimeException('No se encontro la cita.');
+            $actual = mb_strtolower(trim((string)($c['estado'] ?? '')));
+            if (in_array($actual, ['cancelada', 'cancelado'], true)) {
+                throw new RuntimeException('La cita esta cancelada y no puede modificarse.');
+            }
             $idEstado = 0;
             foreach (EstadoCitaModel::listar() as $e) {
                 $n = strtolower(trim((string)($e['nombre'] ?? '')));
