@@ -99,7 +99,7 @@ class ReportesController extends Controller {
             $d = self::fecha($c['fecha_cita']);
             $serie[$d] = ($serie[$d] ?? 0) + 1;
         }
-        ksort($serie);
+        arsort($serie);
         $this->view('reportes/rep_atencion', $f + [
             'title' => 'Reporte de atencion',
             'serie' => $serie,

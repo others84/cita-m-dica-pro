@@ -20,6 +20,22 @@ $__money  = !empty($fmtMoneda);
   var fmt = function(v){ return money ? '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) : Number(v).toLocaleString('es-MX'); };
   new Chart(document.getElementById('<?= $__cid ?>').getContext('2d'), {
     type: 'bar',
+    plugins: [{
+      id: 'valueLabels',
+      afterDatasetsDraw: function(chart){
+        var ctx = chart.ctx;
+        chart.getDatasetMeta(0).data.forEach(function(bar, i){
+          var v = chart.data.datasets[0].data[i];
+          ctx.save();
+          ctx.fillStyle = '#1E3A5F';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(fmt(v), bar.x, bar.y - 4);
+          ctx.restore();
+        });
+      }
+    }],
     data: {
       labels: <?= json_encode($__labels, JSON_UNESCAPED_UNICODE) ?>,
       datasets: [{
