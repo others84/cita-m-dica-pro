@@ -18,10 +18,15 @@ class ReportesController extends Controller {
             $serie[$d] = ($serie[$d] ?? 0) + (float)($c['precio'] ?? 0);
         }
         ksort($serie);
+        // Etiquetas legibles dd/mm para el eje X.
+        $grafica = [];
+        foreach ($serie as $d => $v) {
+            $grafica[date('d/m', strtotime($d))] = $v;
+        }
         $this->view('reportes/ingresos', $f + [
             'title'   => 'Ingresos por medico',
             'rows'    => $rows,
-            'serie'   => $serie,
+            'serie'   => $grafica,
             'total'   => array_sum($serie),
             'destino' => 'reportes/ingresos',
         ]);
