@@ -312,16 +312,9 @@ class CitasController extends Controller {
             }
         }
         $usuario = (string)($_SESSION['user']['usuario'] ?? '?');
-        $linea = sprintf(
-            'CITA ESTATUS id_CITA=%d estado_anterior=%s estado_nuevo=%s clinica=%s (id=%d) usuario=%s (id=%d)',
-            $idCita,
-            ($antes === null || $antes === '') ? '(sin estado)' : $antes,
-            $nuevo,
-            $nombreClinica !== '' ? $nombreClinica : '(n/d)',
-            $idClinica,
-            $usuario,
-            (int)($_SESSION['user']['id_USUARIOS'] ?? 0)
-        );
+        $linea = $this->eventoLog($idCita, $antes, $nuevo,
+            $nombreClinica !== '' ? $nombreClinica : '(n/d)', $idClinica, $usuario,
+            (int)($_SESSION['user']['id_USUARIOS'] ?? 0));
         try {
             LogModel::estadoCita($idCita, $antes, $nuevo, $idClinica ?: null,
                 $nombreClinica !== '' ? $nombreClinica : null, $usuario);
@@ -329,5 +322,35 @@ class CitasController extends Controller {
         } catch (Throwable $e) {
             Database::log($linea . ' | LOG BD=ERROR: ' . $e->getMessage());
         }
+    }
+
+    /** Construye el mensaje de evento con el mismo formato que citas.LOG. */
+    private function eventoLog(int $idCita, ?string $antes, string $nuevo, string $clinica,
+                               int $idClinica, string $usuario, int $idUsuario): string {
+        $n = mb_strtolower(trim($nuevo));
+        if ($antes === null || trim($antes) === '') {
+            $prefijo = 'ALTA CITA';
+        } elseif (in_array($n, ['atendida', 'atendido'], true)) {
+            $prefijo = 'CITA ATENDIDA';
+        } elseif (in_array($n, ['cancelada', 'cancelado'], true)) {
+            $prefijo = 'CITA CANCELADA';
+        } elseif (in_array($n, ['confirmada', 'confirmado'], true)) {
+            $prefijo = 'CITA CONFIRMADA';
+        } elseif (in_array($n, ['no asistio', 'no asistió', 'noasistio'], true)) {
+            $prefijo = 'CITA NO ASISTIO';
+        } elseif (in_array($n, ['agendada', 'agendado'], true)) {
+            $prefijo = 'CITA AGENDADA';
+        } else {
+            $prefijo = 'CAMBIO ESTATUS CITA';
+        }
+        $partes = $prefijo . ' id_CITA=' . $idCita;
+        if ($prefijo !== 'ALTA CITA') {
+            $partes .= ' estado_anterior=' . $antes;
+        }
+        return $partes . ' estado_nuevo=' . $nuevo
+            . ' clinica=' . $clinica
+            . ' id_CLINICA=' . $idClinica
+            . ' usuario=' . $usuario
+            . ' id_usuario=' . $idUsuario;
     }
 }
