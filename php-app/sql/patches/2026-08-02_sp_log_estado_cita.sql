@@ -18,9 +18,28 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        DECLARE @nuevoNorm VARCHAR(60) = LOWER(LTRIM(RTRIM(ISNULL(@estado_nuevo, ''))));
+        DECLARE @prefijo VARCHAR(40);
+
+        IF (@estado_anterior IS NULL OR LTRIM(RTRIM(@estado_anterior)) = '')
+            SET @prefijo = 'ALTA CITA';
+        ELSE IF @nuevoNorm IN ('atendida', 'atendido')
+            SET @prefijo = 'CITA ATENDIDA';
+        ELSE IF @nuevoNorm IN ('cancelada', 'cancelado')
+            SET @prefijo = 'CITA CANCELADA';
+        ELSE IF @nuevoNorm IN ('confirmada', 'confirmado')
+            SET @prefijo = 'CITA CONFIRMADA';
+        ELSE IF @nuevoNorm IN ('no asistio', 'no asistió', 'noasistio')
+            SET @prefijo = 'CITA NO ASISTIO';
+        ELSE IF @nuevoNorm IN ('agendada', 'agendado')
+            SET @prefijo = 'CITA AGENDADA';
+        ELSE
+            SET @prefijo = 'CAMBIO ESTATUS CITA';
+
         DECLARE @evento VARCHAR(2000) =
-            'CAMBIO ESTATUS CITA id_CITA=' + CONVERT(VARCHAR(20), @id_CITA) +
-            ' estado_anterior=' + ISNULL(@estado_anterior, '(sin estado)') +
+            @prefijo + ' id_CITA=' + CONVERT(VARCHAR(20), @id_CITA) +
+            CASE WHEN @prefijo = 'ALTA CITA' THEN ''
+                 ELSE ' estado_anterior=' + ISNULL(@estado_anterior, '(sin estado)') END +
             ' estado_nuevo=' + @estado_nuevo +
             ' clinica=' + ISNULL(@clinica, '(n/d)') +
             ' id_CLINICA=' + ISNULL(CONVERT(VARCHAR(20), @id_CLINICA), '(n/d)') +
