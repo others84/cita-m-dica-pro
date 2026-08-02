@@ -7,11 +7,24 @@ require_once __DIR__ . '/../models/UsuarioModel.php';
 class ReportesController extends Controller {
     public function ingresos(): void {
         $this->requireLogin(['medico','administrador','admin_sistema']);
-        $ctx = $this->resolveClinicaContext();
+        $f = $this->filtros('rep_ing_medico');
         $rows = [];
-        try { $rows = ReporteModel::ingresosPorMedico($ctx['fClinica']); }
+        try { $rows = ReporteModel::ingresosPorMedico($f['fClinica'], $f['ini'], $f['fin']); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
-        $this->view('reportes/ingresos', $ctx + ['title'=>'Ingresos por medico', 'rows'=>$rows]);
+        // Grafica: ingresos acumulados por medico en el rango (citas atendidas).
+        $serie = [];
+        foreach ($this->citasAtendidas($f) as $c) {
+            $m = (string)($c['medico'] ?? '-');
+            $serie[$m] = ($serie[$m] ?? 0) + (float)($c['precio'] ?? 0);
+        }
+        arsort($serie);
+        $this->view('reportes/ingresos', $f + [
+            'title'   => 'Ingresos por medico',
+            'rows'    => $rows,
+            'serie'   => $serie,
+            'total'   => array_sum($serie),
+            'destino' => 'reportes/ingresos',
+        ]);
     }
 
     /* ================= Reportes graficos ================= */
@@ -50,7 +63,7 @@ class ReportesController extends Controller {
     public function filtrar(): void {
         $this->requireLogin(self::ROLES_REP);
         $destino = (string)$this->input('destino', 'reportes/repIngresos');
-        $permitidos = ['reportes/repIngresos','reportes/repAtencion','reportes/repTop10','reportes/repEspecialidad'];
+        $permitidos = ['reportes/repIngresos','reportes/repAtencion','reportes/repTop10','reportes/repEspecialidad','reportes/ingresos'];
         if (!in_array($destino, $permitidos, true)) $destino = 'reportes/repIngresos';
         $ns = (string)$this->input('ns', 'rep');
         $this->stateParam('f_ini', null, $ns);
