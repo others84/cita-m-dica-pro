@@ -59,7 +59,6 @@ $rol  = $user['rol'];
         <a href="<?= url('citas') ?>">Citas</a>
         <a href="<?= url('calendario') ?>">Calendario de citas</a>
         <a href="<?= url('pacientes') ?>">Pacientes</a>
-        <a href="<?= url('medicos') ?>">Médicos</a>
         <a href="<?= url('especialidades') ?>">Especialidad</a>
         <a href="<?= url('consultorios') ?>">Consultorios</a>
         <a href="<?= url('clinicas') ?>">Clínicas</a>
