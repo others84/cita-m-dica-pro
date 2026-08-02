@@ -71,7 +71,10 @@
         <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td class="acts">
-          <?php if (($rol ?? '') === 'medico'): ?>
+          <?php $cancelada = in_array($estadoNom, ['cancelada','cancelado'], true); ?>
+          <?php if ($cancelada): ?>
+            <span style="color:var(--c4)">&mdash;</span>
+          <?php elseif (($rol ?? '') === 'medico'): ?>
             <?php if (in_array($estadoNom, ['agendada','agendado'], true)): ?>
               <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
             <?php elseif (in_array($estadoNom, ['confirmada','confirmado'], true)): ?>
