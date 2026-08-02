@@ -10,7 +10,7 @@ class CalendarioController extends Controller {
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
 
-        $idMedico = null;
+        $idMedico = $rol === 'medico' ? ((int)($_SESSION['user']['id_USUARIOS'] ?? 0) ?: null) : null;
         $desde = date('Y-m-d', strtotime('-30 days'));
         $hasta = date('Y-m-d', strtotime('+90 days'));
 
@@ -18,6 +18,9 @@ class CalendarioController extends Controller {
         $errorCarga = null;
         try {
             $citas = CitaModel::listar($idMedico, $desde, $hasta, $fClinica);
+            if ($idMedico !== null) {
+                $citas = array_values(array_filter($citas, fn($c) => (int)($c['id_MEDICO'] ?? 0) === $idMedico));
+            }
             foreach ($citas as $c) {
                 $fecha = $c['fecha_cita'] instanceof DateTime
                     ? $c['fecha_cita']->format('Y-m-d')
