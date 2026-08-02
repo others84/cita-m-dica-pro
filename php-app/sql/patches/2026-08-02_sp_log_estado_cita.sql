@@ -36,7 +36,17 @@ BEGIN
         ELSE
             SET @prefijo = 'CAMBIO ESTATUS CITA';
 
-        DECLARE @evento VARCHAR(2000) =
+        DECLARE @evento VARCHAR(2000);
+
+        IF @prefijo = 'CITA CANCELADA'
+            SET @evento = 'CITA CANCELADA' +
+                ' clinica=' + ISNULL(@clinica, '(n/d)') +
+                ' id_CLINICA=' + ISNULL(CONVERT(VARCHAR(20), @id_CLINICA), '(n/d)') +
+                ' usuario=' + ISNULL(@usuario, '(n/d)') +
+                ' id_usuario=' + CONVERT(VARCHAR(10), @id_usuario) +
+                ' id_CITA=' + CONVERT(VARCHAR(20), @id_CITA);
+        ELSE
+        SET @evento =
             @prefijo + ' id_CITA=' + CONVERT(VARCHAR(20), @id_CITA) +
             CASE WHEN @prefijo = 'ALTA CITA' THEN ''
                  ELSE ' estado_anterior=' + ISNULL(@estado_anterior, '(sin estado)') END +

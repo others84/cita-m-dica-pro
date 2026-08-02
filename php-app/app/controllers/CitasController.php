@@ -130,6 +130,13 @@ class CitasController extends Controller {
         if ($editId) {
             $editRow = CitaModel::obtener($editId);
             if ($editRow) {
+                $est = mb_strtolower(trim((string)($editRow['estado'] ?? '')));
+                if (in_array($est, ['cancelada', 'cancelado'], true)) {
+                    $this->flash('error', 'La cita esta cancelada y no puede modificarse.');
+                    $this->clearState('id');
+                    $this->redirect('citas');
+                    return;
+                }
                 // El contexto se fija a la clinica de la cita para que los
                 // catalogos contengan los valores guardados.
                 $cl = (int)($editRow['id_CLINICA'] ?? 0);
@@ -185,6 +192,13 @@ class CitasController extends Controller {
         try {
             if ($id) {
                 $prev = CitaModel::obtener($id);
+                $estPrev = mb_strtolower(trim((string)($prev['estado'] ?? '')));
+                if (in_array($estPrev, ['cancelada', 'cancelado'], true)) {
+                    $this->flash('error', 'La cita esta cancelada y no puede modificarse.');
+                    $this->clearState('id');
+                    $this->redirect('citas');
+                    return;
+                }
                 CitaModel::cambio($id, $data);
                 $this->flash('ok', 'Cita actualizada.');
                 $antes = (string)($prev['estado'] ?? '');
@@ -253,6 +267,10 @@ class CitasController extends Controller {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if (!$c) throw new RuntimeException('No se encontro la cita.');
+            $actual = mb_strtolower(trim((string)($c['estado'] ?? '')));
+            if (in_array($actual, ['cancelada', 'cancelado'], true)) {
+                throw new RuntimeException('La cita esta cancelada y no puede modificarse.');
+            }
             $idEstado = 0;
             foreach (EstadoCitaModel::listar() as $e) {
                 $n = strtolower(trim((string)($e['nombre'] ?? '')));
@@ -333,7 +351,11 @@ class CitasController extends Controller {
         } elseif (in_array($n, ['atendida', 'atendido'], true)) {
             $prefijo = 'CITA ATENDIDA';
         } elseif (in_array($n, ['cancelada', 'cancelado'], true)) {
-            $prefijo = 'CITA CANCELADA';
+            return 'CITA CANCELADA clinica=' . $clinica
+                . ' id_CLINICA=' . $idClinica
+                . ' usuario=' . $usuario
+                . ' id_usuario=' . $idUsuario
+                . ' id_CITA=' . $idCita;
         } elseif (in_array($n, ['confirmada', 'confirmado'], true)) {
             $prefijo = 'CITA CONFIRMADA';
         } elseif (in_array($n, ['no asistio', 'no asistió', 'noasistio'], true)) {
