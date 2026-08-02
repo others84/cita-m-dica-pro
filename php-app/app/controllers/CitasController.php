@@ -8,6 +8,7 @@ require_once __DIR__ . '/../models/ConsultorioModel.php';
 require_once __DIR__ . '/../models/EspecialidadModel.php';
 require_once __DIR__ . '/../models/EstadoCitaModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
+require_once __DIR__ . '/../models/LogModel.php';
 
 class CitasController extends Controller {
     public function index(): void {
@@ -182,8 +183,23 @@ class CitasController extends Controller {
             'precio'                   => (float)($this->input('precio') ?? 0),
         ];
         try {
-            if ($id) { CitaModel::cambio($id, $data); $this->flash('ok', 'Cita actualizada.'); }
-            else     { CitaModel::alta($data);        $this->flash('ok', 'Cita agendada.'); }
+            if ($id) {
+                $prev = CitaModel::obtener($id);
+                CitaModel::cambio($id, $data);
+                $this->flash('ok', 'Cita actualizada.');
+                $antes = (string)($prev['estado'] ?? '');
+                $nuevo = $this->nombreEstado((int)$data['id_CATALOGO_ESTADO_CITAS']);
+                if ($nuevo !== '' && strcasecmp($antes, $nuevo) !== 0) {
+                    $this->registraLogEstado($id, $antes, $nuevo, (int)($prev['id_CLINICA'] ?? 0));
+                }
+            } else {
+                $nuevoId = CitaModel::alta($data);
+                $this->flash('ok', 'Cita agendada.');
+                $nuevo = $this->nombreEstado((int)$data['id_CATALOGO_ESTADO_CITAS']);
+                $ctxAlta = $this->resolveClinicaContext();
+                $this->registraLogEstado((int)$nuevoId, null, $nuevo !== '' ? $nuevo : 'Agendada',
+                    (int)($ctxAlta['fClinica'] ?? 0));
+            }
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo guardar: ' . $e->getMessage());
         }
@@ -262,12 +278,56 @@ class CitasController extends Controller {
                 'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
                 'precio'                   => (float)($c['precio'] ?? 0),
             ]);
-            Database::log(sprintf('CITAS.cambiaEstado id=%d estado=%d user=%s', $id, $idEstado, $_SESSION['user']['usuario'] ?? '?'));
+            $this->registraLogEstado(
+                $id,
+                (string)($c['estado'] ?? ''),
+                $this->nombreEstado($idEstado),
+                (int)($c['id_CLINICA'] ?? 0)
+            );
             $this->flash('ok', $okMsg);
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo actualizar la cita: ' . $e->getMessage());
         }
         $this->clearState('id');
         $this->redirect('citas');
+    }
+
+    /** Regresa el nombre del estado de cita a partir de su id. */
+    private function nombreEstado(int $idEstado): string {
+        foreach (EstadoCitaModel::listar() as $e) {
+            if ((int)($e['id_CATALOGO_ESTADO_CITAS'] ?? 0) === $idEstado) {
+                return trim((string)($e['nombre'] ?? ''));
+            }
+        }
+        return '';
+    }
+
+    /** Registra el cambio de estatus en citas.LOG y en app.log. */
+    private function registraLogEstado(int $idCita, ?string $antes, string $nuevo, int $idClinica): void {
+        $nombreClinica = '';
+        foreach (ClinicaModel::listar() as $cl) {
+            if ((int)($cl['id_CLINICA'] ?? 0) === $idClinica) {
+                $nombreClinica = trim((string)($cl['nombre'] ?? ''));
+                break;
+            }
+        }
+        $usuario = (string)($_SESSION['user']['usuario'] ?? '?');
+        $linea = sprintf(
+            'CITA ESTATUS id_CITA=%d estado_anterior=%s estado_nuevo=%s clinica=%s (id=%d) usuario=%s (id=%d)',
+            $idCita,
+            ($antes === null || $antes === '') ? '(sin estado)' : $antes,
+            $nuevo,
+            $nombreClinica !== '' ? $nombreClinica : '(n/d)',
+            $idClinica,
+            $usuario,
+            (int)($_SESSION['user']['id_USUARIOS'] ?? 0)
+        );
+        try {
+            LogModel::estadoCita($idCita, $antes, $nuevo, $idClinica ?: null,
+                $nombreClinica !== '' ? $nombreClinica : null, $usuario);
+            Database::log($linea . ' | LOG BD=OK');
+        } catch (Throwable $e) {
+            Database::log($linea . ' | LOG BD=ERROR: ' . $e->getMessage());
+        }
     }
 }
