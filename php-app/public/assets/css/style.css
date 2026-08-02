@@ -128,3 +128,15 @@ table.data.ord-col-3 td:nth-child(3),
 table.data.ord-col-4 td:nth-child(4),
 table.data.ord-col-5 td:nth-child(5),
 table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
+
+/* ===== Reportes: graficos ===== */
+.chart-bars{display:flex;align-items:flex-end;gap:.5rem;height:280px;overflow-x:auto;padding:.5rem .25rem 0;border-bottom:2px solid var(--c2)}
+.chart-bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:52px;flex:1;height:100%}
+.chart-col{width:70%;max-width:46px;background:linear-gradient(180deg,var(--c3),var(--c5));border-radius:6px 6px 0 0}
+.chart-val{font-size:.7rem;color:var(--c5);margin-bottom:.25rem;white-space:nowrap}
+.chart-lbl{font-size:.68rem;color:var(--c4);margin-top:.35rem;text-align:center;word-break:break-word;line-height:1.1}
+.rep-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:900px){.rep-grid2{grid-template-columns:1fr}}
+.rep-pie-wrap{display:flex;gap:2rem;align-items:center;flex-wrap:wrap}
+.rep-pie{width:240px;height:240px;border-radius:50%;box-shadow:0 2px 10px rgba(30,58,95,.15)}
+.rep-dot{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.4rem}
