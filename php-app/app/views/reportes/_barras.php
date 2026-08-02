@@ -55,7 +55,7 @@ $__money  = !empty($fmtMoneda);
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
-        y: { beginAtZero: true, ticks: { color: '#1E3A5F', callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+        y: { beginAtZero: true, ticks: { color: '#1E3A5F', precision: 0, stepSize: 1, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
       }
     }
   });
