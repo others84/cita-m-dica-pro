@@ -40,7 +40,8 @@
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>
 </div>
 
-<table class="data">
+<?php $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : ''; ?>
+<table class="data<?= $ordClass ?>">
   <thead>
     <tr>
       <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico');
