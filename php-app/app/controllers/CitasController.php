@@ -24,10 +24,15 @@ class CitasController extends Controller {
             implode(',', $idsSes)
         ));
         try {
-            $citas = CitaModel::listar(null,
+            $idMedicoFiltro = $rol === 'medico' ? (int)($_SESSION['user']['id_USUARIOS'] ?? 0) : null;
+            $citas = CitaModel::listar($idMedicoFiltro ?: null,
                 date('Y-m-d', strtotime('-30 days')),
                 date('Y-m-d', strtotime('+90 days')),
                 $fClinica);
+            if ($rol === 'medico') {
+                $idMed = (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
+                $citas = array_values(array_filter($citas, fn($c) => (int)($c['id_MEDICO'] ?? 0) === $idMed));
+            }
         } catch (Throwable $e) {
             $this->flash('error', 'Error al cargar citas: ' . $e->getMessage());
             $citas = [];
