@@ -11,13 +11,13 @@ class ReportesController extends Controller {
         $rows = [];
         try { $rows = ReporteModel::ingresosPorMedico($f['fClinica'], $f['ini'], $f['fin']); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
-        // Grafica: ingresos acumulados por medico en el rango (citas atendidas).
+        // Grafica: ingresos acumulados (suma de precios) por dia (citas atendidas).
         $serie = [];
         foreach ($this->citasAtendidas($f) as $c) {
-            $m = (string)($c['medico'] ?? '-');
-            $serie[$m] = ($serie[$m] ?? 0) + (float)($c['precio'] ?? 0);
+            $d = self::fecha($c['fecha_cita']);
+            $serie[$d] = ($serie[$d] ?? 0) + (float)($c['precio'] ?? 0);
         }
-        arsort($serie);
+        ksort($serie);
         $this->view('reportes/ingresos', $f + [
             'title'   => 'Ingresos por medico',
             'rows'    => $rows,
