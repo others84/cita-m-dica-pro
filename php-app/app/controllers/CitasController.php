@@ -130,6 +130,13 @@ class CitasController extends Controller {
         if ($editId) {
             $editRow = CitaModel::obtener($editId);
             if ($editRow) {
+                $est = mb_strtolower(trim((string)($editRow['estado'] ?? '')));
+                if (in_array($est, ['cancelada', 'cancelado'], true)) {
+                    $this->flash('error', 'La cita esta cancelada y no puede modificarse.');
+                    $this->clearState('id');
+                    $this->redirect('citas');
+                    return;
+                }
                 // El contexto se fija a la clinica de la cita para que los
                 // catalogos contengan los valores guardados.
                 $cl = (int)($editRow['id_CLINICA'] ?? 0);
@@ -185,6 +192,13 @@ class CitasController extends Controller {
         try {
             if ($id) {
                 $prev = CitaModel::obtener($id);
+                $estPrev = mb_strtolower(trim((string)($prev['estado'] ?? '')));
+                if (in_array($estPrev, ['cancelada', 'cancelado'], true)) {
+                    $this->flash('error', 'La cita esta cancelada y no puede modificarse.');
+                    $this->clearState('id');
+                    $this->redirect('citas');
+                    return;
+                }
                 CitaModel::cambio($id, $data);
                 $this->flash('ok', 'Cita actualizada.');
                 $antes = (string)($prev['estado'] ?? '');
