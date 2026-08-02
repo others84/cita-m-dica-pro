@@ -3,9 +3,11 @@
   $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
   $ord = $ord ?? 'fecha';
   $dir = $dir ?? 'asc';
+  $colIndex = ['fecha'=>1,'hora'=>2,'paciente'=>3,'medico'=>4,'especialidad'=>5,'consultorio'=>6];
   $th = function (string $col, string $label) use ($ord, $dir) {
       $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
-      echo '<th>';
+      $cls = $ord === $col ? ' class="col-ordenada"' : '';
+      echo '<th'.$cls.'>';
       post_button('citas/ordenar', ['ord' => $col], $label . $flecha, 'sort-btn');
       echo '</th>';
   };
