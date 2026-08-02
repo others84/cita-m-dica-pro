@@ -89,46 +89,42 @@ table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
 .modal .modal-actions{margin-top:1rem;display:flex;justify-content:flex-end;gap:.5rem}
 
 /* Encabezados de tabla ordenables */
-.data thead form { display: inline; }
-.btn-link {
-  background: none;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-}
-.btn-link:hover { text-decoration: underline; }
-
-/* Encabezados ordenables: sin caja, solo texto + triangulo */
-table.data th form { display: inline; margin: 0; }
+table.data th form { display:inline; margin:0; padding:0; }
+.btn-link,
 .sort-btn {
-  background: none !important;
-  background-color: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  outline: none !important;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
+  background:transparent !important;
+  background-color:transparent !important;
+  border:0 !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  outline:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  color:inherit;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none;
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  -moz-appearance:none !important;
 }
-.sort-btn:hover { text-decoration: underline; }
-.sort-btn:focus, .sort-btn:focus-visible { outline: none !important; box-shadow: none !important; }
-.sort-btn::-moz-focus-inner { border: 0; padding: 0; }
+.btn-link:hover,
+.sort-btn:hover { text-decoration:underline; }
+.sort-btn:focus,
+.sort-btn:focus-visible,
+.sort-btn:active,
+.sort-btn::-moz-focus-inner { outline:none !important; box-shadow:none !important; border:0 !important; }
 
 /* Resaltar la columna que está ordenada */
-table.data th.col-ordenada { background:var(--c2); color:var(--c5); }
+table.data th.col-ordenada {
+  background:var(--c3) !important;
+  color:#fff !important;
+}
+table.data th.col-ordenada .sort-btn { color:#fff !important; }
 table.data.ord-col-1 td:nth-child(1),
 table.data.ord-col-2 td:nth-child(2),
 table.data.ord-col-3 td:nth-child(3),
 table.data.ord-col-4 td:nth-child(4),
 table.data.ord-col-5 td:nth-child(5),
-table.data.ord-col-6 td:nth-child(6) { background:var(--c1); }
+table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
