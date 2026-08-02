@@ -7,10 +7,11 @@ require_once __DIR__ . '/../models/UsuarioModel.php';
 class ReportesController extends Controller {
     public function ingresos(): void {
         $this->requireLogin(['medico','administrador','admin_sistema']);
+        $ctx = $this->resolveClinicaContext();
         $rows = [];
-        try { $rows = ReporteModel::ingresosPorMedico(); }
+        try { $rows = ReporteModel::ingresosPorMedico($ctx['fClinica']); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
-        $this->view('reportes/ingresos', ['title'=>'Ingresos por medico', 'rows'=>$rows]);
+        $this->view('reportes/ingresos', $ctx + ['title'=>'Ingresos por medico', 'rows'=>$rows]);
     }
 
     /* ================= Reportes graficos ================= */
