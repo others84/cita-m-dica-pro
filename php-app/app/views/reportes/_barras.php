@@ -17,7 +17,7 @@ $__money  = !empty($fmtMoneda);
 <script>
 (function(){
   var money = <?= $__money ? 'true' : 'false' ?>;
-  var fmt = function(v){ return money ? '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) : Number(v).toLocaleString('es-MX'); };
+  var fmt = function(v){ return money ? '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) : Math.round(Number(v)).toLocaleString('es-MX'); };
   new Chart(document.getElementById('<?= $__cid ?>').getContext('2d'), {
     type: 'bar',
     plugins: [{
@@ -55,7 +55,7 @@ $__money  = !empty($fmtMoneda);
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
-        y: { beginAtZero: true, ticks: { color: '#1E3A5F', callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+        y: { beginAtZero: true, ticks: { color: '#1E3A5F', precision: 0, stepSize: 1, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
       }
     }
   });
