@@ -110,6 +110,7 @@ table.data th form { display: inline; margin: 0; }
   background-color: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
+  outline: none !important;
   padding: 0;
   margin: 0;
   color: inherit;
@@ -120,3 +121,14 @@ table.data th form { display: inline; margin: 0; }
   -webkit-appearance: none;
 }
 .sort-btn:hover { text-decoration: underline; }
+.sort-btn:focus, .sort-btn:focus-visible { outline: none !important; box-shadow: none !important; }
+.sort-btn::-moz-focus-inner { border: 0; padding: 0; }
+
+/* Resaltar la columna que está ordenada */
+table.data th.col-ordenada { background:var(--c2); color:var(--c5); }
+table.data.ord-col-1 td:nth-child(1),
+table.data.ord-col-2 td:nth-child(2),
+table.data.ord-col-3 td:nth-child(3),
+table.data.ord-col-4 td:nth-child(4),
+table.data.ord-col-5 td:nth-child(5),
+table.data.ord-col-6 td:nth-child(6) { background:var(--c1); }

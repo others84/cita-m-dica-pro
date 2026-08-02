@@ -3,9 +3,11 @@
   $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
   $ord = $ord ?? 'fecha';
   $dir = $dir ?? 'asc';
+  $colIndex = ['fecha'=>1,'hora'=>2,'paciente'=>3,'medico'=>4,'especialidad'=>5,'consultorio'=>6];
   $th = function (string $col, string $label) use ($ord, $dir) {
       $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
-      echo '<th>';
+      $cls = $ord === $col ? ' class="col-ordenada"' : '';
+      echo '<th'.$cls.'>';
       post_button('citas/ordenar', ['ord' => $col], $label . $flecha, 'sort-btn');
       echo '</th>';
   };
@@ -38,7 +40,8 @@
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>
 </div>
 
-<table class="data">
+<?php $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : ''; ?>
+<table class="data<?= $ordClass ?>">
   <thead>
     <tr>
       <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico');
