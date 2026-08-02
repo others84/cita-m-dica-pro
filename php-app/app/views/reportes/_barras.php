@@ -1,26 +1,48 @@
 <?php
 /**
- * Grafico de barras vertical (solo CSS).
+ * Grafico de barras con Chart.js.
  * Requiere: $datos (label => valor). Opcional: $fmtMoneda (bool), $titulo.
  */
-$max = 0.0;
-foreach ($datos as $v) { $max = max($max, (float)$v); }
-$fmt = function ($v) use ($fmtMoneda) {
-    return !empty($fmtMoneda) ? '$' . number_format((float)$v, 2) : number_format((float)$v);
-};
+include __DIR__ . '/_chartjs.php';
+$__cid = 'chart_' . bin2hex(random_bytes(4));
+$__labels = array_map('strval', array_keys($datos ?? []));
+$__values = array_map('floatval', array_values($datos ?? []));
+$__money  = !empty($fmtMoneda);
 ?>
 <?php if (!empty($titulo)): ?><h3 style="margin:0 0 .75rem;color:var(--c5)"><?= htmlspecialchars($titulo) ?></h3><?php endif; ?>
-<?php if (empty($datos)): ?>
+<?php if (empty($__labels)): ?>
   <p style="color:var(--c4)">Sin datos en el rango seleccionado.</p>
 <?php else: ?>
-<div class="chart-bars">
-  <?php foreach ($datos as $lbl => $val):
-      $h = $max > 0 ? max(2, round(((float)$val / $max) * 100)) : 2; ?>
-    <div class="chart-bar" title="<?= htmlspecialchars((string)$lbl . ': ' . $fmt($val)) ?>">
-      <span class="chart-val"><?= htmlspecialchars($fmt($val)) ?></span>
-      <div class="chart-col" style="height:<?= $h ?>%"></div>
-      <span class="chart-lbl"><?= htmlspecialchars((string)$lbl) ?></span>
-    </div>
-  <?php endforeach; ?>
-</div>
+<div style="position:relative;height:340px"><canvas id="<?= $__cid ?>"></canvas></div>
+<script>
+(function(){
+  var money = <?= $__money ? 'true' : 'false' ?>;
+  var fmt = function(v){ return money ? '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) : Number(v).toLocaleString('es-MX'); };
+  new Chart(document.getElementById('<?= $__cid ?>').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: <?= json_encode($__labels, JSON_UNESCAPED_UNICODE) ?>,
+      datasets: [{
+        label: <?= json_encode($__money ? 'Ingresos' : 'Citas', JSON_UNESCAPED_UNICODE) ?>,
+        data: <?= json_encode($__values) ?>,
+        backgroundColor: '#2E6DA4',
+        hoverBackgroundColor: '#1E3A5F',
+        borderRadius: 4,
+        maxBarThickness: 56
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c){ return fmt(c.parsed.y); } } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
+        y: { beginAtZero: true, ticks: { color: '#1E3A5F', callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+      }
+    }
+  });
+})();
+</script>
 <?php endif; ?>
