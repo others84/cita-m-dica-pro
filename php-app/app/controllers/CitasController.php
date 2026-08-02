@@ -351,7 +351,11 @@ class CitasController extends Controller {
         } elseif (in_array($n, ['atendida', 'atendido'], true)) {
             $prefijo = 'CITA ATENDIDA';
         } elseif (in_array($n, ['cancelada', 'cancelado'], true)) {
-            $prefijo = 'CITA CANCELADA';
+            return 'CITA CANCELADA clinica=' . $clinica
+                . ' id_CLINICA=' . $idClinica
+                . ' usuario=' . $usuario
+                . ' id_usuario=' . $idUsuario
+                . ' id_CITA=' . $idCita;
         } elseif (in_array($n, ['confirmada', 'confirmado'], true)) {
             $prefijo = 'CITA CONFIRMADA';
         } elseif (in_array($n, ['no asistio', 'no asistió', 'noasistio'], true)) {
