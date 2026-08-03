@@ -8,6 +8,7 @@ $__cid = 'chart_' . bin2hex(random_bytes(4));
 $__labels = array_map('strval', array_keys($datos ?? []));
 $__values = array_map('floatval', array_values($datos ?? []));
 $__money  = !empty($fmtMoneda);
+$__step   = isset($stepY) && $stepY > 0 ? (float)$stepY : null;
 ?>
 <?php if (!empty($titulo)): ?><h3 style="margin:0 0 .75rem;color:var(--c5)"><?= htmlspecialchars($titulo) ?></h3><?php endif; ?>
 <?php if (empty($__labels)): ?>
@@ -55,7 +56,7 @@ $__money  = !empty($fmtMoneda);
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
-        y: { beginAtZero: true, ticks: { color: '#1E3A5F', precision: 0, stepSize: 1, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+        y: { beginAtZero: true, ticks: { color: '#1E3A5F', precision: 0, stepSize: <?= $__step !== null ? json_encode($__step) : '1' ?>, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
       }
     }
   });
