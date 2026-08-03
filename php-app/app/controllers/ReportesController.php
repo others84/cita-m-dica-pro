@@ -77,19 +77,23 @@ class ReportesController extends Controller {
         $this->redirect($destino);
     }
 
-    /** Citas atendidas por dia (cantidad, no importe). */
+    /** Ingresos: suma del costo de las citas atendidas por dia. */
     public function repIngresos(): void {
         $this->requireLogin(self::ROLES_REP);
         $f = $this->filtros('rep_ingresos');
         $serie = [];
         foreach ($this->citasAtendidas($f) as $c) {
             $d = self::fecha($c['fecha_cita']);
-            $serie[$d] = ($serie[$d] ?? 0) + 1;
+            $serie[$d] = ($serie[$d] ?? 0) + (float)($c['precio'] ?? 0);
         }
-        arsort($serie);
+        ksort($serie);
+        $grafica = [];
+        foreach ($serie as $d => $v) {
+            $grafica[date('d/m', strtotime($d))] = $v;
+        }
         $this->view('reportes/rep_ingresos', $f + [
-            'title' => 'Citas atendidas por dia',
-            'serie' => $serie,
+            'title' => 'Ingresos por citas',
+            'serie' => $grafica,
             'total' => array_sum($serie),
             'destino' => 'reportes/repIngresos',
         ]);
