@@ -232,12 +232,40 @@ class CatalogosController extends Controller {
     /* ---- Usuarios de clinica ---- */
     public function usuarios(): void {
         $this->guard();
-        $editId = $this->stateInt('edit', 'catalogos.usuarios');
-        $rows = UsuarioModel::listar(); $editRow=null;
+        $ns = 'catalogos.usuarios';
+        $editId = $this->stateInt('edit', $ns);
+        $fRol     = $this->stateInt('f_rol', $ns);
+        $fClinica = $this->stateInt('f_clinica', $ns);
+
+        $rows = UsuarioModel::listar();
+
+        // Filtro por rol.
+        if ($fRol !== null) {
+            $rows = array_values(array_filter(
+                $rows,
+                fn($u) => (int)($u['id_ROLES'] ?? 0) === $fRol
+            ));
+        }
+        // Filtro por clinica (0 = todas).
+        if ($fClinica !== null && $fClinica !== 0) {
+            $rows = array_values(array_filter(
+                $rows,
+                fn($u) => (int)($u['id_CLINICA'] ?? 0) === $fClinica
+            ));
+        }
+
+        $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
+        // Si no se encontro en el filtro actual, buscarlo en el listado completo.
+        if ($editId && !$editRow) {
+            foreach (UsuarioModel::listar() as $r) {
+                if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
+            }
+        }
         $this->view('catalogos/usuarios', [
             'title'=>'Usuarios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
             'roles'=>RolModel::listar(), 'clinicas'=>ClinicaModel::listar(),
+            'fRol'=>$fRol, 'fClinica'=>$fClinica,
         ]);
     }
     public function usuariosGuardar(): void {
