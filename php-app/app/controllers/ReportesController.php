@@ -11,24 +11,27 @@ class ReportesController extends Controller {
         $rows = [];
         try { $rows = ReporteModel::ingresosPorMedico($f['fClinica'], $f['ini'], $f['fin']); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
-        // Grafica: ingresos acumulados (suma de precios) por dia (citas atendidas).
-        $serie = [];
+        // Grafica: monto total por medico en el periodo (citas atendidas).
+        $serie = []; $citasMed = [];
         foreach ($this->citasAtendidas($f) as $c) {
-            $d = self::fecha($c['fecha_cita']);
-            $serie[$d] = ($serie[$d] ?? 0) + (float)($c['precio'] ?? 0);
+            $m = trim((string)($c['medico'] ?? '-'));
+            if ($m === '') $m = '-';
+            $serie[$m]    = ($serie[$m] ?? 0) + (float)($c['precio'] ?? 0);
+            $citasMed[$m] = ($citasMed[$m] ?? 0) + 1;
         }
-        ksort($serie);
-        // Etiquetas legibles dd/mm para el eje X.
-        $grafica = [];
-        foreach ($serie as $d => $v) {
-            $grafica[date('d/m', strtotime($d))] = $v;
+        arsort($serie);
+        // Totales por medico (suma del periodo) para la tabla resumen.
+        $totMedico = [];
+        foreach ($serie as $m => $v) {
+            $totMedico[] = ['medico' => $m, 'citas' => $citasMed[$m] ?? 0, 'total' => $v];
         }
         $this->view('reportes/ingresos', $f + [
-            'title'   => 'Ingresos por medico',
-            'rows'    => $rows,
-            'serie'   => $grafica,
-            'total'   => array_sum($serie),
-            'destino' => 'reportes/ingresos',
+            'title'     => 'Ingresos por medico',
+            'rows'      => $rows,
+            'serie'     => $serie,
+            'totMedico' => $totMedico,
+            'total'     => array_sum($serie),
+            'destino'   => 'reportes/ingresos',
         ]);
     }
 
