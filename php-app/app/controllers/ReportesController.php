@@ -143,16 +143,19 @@ class ReportesController extends Controller {
     public function repEspecialidad(): void {
         $this->requireLogin(self::ROLES_REP);
         $f = $this->filtros('rep_especialidad');
-        $serie = [];
+        $serie = []; $montos = [];
         foreach ($this->citasAtendidas($f) as $c) {
             $e = (string)($c['especialidad'] ?? '-');
             $serie[$e] = ($serie[$e] ?? 0) + 1;
+            $montos[$e] = ($montos[$e] ?? 0) + (float)($c['precio'] ?? 0);
         }
-        arsort($serie);
+        arsort($serie); arsort($montos);
         $this->view('reportes/rep_especialidad', $f + [
             'title'   => 'Atencion por especialidad',
             'serie'   => $serie,
+            'montos'  => $montos,
             'total'   => array_sum($serie),
+            'totalMonto' => array_sum($montos),
             'destino' => 'reportes/repEspecialidad',
         ]);
     }
