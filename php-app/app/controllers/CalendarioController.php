@@ -22,6 +22,9 @@ class CalendarioController extends Controller {
                 $citas = array_values(array_filter($citas, fn($c) => (int)($c['id_MEDICO'] ?? 0) === $idMedico));
             }
             foreach ($citas as $c) {
+                $estadoNorm = strtolower(trim((string)($c['estado'] ?? '')));
+                $estadoNorm = strtr($estadoNorm, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u']);
+                if (strpos($estadoNorm, 'agendada') === false) { continue; }
                 $fecha = $c['fecha_cita'] instanceof DateTime
                     ? $c['fecha_cita']->format('Y-m-d')
                     : substr((string)$c['fecha_cita'], 0, 10);
