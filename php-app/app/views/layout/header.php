@@ -9,6 +9,31 @@ if (!headers_sent()) {
 }
 $user = $_SESSION['user'];
 $rol  = $user['rol'];
+// Ruta actual (sin base) para resaltar la opcion seleccionada del menu.
+$__base = app_base_url();
+$__cur  = (string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+if ($__base !== '' && strpos($__cur, $__base) === 0) $__cur = substr($__cur, strlen($__base));
+$__cur = strtolower(trim($__cur, '/'));
+if (!function_exists('nav_is_active')) {
+    function nav_is_active(string $path, string $cur): bool {
+        $path = strtolower(trim($path, '/'));
+        return $cur === $path || strpos($cur, $path . '/') === 0;
+    }
+}
+if (!function_exists('nav_link')) {
+    /** Enlace del menu lateral con clase "active" cuando corresponde a la vista actual. */
+    function nav_link(string $path, string $label, string $cur, string $extra = ''): string {
+        $cls = trim($extra . (nav_is_active($path, $cur) ? ' active' : ''));
+        return '<a class="' . htmlspecialchars($cls) . '" href="' . url($path) . '">' . $label . '</a>';
+    }
+}
+if (!function_exists('nav_group_open')) {
+    /** Deja abierto el grupo que contiene la opcion activa. */
+    function nav_group_open(array $paths, string $cur): string {
+        foreach ($paths as $p) if (nav_is_active($p, $cur)) return ' open';
+        return '';
+    }
+}
 ?>
 <!doctype html>
 <html lang="es">
@@ -28,64 +53,64 @@ $rol  = $user['rol'];
     </div>
     <nav>
       <?php if (in_array($rol, ['asistente','medico'], true)): ?>
-        <a href="<?= url('citas') ?>">Citas</a>
-        <a href="<?= url('calendario') ?>">Calendario de citas</a>
-        <details class="menu-group">
+        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword'], $__cur) ?>>
           <summary>Opciones</summary>
-          <a href="<?= url('opciones/cambiarPassword') ?>">Cambiar contraseña</a>
+          <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
         </details>
-        <a href="<?= url('pacientes') ?>">Pacientes</a>
+        <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
       <?php endif; ?>
 
       <?php if ($rol === 'administrador'): ?>
-        <a href="<?= url('citas') ?>">Citas</a>
-        <a href="<?= url('calendario') ?>">Calendario de citas</a>
-        <details class="menu-group">
+        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
           <summary>Opciones</summary>
-          <a href="<?= url('opciones/cambiarPassword') ?>">Cambiar contraseña</a>
-          <a href="<?= url('opciones/passwordUsuarios') ?>">Contraseña de usuarios</a>
+          <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('opciones/passwordUsuarios', 'Contraseña de usuarios', $__cur) ?>
         </details>
-        <a href="<?= url('pacientes') ?>">Pacientes</a>
-        <a href="<?= url('medicos') ?>">Médicos</a>
-        <a href="<?= url('especialidades') ?>">Especialidad</a>
-        <a href="<?= url('consultorios') ?>">Consultorios</a>
-        <details class="menu-group">
+        <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
+        <?= nav_link('medicos', 'Médicos', $__cur) ?>
+        <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
+        <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
           <summary>Reportes</summary>
-          <a href="<?= url('reportes/ingresos') ?>">Ingresos por consulta</a>
-          <a href="<?= url('reportes/repIngresos') ?>">Ingresos por citas</a>
-          <a href="<?= url('reportes/repAtencion') ?>">Atención</a>
-          <a href="<?= url('reportes/repTop10') ?>">Top 10 médicos</a>
-          <a href="<?= url('reportes/repEspecialidad') ?>">Atención por especialidad</a>
+          <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
+          <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
+          <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
+          <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
+          <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
         </details>
       <?php endif; ?>
 
       <?php if ($rol === 'admin_sistema'): ?>
-        <a href="<?= url('citas') ?>">Citas</a>
-        <a href="<?= url('calendario') ?>">Calendario de citas</a>
-        <a href="<?= url('pacientes') ?>">Pacientes</a>
-        <a href="<?= url('especialidades') ?>">Especialidad</a>
-        <a href="<?= url('consultorios') ?>">Consultorios</a>
-        <a href="<?= url('clinicas') ?>">Clínicas</a>
-        <a href="<?= url('usuariosClinica') ?>">Asignar clínicas a usuarios</a>
-        <details class="menu-group">
+        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
+        <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
+        <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
+        <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
+        <?= nav_link('clinicas', 'Clínicas', $__cur) ?>
+        <?= nav_link('usuariosClinica', 'Asignar clínicas a usuarios', $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['catalogos/paises', 'catalogos/estados', 'catalogos/municipios', 'catalogos/generos', 'catalogos/usuarios', 'catalogos/estadosCita', 'catalogos/respaldo'], $__cur) ?>>
           <summary>Catálogos</summary>
-          <a href="<?= url('catalogos/paises') ?>">Países</a>
-          <a href="<?= url('catalogos/estados') ?>">Estados</a>
-          <a href="<?= url('catalogos/municipios') ?>">Municipios</a>
-          <a href="<?= url('catalogos/generos') ?>">Géneros</a>
-          <a href="<?= url('catalogos/usuarios') ?>">Usuarios</a>
-          <a href="<?= url('catalogos/estadosCita') ?>">Edo de citas</a>
-          <a href="<?= url('catalogos/respaldo') ?>">Respaldo de base de datos</a>
+          <?= nav_link('catalogos/paises', 'Países', $__cur) ?>
+          <?= nav_link('catalogos/estados', 'Estados', $__cur) ?>
+          <?= nav_link('catalogos/municipios', 'Municipios', $__cur) ?>
+          <?= nav_link('catalogos/generos', 'Géneros', $__cur) ?>
+          <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
+          <?= nav_link('catalogos/estadosCita', 'Edo de citas', $__cur) ?>
+          <?= nav_link('catalogos/respaldo', 'Respaldo de base de datos', $__cur) ?>
         </details>
-        <details class="menu-group">
+        <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
           <summary>Reportes</summary>
-          <a href="<?= url('reportes/ingresos') ?>">Ingresos por consulta</a>
-          <a href="<?= url('reportes/repIngresos') ?>">Ingresos por citas</a>
-          <a href="<?= url('reportes/repAtencion') ?>">Atención</a>
-          <a href="<?= url('reportes/repTop10') ?>">Top 10 médicos</a>
-          <a href="<?= url('reportes/repEspecialidad') ?>">Atención por especialidad</a>
+          <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
+          <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
+          <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
+          <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
+          <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
         </details>
-        <a href="<?= url('sistema/bloquearClinicas') ?>">Bloquear acceso a clínicas</a>
+        <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
       <?php endif; ?>
 
       <a class="logout" href="<?= url('auth/logout') ?>">Cerrar sesión</a>
