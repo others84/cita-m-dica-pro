@@ -9,6 +9,7 @@ $__labels = array_map('strval', array_keys($datos ?? []));
 $__values = array_map('floatval', array_values($datos ?? []));
 $__money  = !empty($fmtMoneda);
 $__step   = isset($stepY) && $stepY > 0 ? (float)$stepY : null;
+$__max    = $__step !== null && !empty($__values) ? ceil(max($__values) / $__step) * $__step : null;
 ?>
 <?php if (!empty($titulo)): ?><h3 style="margin:0 0 .75rem;color:var(--c5)"><?= htmlspecialchars($titulo) ?></h3><?php endif; ?>
 <?php if (empty($__labels)): ?>
@@ -56,10 +57,11 @@ $__step   = isset($stepY) && $stepY > 0 ? (float)$stepY : null;
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
-        y: { beginAtZero: true, ticks: { color: '#1E3A5F', precision: 0, stepSize: <?= $__step !== null ? json_encode($__step) : '1' ?>, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+        y: { beginAtZero: true, <?= $__max !== null ? 'max: ' . json_encode($__max) . ',' : '' ?> ticks: { color: '#1E3A5F', precision: 0, stepSize: <?= $__step !== null ? json_encode($__step) : '1' ?>, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
       }
     }
   });
 })();
 </script>
 <?php endif; ?>
+<?php unset($stepY); ?>
