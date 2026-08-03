@@ -35,6 +35,31 @@
     </div>
   </form>
 </div>
+<div class="card" style="margin-bottom:0">
+  <h3 style="margin-top:0;color:var(--c5)">Filtros</h3>
+  <form method="post" action="<?= url('catalogos/usuarios') ?>" class="form-grid"><?= csrf_field() ?>
+    <label>Rol
+      <select name="f_rol" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach ($roles as $r): ?>
+          <option value="<?= (int)$r['id_ROLES'] ?>" <?= (int)($fRol ?? 0)===(int)$r['id_ROLES']?'selected':'' ?>>
+            <?= htmlspecialchars($r['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <label>Clínica
+      <select name="f_clinica" onchange="this.form.submit()">
+        <option value="0">-- todas --</option>
+        <?php foreach ($clinicas as $cl): ?>
+          <option value="<?= (int)$cl['id_CLINICA'] ?>" <?= (int)($fClinica ?? 0)===(int)$cl['id_CLINICA']?'selected':'' ?>>
+            <?= htmlspecialchars($cl['nombre']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+</div>
 <table class="data">
   <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Clinica</th><th>Activo</th><th>Acciones</th></tr></thead>
   <tbody>
