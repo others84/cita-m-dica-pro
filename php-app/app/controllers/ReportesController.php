@@ -102,7 +102,7 @@ class ReportesController extends Controller {
         ]);
     }
 
-    /** Citas atendidas por dia. */
+    /** Citas atendidas por dia (ordenadas de mayor a menor). */
     public function repAtencion(): void {
         $this->requireLogin(self::ROLES_REP);
         $f = $this->filtros('rep_atencion');
@@ -111,10 +111,16 @@ class ReportesController extends Controller {
             $d = self::fecha($c['fecha_cita']);
             $serie[$d] = ($serie[$d] ?? 0) + 1;
         }
+        // Orden descendente por cantidad de citas atendidas (mayor a menor).
         arsort($serie);
+        // Etiquetas legibles dd/mm conservando el orden descendente.
+        $grafica = [];
+        foreach ($serie as $d => $v) {
+            $grafica[date('d/m', strtotime($d))] = $v;
+        }
         $this->view('reportes/rep_atencion', $f + [
             'title' => 'Reporte de atencion',
-            'serie' => $serie,
+            'serie' => $grafica,
             'total' => array_sum($serie),
             'destino' => 'reportes/repAtencion',
         ]);
