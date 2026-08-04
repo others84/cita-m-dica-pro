@@ -6,6 +6,15 @@ class AuthController extends Controller {
     public function index(): void { $this->login(); }
 
     public function login(): void {
+        // Si la sesión ya está autenticada (por ejemplo, al abrir otra pestaña),
+        // reutilizarla y enviar al usuario directamente a su pantalla inicial.
+        if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
+            $rol = (string)($_SESSION['user']['rol'] ?? '');
+            $destino = $rol === 'admin_sistema' ? url('clinicas') : url('calendario');
+            header('Location: ' . $destino);
+            exit;
+        }
+
         $error = null;
         // Evita que el navegador reutilice una copia cacheada del formulario
         // (una version vieja sin token CSRF provoca "enviado=NO").
