@@ -72,7 +72,8 @@
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td class="acts">
           <?php $cancelada = in_array($estadoNom, ['cancelada','cancelado'], true); ?>
-          <?php if ($cancelada): ?>
+          <?php $atendida = in_array($estadoNom, ['atendida','atendido'], true); ?>
+          <?php if ($cancelada || $atendida): ?>
             <span style="color:var(--c4)">&mdash;</span>
           <?php elseif (($rol ?? '') === 'medico'): ?>
             <?php if (in_array($estadoNom, ['agendada','agendado'], true)): ?>
