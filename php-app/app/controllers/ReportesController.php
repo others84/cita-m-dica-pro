@@ -102,7 +102,7 @@ class ReportesController extends Controller {
         ]);
     }
 
-    /** Citas atendidas por dia (ordenadas de mayor a menor). */
+    /** Citas atendidas por dia, ordenadas por fecha de atencion. */
     public function repAtencion(): void {
         $this->requireLogin(self::ROLES_REP);
         $f = $this->filtros('rep_atencion');
@@ -111,9 +111,9 @@ class ReportesController extends Controller {
             $d = self::fecha($c['fecha_cita']);
             $serie[$d] = ($serie[$d] ?? 0) + 1;
         }
-        // Orden descendente por cantidad de citas atendidas (mayor a menor).
-        arsort($serie);
-        // Etiquetas legibles dd/mm conservando el orden descendente.
+        // Orden cronologico por fecha de atencion (ascendente).
+        ksort($serie);
+        // Etiquetas legibles dd/mm conservando el orden por fecha.
         $grafica = [];
         foreach ($serie as $d => $v) {
             $grafica[date('d/m', strtotime($d))] = $v;
