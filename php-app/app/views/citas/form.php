@@ -29,6 +29,7 @@ $dis = $soloCancelar ? ' disabled' : '';
           <option value="<?= (int)$p['id_PACIENTE'] ?>"
                   data-email="<?= htmlspecialchars((string)($p['email'] ?? '')) ?>"
                   data-tel="<?= htmlspecialchars((string)($p['telefono'] ?? '')) ?>"
+                  data-obs="<?= htmlspecialchars((string)($p['observaciones'] ?? '')) ?>"
                   <?= isset($editRow) && (int)($editRow['id_PACIENTE']??0)===(int)$p['id_PACIENTE'] ? 'selected':'' ?>>
             <?= htmlspecialchars($nom) ?>
           </option>
@@ -110,6 +111,10 @@ $dis = $soloCancelar ? ' disabled' : '';
       <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>"<?= $dis ?>>
     </label>
 
+    <label style="grid-column:1/-1">Observaciones paciente
+      <textarea id="obs_paciente" rows="3" readonly></textarea>
+    </label>
+
     <label style="flex-direction:row;align-items:center;gap:.5rem">
       <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?><?= $dis ?>>
       Notificar por email
@@ -149,14 +154,20 @@ function validaMotivoCancelacion() {
   var sel = document.getElementById('sel_paciente');
   var em  = document.getElementById('email_notif');
   var tel = document.getElementById('celular_notif');
+  var obs = document.getElementById('obs_paciente');
   if (!sel || !em || !tel) return;
   function sync() {
     var o = sel.options[sel.selectedIndex];
-    if (!o || !o.value) { em.value = ''; tel.value = ''; return; }
+    if (!o || !o.value) { em.value = ''; tel.value = ''; if (obs) obs.value = ''; return; }
     em.value  = o.getAttribute('data-email') || '';
     tel.value = o.getAttribute('data-tel') || '';
+    if (obs) obs.value = o.getAttribute('data-obs') || '';
   }
   sel.addEventListener('change', sync);
   if (!em.value && !tel.value) sync();
+  else if (obs) {
+    var oi = sel.options[sel.selectedIndex];
+    obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
+  }
 })();
 </script>
