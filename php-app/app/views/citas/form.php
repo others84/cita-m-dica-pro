@@ -112,7 +112,7 @@ $dis = $soloCancelar ? ' disabled' : '';
     </label>
 
     <label style="grid-column:1/-1">Observaciones paciente
-      <textarea id="obs_paciente" rows="3" readonly></textarea>
+      <textarea id="obs_paciente" name="observaciones_paciente" rows="3"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
 
     <label style="flex-direction:row;align-items:center;gap:.5rem">
