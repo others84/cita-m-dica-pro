@@ -26,5 +26,10 @@ class PacienteModel extends Model {
             ':m'=>$idMunicipio, ':o'=>self::s($observaciones), ':u'=>self::currentUserId(),
         ]);
     }
+    public static function cambioObservaciones(int $id, string $observaciones): void {
+        self::execute('EXEC citas.spCambioObservacionesPaciente @id_PACIENTE=:id, @observaciones=:o, @id_usuario=:u', [
+            ':id'=>$id, ':o'=>self::s($observaciones), ':u'=>self::currentUserId(),
+        ]);
+    }
     public static function baja(int $id): void { self::execute('EXEC citas.spBajaPaciente @id_PACIENTE=:id, @id_usuario=:u', [':id'=>$id, ':u'=>self::currentUserId()]); }
 }
