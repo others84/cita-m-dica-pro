@@ -78,6 +78,7 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
             '<dt>Estado</dt><dd>' + esc(p.estado) + '</dd>' +
             '<dt>Precio</dt><dd>$ ' + esc(p.precio) + '</dd>' +
             '<dt>Inicio</dt><dd>' + esc(info.start && info.start.toLocaleString ? info.start.toLocaleString() : info.start) + '</dd>' +
+            '<dt>Observaciones paciente</dt><dd style="white-space:pre-wrap">' + esc(p.observaciones_paciente || '-') + '</dd>' +
           '</dl>' +
           '<div class="modal-actions"><button type="button" class="btn" onclick="this.closest(\'.modal-backdrop\').remove()">Cerrar</button></div>' +
         '</div>' +

@@ -111,8 +111,8 @@ $dis = $soloCancelar ? ' disabled' : '';
       <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>"<?= $dis ?>>
     </label>
 
-    <label style="grid-column:1/-1">Observaciones paciente
-      <textarea id="obs_paciente" name="observaciones_paciente" rows="3"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
+    <label style="grid-column:1/-1">Observaciones paciente <small id="obs_paciente_count" style="color:var(--c4,#1E3A5F);font-weight:400">(0/5000)</small>
+      <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
 
     <label style="flex-direction:row;align-items:center;gap:.5rem">
@@ -163,11 +163,19 @@ function validaMotivoCancelacion() {
     tel.value = o.getAttribute('data-tel') || '';
     if (obs) obs.value = o.getAttribute('data-obs') || '';
   }
-  sel.addEventListener('change', sync);
+  sel.addEventListener('change', function () { sync(); updCount(); });
+  var cnt = document.getElementById('obs_paciente_count');
+  function updCount() {
+    if (!cnt || !obs) return;
+    if (obs.value.length > 5000) obs.value = obs.value.slice(0, 5000);
+    cnt.textContent = '(' + obs.value.length + '/5000)';
+  }
+  if (obs) obs.addEventListener('input', updCount);
   if (!em.value && !tel.value) sync();
   else if (obs) {
     var oi = sel.options[sel.selectedIndex];
     obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
   }
+  updCount();
 })();
 </script>

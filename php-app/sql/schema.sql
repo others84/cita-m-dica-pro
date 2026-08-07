@@ -308,7 +308,7 @@ CREATE TABLE citas.PACIENTE (
     fecha_nacimiento         DATE              NOT NULL,
     id_CATALOGO_GENERO       INT               NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
-    observaciones            VARCHAR(500)      NULL,
+    observaciones            VARCHAR(5000)      NULL,
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -1844,7 +1844,7 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE citas.spCambioObservacionesPaciente
-    @id_PACIENTE INT, @observaciones VARCHAR(500), @id_usuario TINYINT
+    @id_PACIENTE INT, @observaciones VARCHAR(5000), @id_usuario TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
