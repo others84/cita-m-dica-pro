@@ -55,7 +55,7 @@ BEGIN
      WHERE (@id_MEDICO    IS NULL OR ci.id_MEDICO  = @id_MEDICO)
        AND (@id_CLINICA   IS NULL OR p.id_CLINICA  = @id_CLINICA)
        AND (@fecha_desde  IS NULL OR ci.fecha_cita >= @fecha_desde)
-       AND (@fecha_hasta  IS NULL OR ci.fecha_hasta <= @fecha_hasta)
+       AND (@fecha_hasta  IS NULL OR ci.fecha_cita <= @fecha_hasta)
      ORDER BY ci.fecha_cita, ci.hora_inicio;
 END
 GO
