@@ -47,6 +47,7 @@ class CalendarioController extends Controller {
                         'consultorio' => $c['consultorio'] ?? '',
                         'estado'      => $c['estado'] ?? '',
                         'precio'      => $c['precio'] ?? 0,
+                        'observaciones_paciente' => $c['observaciones_paciente'] ?? '',
                     ],
                 ];
             }
