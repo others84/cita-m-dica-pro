@@ -163,11 +163,19 @@ function validaMotivoCancelacion() {
     tel.value = o.getAttribute('data-tel') || '';
     if (obs) obs.value = o.getAttribute('data-obs') || '';
   }
-  sel.addEventListener('change', sync);
+  sel.addEventListener('change', function () { sync(); updCount(); });
+  var cnt = document.getElementById('obs_paciente_count');
+  function updCount() {
+    if (!cnt || !obs) return;
+    if (obs.value.length > 5000) obs.value = obs.value.slice(0, 5000);
+    cnt.textContent = '(' + obs.value.length + '/5000)';
+  }
+  if (obs) obs.addEventListener('input', updCount);
   if (!em.value && !tel.value) sync();
   else if (obs) {
     var oi = sel.options[sel.selectedIndex];
     obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
   }
+  updCount();
 })();
 </script>
