@@ -308,6 +308,7 @@ CREATE TABLE citas.PACIENTE (
     fecha_nacimiento         DATE              NOT NULL,
     id_CATALOGO_GENERO       INT               NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
+    observaciones            VARCHAR(500)      NULL,
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -1733,6 +1734,7 @@ CREATE OR ALTER PROCEDURE citas.spAltaPaciente
     @id_CLINICA INT, @ap_paterno VARCHAR(80), @ap_materno VARCHAR(80), @nombre VARCHAR(120),
     @direccion VARCHAR(250), @telefono VARCHAR(20), @email VARCHAR(120),
     @fecha_nacimiento DATE, @id_CATALOGO_GENERO INT, @id_CATALOGO_MUNICIPIO INT,
+    @observaciones VARCHAR(500) = NULL,
     @id_usuario TINYINT, @id_nuevo INT OUTPUT
 AS
 BEGIN
@@ -1741,9 +1743,9 @@ BEGIN
         BEGIN TRAN;
             INSERT INTO citas.PACIENTE(id_CLINICA,ap_paterno,ap_materno,nombre,direccion,
                                         telefono,email,fecha_nacimiento,id_CATALOGO_GENERO,
-                                        id_CATALOGO_MUNICIPIO,id_usuario_creacion,fecha_creacion)
+                                        id_CATALOGO_MUNICIPIO,observaciones,id_usuario_creacion,fecha_creacion)
             VALUES(@id_CLINICA,@ap_paterno,@ap_materno,@nombre,@direccion,@telefono,@email,
-                   @fecha_nacimiento,@id_CATALOGO_GENERO,@id_CATALOGO_MUNICIPIO,@id_usuario,GETDATE());
+                   @fecha_nacimiento,@id_CATALOGO_GENERO,@id_CATALOGO_MUNICIPIO,@observaciones,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
             DECLARE @msg VARCHAR(2000);
             SET @msg='Alta Paciente id='+CONVERT(VARCHAR(20),@id_nuevo)
@@ -1766,6 +1768,7 @@ CREATE OR ALTER PROCEDURE citas.spCambioPaciente
     @ap_paterno VARCHAR(80), @ap_materno VARCHAR(80), @nombre VARCHAR(120),
     @direccion VARCHAR(250), @telefono VARCHAR(20), @email VARCHAR(120),
     @fecha_nacimiento DATE, @id_CATALOGO_GENERO INT, @id_CATALOGO_MUNICIPIO INT,
+    @observaciones VARCHAR(500) = NULL,
     @id_usuario TINYINT
 AS
 BEGIN
@@ -1776,7 +1779,7 @@ BEGIN
                SET id_CLINICA=@id_CLINICA, ap_paterno=@ap_paterno, ap_materno=@ap_materno,
                    nombre=@nombre, direccion=@direccion, telefono=@telefono, email=@email,
                    fecha_nacimiento=@fecha_nacimiento, id_CATALOGO_GENERO=@id_CATALOGO_GENERO,
-                   id_CATALOGO_MUNICIPIO=@id_CATALOGO_MUNICIPIO,
+                   id_CATALOGO_MUNICIPIO=@id_CATALOGO_MUNICIPIO, observaciones=@observaciones,
                    id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_PACIENTE=@id_PACIENTE;
             DECLARE @msg VARCHAR(2000);
@@ -1826,6 +1829,7 @@ BEGIN
            p.ap_paterno, p.ap_materno, p.nombre, p.direccion, p.telefono, p.email,
            p.fecha_nacimiento, p.id_CATALOGO_GENERO, g.nombre AS genero,
            p.id_CATALOGO_MUNICIPIO, m.nombre AS municipio,
+           p.observaciones,
            m.id_CATALOGO_ESTADOS, e.nombre AS estado,
            e.id_CATALOGO_PAIS, pa.nombre AS pais
       FROM citas.PACIENTE p

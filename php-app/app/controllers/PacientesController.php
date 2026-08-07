@@ -74,6 +74,7 @@ class PacientesController extends Controller {
         $fnac = trim((string)$this->input('fecha_nacimiento'));
         $idGen = (int)$this->input('id_CATALOGO_GENERO');
         $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
+        $observaciones = trim((string)$this->input('observaciones'));
 
         // Todas las columnas de PACIENTE son NOT NULL y el email tiene CHECK de formato.
         $faltantes = [];
@@ -107,10 +108,10 @@ class PacientesController extends Controller {
                 ));
             }
             if ($id) {
-                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun);
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones);
                 $this->flash('ok', 'Paciente actualizado.');
             } else {
-                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun);
+                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones);
                 $this->flash('ok', 'Paciente registrado.');
             }
         } catch (Throwable $e) {
