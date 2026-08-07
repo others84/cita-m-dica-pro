@@ -214,6 +214,9 @@ class CitasController extends Controller {
                 $this->registraLogEstado((int)$nuevoId, null, $nuevo !== '' ? $nuevo : 'Agendada',
                     (int)($ctxAlta['fClinica'] ?? 0));
             }
+            // Actualizar observaciones del paciente si se capturaron en la cita.
+            $obsPaciente = (string)($this->input('observaciones_paciente') ?? '');
+            PacienteModel::cambioObservaciones((int)$data['id_PACIENTE'], $obsPaciente);
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo guardar: ' . $e->getMessage());
         }
