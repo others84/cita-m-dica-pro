@@ -62,8 +62,9 @@
         $obsPacCorta = mb_strlen($obsPac) > 40 ? mb_substr($obsPac, 0, 40) . '...' : $obsPac;
         $estadoNom = strtolower(trim((string)($c['estado'] ?? '')));
         $notificado = (int)($c['notificado'] ?? 0) === 1;
+        $porNotificar = CitaModel::enVentanaNotificacion($c);
     ?>
-      <tr>
+      <tr<?= $porNotificar ? ' class="cita-por-notificar"' : '' ?>>
         <td><?= htmlspecialchars($f) ?></td>
         <td><?= htmlspecialchars($hi . ' - ' . $hf) ?></td>
         <td><?= htmlspecialchars($c['paciente'] ?? '') ?></td>
