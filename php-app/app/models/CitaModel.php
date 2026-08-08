@@ -69,9 +69,10 @@ class CitaModel extends Model {
 
         $horas = (int)($c['horas_anticipacion_notif'] ?? 0);
         if ($horas <= 0) $horas = 24;
+        // (fecha+hora de inicio) - horas de anticipacion <= hora del sistema
         $desde = $inicio - ($horas * 3600);
         $ahora = $ahora ?? time();
-        return $ahora >= $desde && $ahora <= $inicio;
+        return $desde <= $ahora;
     }
 
     /** Citas (de la clinica/medico dados) que ya estan en su ventana de notificacion. */
