@@ -265,6 +265,22 @@ class CitasController extends Controller {
         $this->cambiaEstado((int)$this->input('id'), ['confirmada', 'confirmado'], 'Cita confirmada.');
     }
 
+    /** Marca la cita como notificada. */
+    public function notificado(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        try {
+            $c = $id ? CitaModel::obtener($id) : null;
+            if (!$c) throw new RuntimeException('No se encontro la cita.');
+            CitaModel::notifica($id);
+            $this->flash('ok', 'Cita marcada como notificada.');
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo marcar como notificada: ' . $e->getMessage());
+        }
+        $this->clearState('id');
+        $this->redirect('citas');
+    }
+
     /** Cambia el estado de una cita conservando el resto de los datos. */
     private function cambiaEstado(int $id, array $nombresEstado, string $okMsg, ?string $observaciones = null): void {
         try {
