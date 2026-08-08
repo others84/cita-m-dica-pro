@@ -73,5 +73,5 @@ BEGIN
 END
 GO
 
-GRANT EXECUTE ON citas.spNotificaCita TO citasapp;
+GRANT EXECUTE ON OBJECT::citas.spNotificaCita TO citasadmin;
 GO
