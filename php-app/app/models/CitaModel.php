@@ -49,4 +49,39 @@ class CitaModel extends Model {
         }
         return null;
     }
+
+    /**
+     * Indica si la cita ya entro en su ventana de anticipacion:
+     * (hora_inicio - horas_anticipacion) <= ahora <= hora_inicio,
+     * la cita sigue agendada y todavia no se ha notificado.
+     */
+    public static function enVentanaNotificacion(array $c, ?int $ahora = null): bool {
+        if ((int)($c['notificado'] ?? 0) === 1) return false;
+        $estado = strtolower(trim((string)($c['estado'] ?? '')));
+        $estado = strtr($estado, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u']);
+        if (strpos($estado, 'agendada') === false && strpos($estado, 'agendado') === false) return false;
+
+        $f  = $c['fecha_cita']  instanceof DateTime ? $c['fecha_cita']->format('Y-m-d')  : substr((string)$c['fecha_cita'], 0, 10);
+        $hi = $c['hora_inicio'] instanceof DateTime ? $c['hora_inicio']->format('H:i:s') : substr((string)$c['hora_inicio'], 0, 8);
+        if ($f === '' || $hi === '') return false;
+        $inicio = strtotime($f . ' ' . $hi);
+        if ($inicio === false) return false;
+
+        $horas = (int)($c['horas_anticipacion_notif'] ?? 0);
+        if ($horas <= 0) $horas = 24;
+        $desde = $inicio - ($horas * 3600);
+        $ahora = $ahora ?? time();
+        return $ahora >= $desde && $ahora <= $inicio;
+    }
+
+    /** Citas (de la clinica/medico dados) que ya estan en su ventana de notificacion. */
+    public static function porNotificar(?int $idMedico = null, ?int $idClinica = null): array {
+        $desde = date('Y-m-d', strtotime('-1 day'));
+        $hasta = date('Y-m-d', strtotime('+30 days'));
+        $rows = self::listar($idMedico, $desde, $hasta, $idClinica);
+        if ($idMedico !== null) {
+            $rows = array_values(array_filter($rows, fn($c) => (int)($c['id_MEDICO'] ?? 0) === $idMedico));
+        }
+        return array_values(array_filter($rows, fn($c) => self::enVentanaNotificacion($c)));
+    }
 }

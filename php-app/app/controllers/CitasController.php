@@ -117,6 +117,28 @@ class CitasController extends Controller {
     }
 
     public function nueva(): void { $this->clearState('id'); $this->form(); }
+
+    /**
+     * Monitor de citas: devuelve en JSON cuantas citas ya entraron en su
+     * ventana de anticipacion (hora_inicio - horas_anticipacion <= ahora).
+     * Se consulta cada minuto desde el menu lateral.
+     */
+    public function pendientes(): void {
+        $this->requireLogin();
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        $total = 0;
+        try {
+            $ctx = $this->resolveClinicaContext();
+            $idMedico = ($ctx['rol'] === 'medico') ? ((int)($_SESSION['user']['id_USUARIOS'] ?? 0) ?: null) : null;
+            $total = count(CitaModel::porNotificar($idMedico, $ctx['fClinica']));
+        } catch (Throwable $e) {
+            Database::log('CITAS.pendientes ERR: ' . $e->getMessage());
+        }
+        echo json_encode(['total' => $total, 'ts' => time()]);
+        exit;
+    }
+
     public function editar(): void { $this->form(); }
     /** Muestra la cita en solo lectura para capturar el motivo de cancelacion. */
     public function cancelarForm(): void { $this->form('cancelar'); }

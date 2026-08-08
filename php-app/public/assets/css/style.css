@@ -142,3 +142,7 @@ table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
 .rep-pie-wrap{display:flex;gap:2rem;align-items:center;flex-wrap:wrap}
 .rep-pie{width:240px;height:240px;border-radius:50%;box-shadow:0 2px 10px rgba(30,58,95,.15)}
 .rep-dot{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.4rem}
+
+/* Citas que ya entraron en su ventana de anticipacion para notificar */
+table.data tr.cita-por-notificar td{background:var(--c3) !important;color:var(--c5);font-weight:600}
+.nav-badge{margin-left:.35rem;font-weight:700;color:#fff}

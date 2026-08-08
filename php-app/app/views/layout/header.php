@@ -34,6 +34,9 @@ if (!function_exists('nav_group_open')) {
         return '';
     }
 }
+// Solo asistente, medico y administrador de clinica monitorean citas por notificar.
+$__monitorCitas = in_array($rol, ['asistente','medico','administrador'], true);
+$__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class="nav-badge" style="display:none"></span>' : '');
 ?>
 <!doctype html>
 <html lang="es">
@@ -53,7 +56,7 @@ if (!function_exists('nav_group_open')) {
     </div>
     <nav>
       <?php if (in_array($rol, ['asistente','medico'], true)): ?>
-        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword'], $__cur) ?>>
           <summary>Opciones</summary>
@@ -63,7 +66,7 @@ if (!function_exists('nav_group_open')) {
       <?php endif; ?>
 
       <?php if ($rol === 'administrador'): ?>
-        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
           <summary>Opciones</summary>
@@ -85,7 +88,7 @@ if (!function_exists('nav_group_open')) {
       <?php endif; ?>
 
       <?php if ($rol === 'admin_sistema'): ?>
-        <?= nav_link('citas', 'Citas', $__cur) ?>
+        <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
@@ -115,6 +118,27 @@ if (!function_exists('nav_group_open')) {
 
       <a class="logout" href="<?= url('auth/logout') ?>">Cerrar sesión</a>
     </nav>
+    <?php if ($__monitorCitas): ?>
+    <script>
+    (function () {
+      var url = <?= json_encode(url('citas/pendientes')) ?>;
+      var el  = document.getElementById('nav-citas-badge');
+      if (!el) return;
+      function revisar() {
+        fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            var n = d && d.total ? parseInt(d.total, 10) : 0;
+            if (n > 0) { el.textContent = '(' + n + ')'; el.style.display = 'inline'; }
+            else { el.textContent = ''; el.style.display = 'none'; }
+          })
+          .catch(function () {});
+      }
+      revisar();
+      setInterval(revisar, 60000); // tarea de monitoreo: cada minuto
+    })();
+    </script>
+    <?php endif; ?>
   </aside>
   <main class="content">
     <header class="topbar"><h1><?= htmlspecialchars($title ?? '') ?></h1></header>
