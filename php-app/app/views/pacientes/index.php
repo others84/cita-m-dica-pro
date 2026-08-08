@@ -121,17 +121,27 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 </script>
 
 <table class="data">
-  <thead><tr><th>Nombre</th><th>Telefono</th><th>Email</th><th>Municipio</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Apellido paterno</th><th>Apellido materno</th><th>Nombre</th><th>Direccion</th><th>Telefono</th><th>Email</th><th>Fecha nacimiento</th><th>Genero</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Observaciones</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php if (empty($rows)): ?>
-      <tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--c4)">Sin pacientes</td></tr>
+      <tr><td colspan="13" style="text-align:center;padding:1rem;color:var(--c4)">Sin pacientes</td></tr>
     <?php else: foreach ($rows as $p):
-      $nom = trim(($p['ap_paterno']??'').' '.($p['ap_materno']??'').' '.($p['nombre']??'')); ?>
+      $fn = $p['fecha_nacimiento'] ?? '';
+      if ($fn instanceof DateTime) $fn = $fn->format('Y-m-d');
+      $fn = $fn ? substr((string)$fn,0,10) : ''; ?>
       <tr>
-        <td><?= htmlspecialchars($nom) ?></td>
+        <td><?= htmlspecialchars($p['ap_paterno'] ?? '') ?></td>
+        <td><?= htmlspecialchars($p['ap_materno'] ?? '') ?></td>
+        <td><?= htmlspecialchars($p['nombre'] ?? '') ?></td>
+        <td><?= htmlspecialchars($p['direccion'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['telefono'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['email'] ?? '') ?></td>
+        <td><?= htmlspecialchars($fn) ?></td>
+        <td><?= htmlspecialchars($p['genero'] ?? '') ?></td>
+        <td><?= htmlspecialchars($p['pais'] ?? '') ?></td>
+        <td><?= htmlspecialchars($p['estado'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['municipio'] ?? '') ?></td>
+        <td><?= htmlspecialchars((string)($p['observaciones'] ?? '')) ?></td>
         <td class="acts">
           <?php post_button('pacientes', ['edit' => (int)$p['id_PACIENTE']], 'Editar', 'btn btn-sec'); ?>
           <form method="post" action="<?= url('pacientes/eliminar') ?>" style="display:inline" onsubmit="return confirm('Eliminar paciente?')"><?= csrf_field() ?>
