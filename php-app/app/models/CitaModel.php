@@ -37,6 +37,11 @@ class CitaModel extends Model {
         self::execute('EXEC citas.spCancelaCita @id_CITA=:id, @id_CATALOGO_ESTADO_CITAS=:e, @id_usuario=:u',
             [':id'=>$id, ':e'=>$idEstado, ':u'=>self::currentUserId()]);
     }
+    /** Marca la cita como notificada (notificado = 1). */
+    public static function notifica(int $id): void {
+        self::execute('EXEC citas.spNotificaCita @id_CITA=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
     /** Regresa una cita puntual (sin filtro de clinica ni de fechas). */
     public static function obtener(int $id): ?array {
         foreach (self::listar() as $r) {
