@@ -144,5 +144,14 @@ table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
 .rep-dot{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;margin-right:.4rem}
 
 /* Citas que ya entraron en su ventana de anticipacion para notificar */
-table.data tr.cita-por-notificar td{background:var(--c3) !important;color:var(--c5);font-weight:600}
+/* Se usa alta especificidad para ganarle al resaltado de columna ordenada */
+table.data tbody tr.cita-por-notificar td,
+table.data.ord-col-1 tbody tr.cita-por-notificar td:nth-child(1),
+table.data.ord-col-2 tbody tr.cita-por-notificar td:nth-child(2),
+table.data.ord-col-3 tbody tr.cita-por-notificar td:nth-child(3),
+table.data.ord-col-4 tbody tr.cita-por-notificar td:nth-child(4),
+table.data.ord-col-5 tbody tr.cita-por-notificar td:nth-child(5),
+table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){
+  background:var(--c3) !important;color:var(--c5) !important;font-weight:700;
+}
 .nav-badge{margin-left:.35rem;font-weight:700;color:#fff}
