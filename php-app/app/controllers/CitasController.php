@@ -193,6 +193,7 @@ class CitasController extends Controller {
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
         $editId = $this->stateInt('id');
         $editRow = null;
+        $notifEditable = true;
         if ($editId) {
             $editRow = CitaModel::obtener($editId);
             if ($editRow) {
@@ -203,6 +204,10 @@ class CitasController extends Controller {
                     $this->redirect('citas');
                     return;
                 }
+                // Solo en edicion y con estado agendada se permite modificar las
+                // opciones de notificacion (email/WhatsApp). En confirmar, atender
+                // o cancelar quedan deshabilitadas.
+                $notifEditable = ($modo === 'edicion') && (strpos($est, 'agendad') !== false);
                 // El contexto se fija a la clinica de la cita para que los
                 // catalogos contengan los valores guardados.
                 $cl = (int)($editRow['id_CLINICA'] ?? 0);
@@ -210,6 +215,8 @@ class CitasController extends Controller {
             } else {
                 $this->flash('error', 'No se encontro la cita seleccionada.');
             }
+        } else {
+            $notifEditable = ($modo === 'edicion');
         }
         // Solo estados activos; en alta se limita a "Agendada".
         $estados = EstadoCitaModel::listar();
@@ -225,6 +232,7 @@ class CitasController extends Controller {
             'editId'        => $editId,
             'editRow'       => $editRow,
             'modo'          => $modo,
+            'notifEditable' => $notifEditable,
             'pacientes'     => PacienteModel::listar($fClinica),
             'medicos'       => UsuarioModel::listarMedicos($fClinica),
             'consultorios'  => ConsultorioModel::listar($fClinica),
