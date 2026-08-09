@@ -123,11 +123,11 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?><?= $dis ?>>
+      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?><?= $notifDis ?>>
       Notificar por email
     </label>
     <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked':'' ?><?= $dis ?>>
+      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked':'' ?><?= $notifDis ?>>
       Notificar por WhatsApp
     </label>
 
