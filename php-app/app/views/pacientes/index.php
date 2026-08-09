@@ -28,7 +28,7 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
   ));
 } ?>
 <div class="card" style="margin-bottom:1rem">
-  <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente #' . (int)$editId : 'Nuevo paciente' ?></h2>
+  <h2 style="margin-top:0;color:var(--c5)"><?= $editId ? 'Modificar paciente' : 'Nuevo paciente' ?></h2>
   <form method="post" action="<?= url('pacientes/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <?php $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0); ?>
