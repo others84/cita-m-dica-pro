@@ -159,6 +159,8 @@ class CitasController extends Controller {
     public function editar(): void { $this->form(); }
     /** Muestra la cita en solo lectura para capturar el motivo de cancelacion. */
     public function cancelarForm(): void { $this->form('cancelar'); }
+    /** Ventana de atencion: el medico revisa la cita y la marca como Atendida. */
+    public function atenderForm(): void { $this->form('atender'); }
 
     private function form(string $modo = 'edicion'): void {
         $this->requireLogin();
