@@ -124,6 +124,10 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       var url = <?= json_encode(url('citas/pendientes')) ?>;
       var el  = document.getElementById('nav-citas-badge');
       if (!el) return;
+      var previo = null;
+      // La tabla de citas se recarga cuando el contador cambia (p.ej. otra
+      // pestania/usuario marco una cita como notificada).
+      var enCitas = /\/citas(\/|$)/.test(window.location.pathname);
       function revisar() {
         fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
           .then(function (r) { return r.ok ? r.json() : null; })
@@ -131,6 +135,8 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
             var n = d && d.total ? parseInt(d.total, 10) : 0;
             if (n > 0) { el.textContent = '(' + n + ')'; el.style.display = 'inline'; }
             else { el.textContent = ''; el.style.display = 'none'; }
+            if (previo !== null && n !== previo && enCitas) { window.location.reload(); }
+            previo = n;
           })
           .catch(function () {});
       }
