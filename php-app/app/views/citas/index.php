@@ -80,14 +80,21 @@
           <?php $cancelada = in_array($estadoNom, ['cancelada','cancelado'], true); ?>
           <?php $atendida = in_array($estadoNom, ['atendida','atendido'], true); ?>
           <?php $notifWa = (int)($c['notifica_wa'] ?? 0) === 1; ?>
+          <?php $notifMail = (int)($c['notifica_email'] ?? 0) === 1; ?>
+          <?php $mailPac = trim((string)($c['email_notif'] ?? '')); ?>
           <?php if (!$cancelada && !$atendida && !$notificado && $porNotificar): ?>
             <?php $wa = $notifWa ? wa_link($c) : ''; ?>
             <?php if ($wa !== ''): ?>
-              <a class="btn btn-sec" target="_blank" rel="noopener"
-                 href="<?= htmlspecialchars($wa, ENT_QUOTES) ?>"
-                 onclick="fetch('<?= url('citas/waLog') ?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'_csrf=<?= rawurlencode(csrf_token()) ?>&id=<?= (int)$c['id_CITA'] ?>'});">WhatsApp</a>
+              <button class="btn btn-sec" type="button"
+                 data-wa="<?= htmlspecialchars($wa, ENT_QUOTES) ?>"
+                 onclick="fetch('<?= url('citas/waLog') ?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'_csrf=<?= rawurlencode(csrf_token()) ?>&id=<?= (int)$c['id_CITA'] ?>'});window.open(this.dataset.wa,'_blank','noopener');">WhatsApp</button>
             <?php elseif ($notifWa): ?>
               <button class="btn btn-sec" type="button" disabled title="El paciente no tiene telefono registrado">Sin teléfono</button>
+            <?php endif; ?>
+            <?php if ($notifMail && $mailPac !== ''): ?>
+              <?php post_button('citas/enviarEmail', ['id' => (int)$c['id_CITA']], 'Email', 'btn btn-sec', '¿Enviar el recordatorio por correo electrónico?'); ?>
+            <?php elseif ($notifMail): ?>
+              <button class="btn btn-sec" type="button" disabled title="El paciente no tiene correo registrado">Sin correo</button>
             <?php endif; ?>
             <?php post_button('citas/notificado', ['id' => (int)$c['id_CITA']], 'Notificado', 'btn btn-sec', '¿Marcar esta cita como notificada?'); ?>
           <?php endif; ?>
