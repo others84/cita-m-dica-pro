@@ -74,6 +74,43 @@ if (!function_exists('post_button')) {
     }
 }
 
+if (!function_exists('wa_numero')) {
+    /** Normaliza un telefono a formato internacional sin signos (default MX 52). */
+    function wa_numero(?string $tel): string {
+        $d = preg_replace('/\D+/', '', (string)$tel);
+        if ($d === '' || $d === null) return '';
+        if (strlen($d) === 10) $d = '52' . $d;
+        return $d;
+    }
+}
+
+if (!function_exists('wa_mensaje')) {
+    /** Construye el texto del recordatorio de cita para WhatsApp. */
+    function wa_mensaje(array $c): string {
+        $f = $c['fecha_cita'] instanceof DateTime
+            ? $c['fecha_cita']->format('d/m/Y')
+            : date('d/m/Y', strtotime(substr((string)$c['fecha_cita'], 0, 10)));
+        $hi = $c['hora_inicio'] instanceof DateTime
+            ? $c['hora_inicio']->format('H:i')
+            : substr((string)$c['hora_inicio'], 0, 5);
+        return 'Estimado usuario, su cita en la clinica "' . trim((string)($c['clinica'] ?? '')) . '"'
+            . ' con el medico "' . trim((string)($c['medico'] ?? '')) . '"'
+            . ' con la especialidad "' . trim((string)($c['especialidad'] ?? '')) . '"'
+            . ' el dia "' . $f . '"'
+            . ' a la hora "' . $hi . '"'
+            . '. Favor de confirmar por este medio';
+    }
+}
+
+if (!function_exists('wa_link')) {
+    /** Devuelve el enlace wa.me con el mensaje de la cita, o '' si no hay telefono. */
+    function wa_link(array $c): string {
+        $num = wa_numero((string)($c['celular_notif'] ?? ''));
+        if ($num === '') return '';
+        return 'https://wa.me/' . $num . '?text=' . rawurlencode(wa_mensaje($c));
+    }
+}
+
 class App {
     public function run(): void {
         if (session_status() !== PHP_SESSION_ACTIVE) {
