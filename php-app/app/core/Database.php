@@ -3,6 +3,8 @@ require_once __DIR__ . '/Config.php';
 
 class Database {
     private static ?PDO $pdo = null;
+    /** Cuando es true no se escribe nada en app.log (ej. monitor de citas). */
+    public static bool $silencioso = false;
 
     public static function pdo(): PDO {
         if (self::$pdo instanceof PDO) return self::$pdo;
@@ -34,6 +36,7 @@ class Database {
     }
 
     public static function log(string $msg): void {
+        if (self::$silencioso) return;
         $dir = __DIR__ . '/../../storage/logs';
         if (!is_dir($dir)) @mkdir($dir, 0777, true);
         @file_put_contents($dir . '/app.log',
