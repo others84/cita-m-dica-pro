@@ -93,11 +93,11 @@ if (!function_exists('wa_mensaje')) {
         $hi = $c['hora_inicio'] instanceof DateTime
             ? $c['hora_inicio']->format('H:i')
             : substr((string)$c['hora_inicio'], 0, 5);
-        return 'Estimado usuario, su cita en la clinica "' . trim((string)($c['clinica'] ?? '')) . '"'
-            . ' con el medico "' . trim((string)($c['medico'] ?? '')) . '"'
-            . ' con la especialidad "' . trim((string)($c['especialidad'] ?? '')) . '"'
-            . ' el dia "' . $f . '"'
-            . ' a la hora "' . $hi . '"'
+        return 'Estimado usuario, su cita en la clinica ' . trim((string)($c['clinica'] ?? ''))
+            . ' con el medico ' . trim((string)($c['medico'] ?? ''))
+            . ' con la especialidad ' . trim((string)($c['especialidad'] ?? ''))
+            . ' el dia ' . $f
+            . ' a la hora ' . $hi
             . '. Favor de confirmar por este medio';
     }
 }
