@@ -6,6 +6,7 @@
 <?php endif; ?>
 
 <div class="card calendar-card">
+  <div id="ec-contador" class="cal-contador">Citas agendadas: <strong id="ec-contador-num">0</strong></div>
   <div id="ec" class="calendar-box" style="height:700px;min-height:700px;width:100%;background:#fff;">
     <div class="calendar-loading">Cargando calendario...</div>
   </div>
@@ -88,6 +89,26 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
     document.body.appendChild(wrap.firstChild);
   }
 
+  function etiquetaVista(v) {
+    if (v === 'timeGridDay') return 'en el dia seleccionado';
+    if (v === 'dayGridMonth') return 'en el mes seleccionado';
+    return 'en la semana seleccionada';
+  }
+  function actualizarContador(info) {
+    const cont = document.getElementById('ec-contador');
+    if (!cont || !info) return;
+    const ini = info.start instanceof Date ? info.start : new Date(info.start);
+    const fin = info.end   instanceof Date ? info.end   : new Date(info.end);
+    const evs = window.CITAS_EVENTS || [];
+    let n = 0;
+    for (const e of evs) {
+      const d = new Date(e.start);
+      if (d >= ini && d < fin) n++;
+    }
+    const vista = (info.view && info.view.type) || '';
+    cont.innerHTML = 'Citas agendadas ' + etiquetaVista(vista) + ': <strong>' + n + '</strong>';
+  }
+
   function buildOptions() {
     return {
       view: 'timeGridWeek',
@@ -115,7 +136,8 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
       },
       eventClick: function (info) {
         showModal({ extendedProps: info.event.extendedProps, start: info.event.start });
-      }
+      },
+      datesSet: function (info) { actualizarContador(info); }
     };
   }
 
