@@ -3,6 +3,7 @@ require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/RolModel.php';
+require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
 
 class MedicosController extends Controller {
     /** id_ROLES del perfil "medico". */
@@ -38,12 +39,79 @@ class MedicosController extends Controller {
         $rows = $this->listarMedicos($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS'] === $editId) { $editRow = $r; break; }
+
+        // Panel de asignacion multi-clinica.
+        $idMedicoCl = $this->stateInt('med_cl');
+        $medicoSel = null; $asignadas = []; $asignadasIds = [];
+        if ($idMedicoCl) {
+            foreach ($rows as $r) if ((int)$r['id_USUARIOS'] === $idMedicoCl) { $medicoSel = $r; break; }
+            if (!$medicoSel) { $idMedicoCl = null; $this->clearState('med_cl'); }
+            else {
+                $asignadas = UsuarioClinicaModel::listarPorUsuario($idMedicoCl);
+                $asignadasIds = array_map(fn($r) => (int)$r['id_CLINICA'], $asignadas);
+            }
+        }
+
         $this->view('medicos/index', [
             'title' => 'Medicos', 'rows' => $rows,
             'editId' => $editId, 'editRow' => $editRow,
             'clinicas'=>ClinicaModel::listar(), 'fClinica'=>$fClinica, 'rol'=>$rol,
             'clinicasFiltro' => $clinicasFiltro,
+            'idMedicoCl' => $idMedicoCl, 'medicoSel' => $medicoSel,
+            'asignadas' => $asignadas, 'asignadasIds' => $asignadasIds,
         ]);
+    }
+
+    /** Asigna una clinica adicional al medico seleccionado. */
+    public function asignarClinica(): void {
+        $this->requireLogin(['administrador']);
+        $ctx = $this->resolveClinicaContext();
+        $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro']);
+        $idMedico  = (int)$this->input('id_MEDICO');
+        $idClinica = (int)$this->input('id_CLINICA');
+        try {
+            if ($idMedico <= 0) throw new RuntimeException('Selecciona un medico.');
+            if (!in_array($idClinica, $idsAdmin, true)) {
+                throw new RuntimeException('Clinica fuera del alcance del administrador.');
+            }
+            foreach (UsuarioClinicaModel::listarPorUsuario($idMedico) as $r) {
+                if ((int)$r['id_CLINICA'] === $idClinica) {
+                    $this->flash('ok', 'La clinica ya estaba asignada.');
+                    $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+                    $this->redirect('medicos');
+                    return;
+                }
+            }
+            UsuarioClinicaModel::asigna($idMedico, $idClinica);
+            $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
+            $nomCl = '';
+            foreach ($ctx['clinicasFiltro'] as $c) if ((int)$c['id_CLINICA'] === $idClinica) { $nomCl = (string)$c['nombre']; break; }
+            Database::log("MEDICO CLINICA ASIGNADA id_USUARIOS={$idMedico} clinica='{$nomCl}' (id={$idClinica}) agregado por='{$usr}'");
+            $this->flash('ok', 'Clinica asignada al medico.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+        $this->redirect('medicos');
+    }
+
+    /** Remueve una clinica del medico seleccionado. */
+    public function removerClinica(): void {
+        $this->requireLogin(['administrador']);
+        $ctx = $this->resolveClinicaContext();
+        $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro']);
+        $idMedico = (int)$this->input('id_MEDICO');
+        $idUC     = (int)$this->input('id_USUARIOS_CLINICA');
+        $idClinica= (int)$this->input('id_CLINICA');
+        try {
+            if (!in_array($idClinica, $idsAdmin, true)) {
+                throw new RuntimeException('Clinica fuera del alcance del administrador.');
+            }
+            UsuarioClinicaModel::baja($idUC);
+            $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
+            Database::log("MEDICO CLINICA REMOVIDA id_USUARIOS={$idMedico} clinica_id={$idClinica} por='{$usr}'");
+            $this->flash('ok', 'Clinica removida del medico.');
+        } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+        $this->redirect('medicos');
     }
     public function guardar(): void {
         $this->requireLogin(['administrador']);
@@ -76,6 +144,8 @@ class MedicosController extends Controller {
                 $this->flash('ok','Actualizado.');
             } else {
                 UsuarioModel::alta($idRol, $idClinica, $usuario, $pass, $nombre, $email);
+                $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
+                Database::log("MEDICO ALTA usuario='{$usuario}' nombre='{$nombre}' clinica_id={$idClinica} agregado por='{$usr}'");
                 $this->flash('ok','Medico registrado y asignado a la clinica.');
             }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }

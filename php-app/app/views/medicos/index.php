@@ -28,6 +28,62 @@
     </div>
   </form>
 </div>
+
+<div class="card" style="margin-bottom:1rem">
+  <h2 style="margin-top:0">Clinicas del medico</h2>
+  <p style="margin:.2rem 0 1rem;color:var(--c5)">Un medico puede atender en mas de una clinica. Selecciona el medico y agrega las clinicas a las que tienes acceso.</p>
+  <form method="post" action="<?= url('medicos') ?>" class="form-grid"><?= csrf_field() ?>
+    <label>Medico
+      <select name="med_cl" onchange="this.form.submit()">
+        <option value="">-- seleccione --</option>
+        <?php foreach ($rows as $m): ?>
+          <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= (int)($idMedicoCl ?? 0) === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
+            <?= htmlspecialchars(($m['nombre_completo'] ?? $m['usuario'] ?? '') . ' (' . ($m['usuario'] ?? '') . ')') ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+
+  <?php if (!empty($medicoSel)): ?>
+    <form method="post" action="<?= url('medicos/asignarClinica') ?>" class="form-grid"><?= csrf_field() ?>
+      <input type="hidden" name="id_MEDICO" value="<?= (int)$medicoSel['id_USUARIOS'] ?>">
+      <label>Agregar clinica
+        <select name="id_CLINICA" required>
+          <option value="">-- seleccione --</option>
+          <?php foreach (($clinicasFiltro ?? []) as $cl):
+                if (in_array((int)$cl['id_CLINICA'], $asignadasIds ?? [], true)) continue; ?>
+            <option value="<?= (int)$cl['id_CLINICA'] ?>"><?= htmlspecialchars($cl['nombre']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <div class="form-actions" style="grid-column:1/-1"><button class="btn">Asignar clinica</button></div>
+    </form>
+
+    <table class="data">
+      <thead><tr><th>Clinica asignada</th><th>Acciones</th></tr></thead>
+      <tbody>
+        <?php if (empty($asignadas)): ?>
+          <tr><td colspan="2">Sin clinicas asignadas.</td></tr>
+        <?php else: foreach ($asignadas as $a): ?>
+          <tr>
+            <td><?= htmlspecialchars($a['nombre']) ?></td>
+            <td class="acts">
+              <form method="post" action="<?= url('medicos/removerClinica') ?>" style="display:inline"
+                    onsubmit="return confirm('Remover esta clinica del medico?');"><?= csrf_field() ?>
+                <input type="hidden" name="id_MEDICO" value="<?= (int)$medicoSel['id_USUARIOS'] ?>">
+                <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)($a['id_USUARIOS_CLINICA'] ?? 0) ?>">
+                <input type="hidden" name="id_CLINICA" value="<?= (int)$a['id_CLINICA'] ?>">
+                <button class="btn btn-danger">Remover</button>
+              </form>
+            </td>
+          </tr>
+        <?php endforeach; endif; ?>
+      </tbody>
+    </table>
+  <?php endif; ?>
+</div>
+
 <table class="data">
   <thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Clinica</th><th>Activo</th><th>Acciones</th></tr></thead>
   <tbody>
