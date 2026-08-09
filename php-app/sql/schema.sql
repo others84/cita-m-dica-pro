@@ -1977,8 +1977,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT  ci.id_CITA, ci.fecha_cita, ci.hora_inicio, ci.hora_fin,
-            ci.observaciones, ci.notifica_email, ci.notifica_wa,
-            ci.email_notif, ci.celular_notif, ci.horas_anticipacion_notif, ci.precio,
+            ci.observaciones,
+            p.notifica_email, p.notifica_wa,
+            p.email AS email_notif, p.telefono AS celular_notif,
+            ci.horas_anticipacion_notif, ci.precio,
             ci.notificado,
             ci.id_PACIENTE,
             (p.ap_paterno + ' ' + p.ap_materno + ' ' + p.nombre) AS paciente,
