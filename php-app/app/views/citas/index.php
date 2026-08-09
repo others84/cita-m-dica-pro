@@ -80,13 +80,13 @@
           <?php $cancelada = in_array($estadoNom, ['cancelada','cancelado'], true); ?>
           <?php $atendida = in_array($estadoNom, ['atendida','atendido'], true); ?>
           <?php $notifWa = (int)($c['notifica_wa'] ?? 0) === 1; ?>
-          <?php if (!$cancelada && !$atendida && !$notificado): ?>
-            <?php $wa = ($notifWa && $porNotificar) ? wa_link($c) : ''; ?>
+          <?php if (!$cancelada && !$atendida && !$notificado && $porNotificar): ?>
+            <?php $wa = $notifWa ? wa_link($c) : ''; ?>
             <?php if ($wa !== ''): ?>
               <a class="btn btn-sec" target="_blank" rel="noopener"
                  href="<?= htmlspecialchars($wa, ENT_QUOTES) ?>"
                  onclick="fetch('<?= url('citas/waLog') ?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'_csrf=<?= rawurlencode(csrf_token()) ?>&id=<?= (int)$c['id_CITA'] ?>'});">WhatsApp</a>
-            <?php elseif ($notifWa && $porNotificar): ?>
+            <?php elseif ($notifWa): ?>
               <button class="btn btn-sec" type="button" disabled title="El paciente no tiene telefono registrado">Sin teléfono</button>
             <?php endif; ?>
             <?php post_button('citas/notificado', ['id' => (int)$c['id_CITA']], 'Notificado', 'btn btn-sec', '¿Marcar esta cita como notificada?'); ?>
