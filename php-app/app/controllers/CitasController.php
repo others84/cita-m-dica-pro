@@ -372,6 +372,7 @@ class CitasController extends Controller {
     /** Registra en app.log que se genero el enlace de WhatsApp para una cita. */
     public function waLog(): void {
         $this->requireLogin();
+        // (registro del enlace de WhatsApp)
         $id = (int)$this->input('id');
         try {
             $c = $id ? CitaModel::obtener($id) : null;
