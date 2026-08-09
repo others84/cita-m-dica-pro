@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/RolModel.php';
 require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+require_once __DIR__ . '/../models/CitaModel.php';
 
 class MedicosController extends Controller {
     /** id_ROLES del perfil "medico". */
@@ -93,6 +94,24 @@ class MedicosController extends Controller {
         $this->redirect('medicos');
     }
 
+    /** Cuenta las citas del medico en la clinica indicada (excluye canceladas). */
+    private function citasDelMedicoEnClinica(int $idMedico, int $idClinica): int {
+        try {
+            $rows = CitaModel::listar($idMedico, '2000-01-01', '2100-12-31', $idClinica);
+        } catch (Throwable $e) {
+            Database::log('MEDICO CLINICA validacion citas ERR: ' . $e->getMessage());
+            return 0;
+        }
+        $n = 0;
+        foreach ($rows as $r) {
+            if ((int)($r['id_MEDICO'] ?? 0) !== $idMedico) continue;
+            $estado = strtolower((string)($r['estado_cita'] ?? $r['estado'] ?? ''));
+            if (strpos($estado, 'cancel') !== false) continue;
+            $n++;
+        }
+        return $n;
+    }
+
     /** Remueve una clinica del medico seleccionado. */
     public function removerClinica(): void {
         $this->requireLogin(['administrador']);
@@ -104,6 +123,10 @@ class MedicosController extends Controller {
         try {
             if (!in_array($idClinica, $idsAdmin, true)) {
                 throw new RuntimeException('Clinica fuera del alcance del administrador.');
+            }
+            $nCitas = $this->citasDelMedicoEnClinica($idMedico, $idClinica);
+            if ($nCitas > 0) {
+                throw new RuntimeException("No se puede eliminar la clinica: el medico ya tiene {$nCitas} cita(s) agendada(s) en ella.");
             }
             UsuarioClinicaModel::baja($idUC);
             $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
