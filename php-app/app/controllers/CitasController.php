@@ -258,18 +258,10 @@ class CitasController extends Controller {
             'hora_fin'                 => $this->input('hora_fin') . ':00',
             'id_CATALOGO_ESTADO_CITAS' => (int)$this->input('id_CATALOGO_ESTADO_CITAS'),
             'observaciones'            => $this->input('observaciones'),
-            'notifica_email'           => 0,
-            'notifica_wa'              => 0,
             'horas_anticipacion_notif' => (int)($this->input('horas_anticipacion_notif') ?? 24),
             'precio'                   => (float)($this->input('precio') ?? 0),
         ];
-        // Las preferencias de notificacion se toman del paciente (tabla PACIENTE),
-        // ya no se capturan en la cita.
-        $pac = PacienteModel::obtener((int)$data['id_PACIENTE']);
-        if ($pac) {
-            $data['notifica_email'] = !empty($pac['notifica_email']) ? 1 : 0;
-            $data['notifica_wa']    = !empty($pac['notifica_wa']) ? 1 : 0;
-        }
+        // Las preferencias de notificacion viven unicamente en el PACIENTE.
         try {
             if ($id) {
                 $prev = CitaModel::obtener($id);
@@ -279,12 +271,6 @@ class CitasController extends Controller {
                     $this->clearState('id');
                     $this->redirect('citas');
                     return;
-                }
-                // Si la cita ya no esta agendada, se conservan los valores que
-                // ya tenia la cita en lugar de recalcularlos del paciente.
-                if (strpos($estPrev, 'agendad') === false) {
-                    $data['notifica_email'] = (int)($prev['notifica_email'] ?? 0);
-                    $data['notifica_wa']    = (int)($prev['notifica_wa'] ?? 0);
                 }
                 CitaModel::cambio($id, $data);
                 $this->flash('ok', 'Cita actualizada.');
@@ -459,8 +445,6 @@ class CitasController extends Controller {
                 'hora_fin'                 => substr($fmt($c['hora_fin'], 'H:i:s'), 0, 8),
                 'id_CATALOGO_ESTADO_CITAS' => $idEstado,
                 'observaciones'            => $observaciones !== null ? $observaciones : (string)($c['observaciones'] ?? ''),
-                'notifica_email'           => (int)($c['notifica_email'] ?? 0),
-                'notifica_wa'              => (int)($c['notifica_wa'] ?? 0),
                 'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
                 'precio'                   => (float)($c['precio'] ?? 0),
             ]);
