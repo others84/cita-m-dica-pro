@@ -100,3 +100,26 @@
     <?php endforeach; endif; ?>
   </tbody>
 </table>
+
+<?php $paginas = (int)($paginas ?? 1); $pag = (int)($pag ?? 1); ?>
+<?php if (($totalCitas ?? 0) > 0): ?>
+<div class="pager" style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
+  <span style="color:var(--c4)">
+    Página <?= $pag ?> de <?= $paginas ?> · <?= (int)$totalCitas ?> citas
+  </span>
+  <?php if ($pag > 1): ?>
+    <?php post_button('citas/pagina', ['pag' => 1], '«', 'btn btn-sec'); ?>
+    <?php post_button('citas/pagina', ['pag' => $pag - 1], '‹', 'btn btn-sec'); ?>
+  <?php endif; ?>
+  <?php
+    $ini = max(1, $pag - 2); $fin = min($paginas, $ini + 4); $ini = max(1, $fin - 4);
+    for ($i = $ini; $i <= $fin; $i++) {
+        post_button('citas/pagina', ['pag' => $i], (string)$i, $i === $pag ? 'btn' : 'btn btn-sec');
+    }
+  ?>
+  <?php if ($pag < $paginas): ?>
+    <?php post_button('citas/pagina', ['pag' => $pag + 1], '›', 'btn btn-sec'); ?>
+    <?php post_button('citas/pagina', ['pag' => $paginas], '»', 'btn btn-sec'); ?>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
