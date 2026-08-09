@@ -45,7 +45,7 @@ BEGIN
         BEGIN
             /* Completa los datos faltantes desde la cita */
             SELECT
-                @medico       = ISNULL(@medico, LTRIM(RTRIM(ISNULL(u.nombre,'') + ' ' + ISNULL(u.ap_paterno,'') + ' ' + ISNULL(u.ap_materno,'')))),
+                @medico       = ISNULL(@medico, u.nombre_completo),
                 @paciente     = ISNULL(@paciente, LTRIM(RTRIM(ISNULL(p.nombre,'') + ' ' + ISNULL(p.ap_paterno,'') + ' ' + ISNULL(p.ap_materno,'')))),
                 @especialidad = ISNULL(@especialidad, e.nombre),
                 @consultorio  = ISNULL(@consultorio, co.nombre),
@@ -55,7 +55,7 @@ BEGIN
             LEFT JOIN citas.PACIENTE p                 ON p.id_PACIENTE = c.id_PACIENTE
             LEFT JOIN citas.CATALOGO_ESPECIALIDAD e    ON e.id_CATALOGO_ESPECIALIDAD = c.id_CATALOGO_ESPECIALIDAD
             LEFT JOIN citas.CONSULTORIO co             ON co.id_CONSULTORIO = c.id_CONSULTORIO
-            LEFT JOIN citas.CLINICA cl                 ON cl.id_CLINICA = co.id_CLINICA
+            LEFT JOIN citas.CLINICA cl                 ON cl.id_CLINICA = p.id_CLINICA
             WHERE c.id_CITA = @id_CITA;
 
             SET @evento = 'CITA ATENDIDA' +
