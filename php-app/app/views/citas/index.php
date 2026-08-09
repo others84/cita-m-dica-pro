@@ -91,8 +91,11 @@
             <?php elseif ($notifWa): ?>
               <button class="btn btn-sec" type="button" disabled title="El paciente no tiene telefono registrado">Sin teléfono</button>
             <?php endif; ?>
-            <?php if ($notifMail && $mailPac !== ''): ?>
-              <?php post_button('citas/enviarEmail', ['id' => (int)$c['id_CITA']], 'Email', 'btn btn-sec', '¿Enviar el recordatorio por correo electrónico?'); ?>
+            <?php $ml = $notifMail ? mail_link($c) : ''; ?>
+            <?php if ($ml !== ''): ?>
+              <button class="btn btn-sec" type="button"
+                 data-mail="<?= htmlspecialchars($ml, ENT_QUOTES) ?>"
+                 onclick="fetch('<?= url('citas/emailLog') ?>',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'_csrf=<?= rawurlencode(csrf_token()) ?>&id=<?= (int)$c['id_CITA'] ?>'});window.location.href=this.dataset.mail;">Email</button>
             <?php elseif ($notifMail): ?>
               <button class="btn btn-sec" type="button" disabled title="El paciente no tiene correo registrado">Sin correo</button>
             <?php endif; ?>
