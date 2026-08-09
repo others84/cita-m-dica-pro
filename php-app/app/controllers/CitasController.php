@@ -311,7 +311,17 @@ class CitasController extends Controller {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if (!$c) throw new RuntimeException('No se encontro la cita.');
-            CitaModel::notifica($id);
+            $usuario = (string)($_SESSION['user']['usuario'] ?? '?');
+            CitaModel::notifica($id, $usuario);
+            Database::log('CITA NOTIFICADA id_CITA=' . $id
+                . ' usuario=' . $usuario
+                . ' id_usuario=' . (int)($_SESSION['user']['id_USUARIOS'] ?? 0)
+                . ' paciente=' . trim((string)($c['paciente'] ?? '(n/d)'))
+                . ' id_PACIENTE=' . (int)($c['id_PACIENTE'] ?? 0)
+                . ' clinica=' . trim((string)($c['clinica'] ?? '(n/d)'))
+                . ' id_CLINICA=' . (int)($c['id_CLINICA'] ?? 0)
+                . ' consultorio=' . trim((string)($c['consultorio'] ?? '(n/d)'))
+                . ' id_CONSULTORIO=' . (int)($c['id_CONSULTORIO'] ?? 0));
             $this->flash('ok', 'Cita marcada como notificada.');
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo marcar como notificada: ' . $e->getMessage());
