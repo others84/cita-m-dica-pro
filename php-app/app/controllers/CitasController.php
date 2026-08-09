@@ -125,6 +125,8 @@ class CitasController extends Controller {
      */
     public function pendientes(): void {
         $this->requireLogin();
+        // El monitor corre cada minuto: no debe generar ruido en app.log.
+        Database::$silencioso = true;
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         $total = 0;
@@ -150,7 +152,7 @@ class CitasController extends Controller {
                 $total = count(CitaModel::porNotificar(null, $ctx['fClinica']));
             }
         } catch (Throwable $e) {
-            Database::log('CITAS.pendientes ERR: ' . $e->getMessage());
+            // Silenciado a proposito: el monitor no escribe en app.log.
         }
         echo json_encode(['total' => $total, 'ts' => time()]);
         exit;

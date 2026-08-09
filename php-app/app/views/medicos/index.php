@@ -54,9 +54,23 @@
         <td><?= htmlspecialchars($m['email'] ?? '') ?></td>
         <td><?= htmlspecialchars($m['clinica'] ?? '') ?></td>
         <td>
-          <?php $asg = ($clinicasPorMedico[$idU] ?? []);
-                if (empty($asg)) echo '<span style="color:var(--c5)">Sin asignar</span>';
-                else echo htmlspecialchars(implode(', ', array_map(fn($a) => (string)$a['nombre'], $asg))); ?>
+          <?php $asg = ($clinicasPorMedico[$idU] ?? []); ?>
+          <?php if (empty($asg)): ?>
+            <span style="color:var(--c5)">Sin asignar</span>
+          <?php else: ?>
+            <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+              <?php foreach ($asg as $a): ?>
+                <form method="post" action="<?= url('medicos/removerClinica') ?>" style="display:inline-flex;align-items:center;gap:.25rem"
+                      onsubmit="return confirm('Eliminar la clinica <?= htmlspecialchars(addslashes((string)$a['nombre'])) ?> de este medico?')"><?= csrf_field() ?>
+                  <input type="hidden" name="id_MEDICO" value="<?= $idU ?>">
+                  <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)$a['id_USUARIOS_CLINICA'] ?>">
+                  <input type="hidden" name="id_CLINICA" value="<?= (int)$a['id_CLINICA'] ?>">
+                  <span><?= htmlspecialchars((string)$a['nombre']) ?></span>
+                  <button class="btn btn-danger" style="padding:.1rem .4rem;line-height:1" title="Eliminar clinica">&times;</button>
+                </form>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
         </td>
         <td><span class="badge <?= empty($m['activo'])?'off':'' ?>"><?= empty($m['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
