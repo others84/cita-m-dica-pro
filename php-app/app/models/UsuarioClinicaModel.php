@@ -25,17 +25,32 @@ class UsuarioClinicaModel extends Model {
      * Alta de asignacion usuario-clinica. Devuelve id_USUARIOS_CLINICA.
      */
     public static function asigna(int $idUsuario, int $idClinica): int {
-        return self::executeWithOutput('spAltaUsuarioClinica', [
+        $base = [
             '@id_USUARIOS' => $idUsuario,
             '@id_CLINICA'  => $idClinica,
             '@id_usuario'  => self::currentUserId(),
-        ]);
+        ];
+        $actor = (string)($_SESSION['user']['nombre_completo'] ?? $_SESSION['user']['usuario'] ?? '');
+        try {
+            return self::executeWithOutput('spAltaUsuarioClinica', $base + ['@actor' => $actor !== '' ? $actor : null]);
+        } catch (Throwable $e) {
+            if (strpos($e->getMessage(), 'too many arguments') === false) throw $e;
+            return self::executeWithOutput('spAltaUsuarioClinica', $base);
+        }
     }
 
     /**
      * Baja por id_USUARIOS_CLINICA.
      */
     public static function baja(int $idUsuariosClinica): void {
+        $actor = (string)($_SESSION['user']['nombre_completo'] ?? $_SESSION['user']['usuario'] ?? '');
+        try {
+            self::execute('EXEC citas.spBajaUsuarioClinica @id_USUARIOS_CLINICA=:id, @id_usuario=:a, @actor=:n',
+                [':id' => $idUsuariosClinica, ':a' => self::currentUserId(), ':n' => $actor !== '' ? $actor : null]);
+            return;
+        } catch (Throwable $e) {
+            if (strpos($e->getMessage(), 'too many arguments') === false) throw $e;
+        }
         self::execute('EXEC citas.spBajaUsuarioClinica @id_USUARIOS_CLINICA=:id, @id_usuario=:a',
             [':id' => $idUsuariosClinica, ':a' => self::currentUserId()]);
     }
