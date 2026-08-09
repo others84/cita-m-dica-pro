@@ -309,6 +309,8 @@ CREATE TABLE citas.PACIENTE (
     id_CATALOGO_GENERO       INT               NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
     observaciones            VARCHAR(5000)      NULL,
+    notifica_email           BIT               NOT NULL DEFAULT(0),
+    notifica_wa              BIT               NOT NULL DEFAULT(0),
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
