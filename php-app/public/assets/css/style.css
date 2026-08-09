@@ -2,7 +2,8 @@
   --c1:#EAF6FF; --c2:#BFDFFF; --c3:#7FB6E6; --c4:#3E7FB1; --c5:#1E3A5F;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--c1);color:var(--c5)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--c1);color:var(--c5);overflow-x:hidden}
 
 /* Login */
 .login-body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--c2),var(--c4))}
@@ -16,8 +17,8 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .alert{background:#fde2e2;color:#a4232b;padding:.5rem;border-radius:6px;font-size:.85rem}
 
 /* App layout */
-.app{display:flex;min-height:100vh}
-.sidebar{width:260px;background:var(--c5);color:#fff;display:flex;flex-direction:column;padding:1rem}
+.app{display:flex;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;width:100%;max-width:100%}
+.sidebar{width:260px;flex:0 0 260px;background:var(--c5);color:#fff;display:flex;flex-direction:column;padding:1rem}
 .sidebar .brand{font-size:1.1rem;font-weight:700;margin-bottom:1rem}
 .sidebar .user{background:rgba(255,255,255,.08);padding:.6rem;border-radius:8px;margin-bottom:1rem;display:flex;flex-direction:column}
 .sidebar .user small{color:var(--c3);text-transform:capitalize}
@@ -43,10 +44,10 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .sidebar nav .menu-group > summary:hover{background:var(--c4)}
 .sidebar nav .menu-group > a{padding-left:1.5rem;font-size:.85rem;display:block}
 
-.content{flex:1;display:flex;flex-direction:column;background:var(--c1)}
+.content{flex:1 1 auto;min-width:0;max-width:100%;display:flex;flex-direction:column;background:var(--c1)}
 .topbar{background:#fff;padding:1rem 1.5rem;border-bottom:1px solid var(--c2)}
 .topbar h1{margin:0;font-size:1.2rem;color:var(--c5)}
-.page{padding:1.5rem}
+.page{padding:1.5rem;min-width:0;max-width:100%}
 .card{background:#fff;border:1px solid var(--c2);border-radius:10px;padding:1.5rem;box-shadow:0 2px 6px rgba(30,58,95,.05)}
 .calendar-card{padding:1rem;min-height:760px;overflow:auto}
 .calendar-card #ec,.calendar-box{height:700px;min-height:700px;width:100%}
@@ -155,3 +156,36 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){
   background:var(--c3) !important;color:var(--c5) !important;font-weight:700;
 }
 .nav-badge{margin-left:.35rem;font-weight:700;color:#fff}
+
+/* ===== Responsive (Safari / iOS incluidos) ===== */
+/* Safari no encoge los items flex por defecto: sin min-width:0 el contenido
+   ancho (tablas, graficas) desborda y rompe el layout en telefono/tablet. */
+.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars{min-width:0;max-width:100%}
+.card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+img,canvas,svg{max-width:100%;height:auto}
+.form-grid input,.form-grid select,.form-grid textarea{max-width:100%;width:100%;font-size:16px} /* evita el zoom automatico de iOS */
+table.data{min-width:640px}
+.rep-pie{max-width:100%}
+
+@media (max-width:900px){
+  .app{flex-direction:column;min-height:auto}
+  .sidebar{width:100%;flex:0 0 auto;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom))}
+  .sidebar nav{max-height:60vh}
+  .sidebar nav .logout{margin-top:.75rem}
+  .content{width:100%}
+  .topbar{padding:.85rem 1rem}
+  .page{padding:1rem}
+  .card{padding:1rem}
+  .toolbar{align-items:stretch}
+  .toolbar .btn{text-align:center}
+  .calendar-card{min-height:0}
+  .calendar-card #ec,.calendar-box{height:480px;min-height:480px}
+  .rep-pie-wrap{gap:1rem}
+  .modal{min-width:0;width:calc(100% - 2rem)}
+}
+
+@media (max-width:600px){
+  .form-grid{grid-template-columns:1fr}
+  .form-actions{flex-wrap:wrap}
+  .login-card{max-width:100%;margin:1rem}
+}
