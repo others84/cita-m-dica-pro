@@ -391,36 +391,25 @@ class CitasController extends Controller {
         exit;
     }
 
-    /** Envia por correo el mismo recordatorio que se manda por WhatsApp. */
-    public function enviarEmail(): void {
+    /** Registra en app.log que se abrio el cliente de correo local para una cita. */
+    public function emailLog(): void {
         $this->requireLogin();
         $id = (int)$this->input('id');
         try {
             $c = $id ? CitaModel::obtener($id) : null;
-            if (!$c) throw new RuntimeException('No se encontro la cita.');
-            $para = trim((string)($c['email_notif'] ?? ''));
-            if ($para === '' || !filter_var($para, FILTER_VALIDATE_EMAIL)) {
-                throw new RuntimeException('El paciente no tiene un correo valido.');
+            if ($c) {
+                Database::log('EMAIL CLIENTE LOCAL ABIERTO id_CITA=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
+                    . ' paciente=' . trim((string)($c['paciente'] ?? '(n/d)'))
+                    . ' clinica=' . trim((string)($c['clinica'] ?? '(n/d)'))
+                    . ' email=' . trim((string)($c['email_notif'] ?? '')));
             }
-            $asunto = 'Recordatorio de cita medica';
-            $cuerpo = wa_mensaje($c);
-            $remitente = (string)Config::get('mail.from', 'no-reply@localhost');
-            $cab = "From: " . $remitente . "\r\n"
-                 . "Content-Type: text/plain; charset=UTF-8\r\n";
-            $ok = @mail($para, $asunto, $cuerpo, $cab);
-            Database::log('EMAIL RECORDATORIO ' . ($ok ? 'ENVIADO' : 'FALLIDO')
-                . ' id_CITA=' . $id
-                . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
-                . ' paciente=' . trim((string)($c['paciente'] ?? '(n/d)'))
-                . ' clinica=' . trim((string)($c['clinica'] ?? '(n/d)'))
-                . ' email=' . $para);
-            if (!$ok) throw new RuntimeException('El servidor no pudo enviar el correo.');
-            $this->flash('ok', 'Recordatorio enviado por correo a ' . $para . '.');
         } catch (Throwable $e) {
-            Database::log('CITAS.enviarEmail ERR: ' . $e->getMessage());
-            $this->flash('error', 'No se pudo enviar el correo: ' . $e->getMessage());
+            Database::log('CITAS.emailLog ERR: ' . $e->getMessage());
         }
-        $this->redirect('citas');
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true]);
+        exit;
     }
 
     /** Marca la cita como notificada (implementacion). */
