@@ -130,8 +130,25 @@ class CitasController extends Controller {
         $total = 0;
         try {
             $ctx = $this->resolveClinicaContext();
-            $idMedico = ($ctx['rol'] === 'medico') ? ((int)($_SESSION['user']['id_USUARIOS'] ?? 0) ?: null) : null;
-            $total = count(CitaModel::porNotificar($idMedico, $ctx['fClinica']));
+            $rol = $ctx['rol'];
+            if ($rol === 'medico') {
+                // El medico ve todas sus citas pendientes, sin importar la clinica.
+                $idMedico = ((int)($_SESSION['user']['id_USUARIOS'] ?? 0)) ?: null;
+                $total = count(CitaModel::porNotificar($idMedico, null));
+            } elseif ($rol === 'administrador') {
+                // El administrador de clinica suma las pendientes de todas
+                // las clinicas a las que tiene acceso.
+                $ids = array_values(array_unique(array_filter(array_map(
+                    fn($c) => (int)($c['id_CLINICA'] ?? 0),
+                    $_SESSION['user']['clinicas'] ?? []
+                ))));
+                if (empty($ids) && !empty($ctx['fClinica'])) $ids = [(int)$ctx['fClinica']];
+                foreach ($ids as $idc) {
+                    $total += count(CitaModel::porNotificar(null, $idc));
+                }
+            } else {
+                $total = count(CitaModel::porNotificar(null, $ctx['fClinica']));
+            }
         } catch (Throwable $e) {
             Database::log('CITAS.pendientes ERR: ' . $e->getMessage());
         }
