@@ -4,7 +4,7 @@
   $clinicaForm = (int)($editRow['id_CLINICA'] ?? $fClinica ?? 0);
 ?>
 <div class="card" style="margin-bottom:1rem">
-  <h2 style="margin-top:0"><?= $editId ? 'Editar medico #' . (int)$editId : 'Nuevo medico' ?></h2>
+  <h2 style="margin-top:0"><?= $editId ? 'Editar medico' : 'Nuevo medico' ?></h2>
   <p style="margin:.2rem 0 1rem;color:var(--c5)">El usuario se da de alta con perfil <strong>medico</strong> y se asigna automaticamente a la clinica seleccionada en el filtro.</p>
   <form method="post" action="<?= url('medicos/guardar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
@@ -27,28 +27,10 @@
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('medicos') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
-</div>
-
-<div class="card" style="margin-bottom:1rem">
-  <h2 style="margin-top:0">Clinicas del medico</h2>
-  <p style="margin:.2rem 0 1rem;color:var(--c5)">Un medico puede atender en mas de una clinica. Selecciona el medico y agrega las clinicas a las que tienes acceso.</p>
-  <form method="post" action="<?= url('medicos') ?>" class="form-grid"><?= csrf_field() ?>
-    <label>Medico
-      <select name="med_cl" onchange="this.form.submit()">
-        <option value="">-- seleccione --</option>
-        <?php foreach ($rows as $m): ?>
-          <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= (int)($idMedicoCl ?? 0) === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
-            <?= htmlspecialchars(($m['nombre_completo'] ?? $m['usuario'] ?? '') . ' (' . ($m['usuario'] ?? '') . ')') ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-  </form>
-
-  <?php if (!empty($medicoSel)): ?>
-    <form method="post" action="<?= url('medicos/asignarClinica') ?>" class="form-grid"><?= csrf_field() ?>
-      <input type="hidden" name="id_MEDICO" value="<?= (int)$medicoSel['id_USUARIOS'] ?>">
-      <label>Agregar clinica
+  <?php if ($editId): ?>
+    <form method="post" action="<?= url('medicos/asignarClinica') ?>" class="form-grid" style="margin-top:1rem"><?= csrf_field() ?>
+      <input type="hidden" name="id_MEDICO" value="<?= (int)$editId ?>">
+      <label>Asignar clinica
         <select name="id_CLINICA" required>
           <option value="">-- seleccione --</option>
           <?php foreach (($clinicasFiltro ?? []) as $cl):
@@ -59,33 +41,11 @@
       </label>
       <div class="form-actions" style="grid-column:1/-1"><button class="btn">Asignar clinica</button></div>
     </form>
-
-    <table class="data">
-      <thead><tr><th>Clinica asignada</th><th>Acciones</th></tr></thead>
-      <tbody>
-        <?php if (empty($asignadas)): ?>
-          <tr><td colspan="2">Sin clinicas asignadas.</td></tr>
-        <?php else: foreach ($asignadas as $a): ?>
-          <tr>
-            <td><?= htmlspecialchars($a['nombre']) ?></td>
-            <td class="acts">
-              <form method="post" action="<?= url('medicos/removerClinica') ?>" style="display:inline"
-                    onsubmit="return confirm('Remover esta clinica del medico?');"><?= csrf_field() ?>
-                <input type="hidden" name="id_MEDICO" value="<?= (int)$medicoSel['id_USUARIOS'] ?>">
-                <input type="hidden" name="id_USUARIOS_CLINICA" value="<?= (int)($a['id_USUARIOS_CLINICA'] ?? 0) ?>">
-                <input type="hidden" name="id_CLINICA" value="<?= (int)$a['id_CLINICA'] ?>">
-                <button class="btn btn-danger">Remover</button>
-              </form>
-            </td>
-          </tr>
-        <?php endforeach; endif; ?>
-      </tbody>
-    </table>
   <?php endif; ?>
 </div>
 
 <table class="data">
-  <thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Clinica</th><th>Activo</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Clinica</th><th>Clinicas asignadas</th><th>Activo</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $m): $idU = (int)($m['id_USUARIOS'] ?? 0); ?>
       <tr>
@@ -93,6 +53,11 @@
         <td><?= htmlspecialchars($m['nombre_completo'] ?? '') ?></td>
         <td><?= htmlspecialchars($m['email'] ?? '') ?></td>
         <td><?= htmlspecialchars($m['clinica'] ?? '') ?></td>
+        <td>
+          <?php $asg = ($clinicasPorMedico[$idU] ?? []);
+                if (empty($asg)) echo '<span style="color:var(--c5)">Sin asignar</span>';
+                else echo htmlspecialchars(implode(', ', array_map(fn($a) => (string)$a['nombre'], $asg))); ?>
+        </td>
         <td><span class="badge <?= empty($m['activo'])?'off':'' ?>"><?= empty($m['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
           <?php post_button('medicos', ['edit' => $idU], 'Editar', 'btn btn-sec'); ?>
