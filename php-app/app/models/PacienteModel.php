@@ -4,6 +4,13 @@ class PacienteModel extends Model {
     public static function listar(?int $idClinica = null): array {
         return self::query('EXEC citas.spRegresaPacientes @id_CLINICA=:c', [':c'=>$idClinica]);
     }
+    /** Regresa un paciente puntual (todas las clinicas). */
+    public static function obtener(int $id): ?array {
+        foreach (self::listar() as $p) {
+            if ((int)($p['id_PACIENTE'] ?? 0) === $id) return $p;
+        }
+        return null;
+    }
     /** Todas las columnas de PACIENTE son NOT NULL: se envian cadenas, nunca NULL. */
     private static function s($v): string { return trim((string)$v); }
     public static function alta(int $idClinica, string $apPat, string $apMat, string $nombre, string $direccion, string $tel, string $email, string $fechaNac, int $idGenero, int $idMunicipio, string $observaciones = '', int $notificaEmail = 0, int $notificaWa = 0): int {

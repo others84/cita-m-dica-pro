@@ -258,11 +258,18 @@ class CitasController extends Controller {
             'hora_fin'                 => $this->input('hora_fin') . ':00',
             'id_CATALOGO_ESTADO_CITAS' => (int)$this->input('id_CATALOGO_ESTADO_CITAS'),
             'observaciones'            => $this->input('observaciones'),
-            'notifica_email'           => isset($_POST['notifica_email']) ? 1 : 0,
-            'notifica_wa'              => isset($_POST['notifica_wa']) ? 1 : 0,
+            'notifica_email'           => 0,
+            'notifica_wa'              => 0,
             'horas_anticipacion_notif' => (int)($this->input('horas_anticipacion_notif') ?? 24),
             'precio'                   => (float)($this->input('precio') ?? 0),
         ];
+        // Las preferencias de notificacion se toman del paciente (tabla PACIENTE),
+        // ya no se capturan en la cita.
+        $pac = PacienteModel::obtener((int)$data['id_PACIENTE']);
+        if ($pac) {
+            $data['notifica_email'] = !empty($pac['notifica_email']) ? 1 : 0;
+            $data['notifica_wa']    = !empty($pac['notifica_wa']) ? 1 : 0;
+        }
         try {
             if ($id) {
                 $prev = CitaModel::obtener($id);
@@ -273,9 +280,8 @@ class CitasController extends Controller {
                     $this->redirect('citas');
                     return;
                 }
-                // Si la cita no esta agendada, los checkboxes de notificacion
-                // estan deshabilitados en el formulario y no se envian; se
-                // conservan los valores que ya tenia la cita.
+                // Si la cita ya no esta agendada, se conservan los valores que
+                // ya tenia la cita en lugar de recalcularlos del paciente.
                 if (strpos($estPrev, 'agendad') === false) {
                     $data['notifica_email'] = (int)($prev['notifica_email'] ?? 0);
                     $data['notifica_wa']    = (int)($prev['notifica_wa'] ?? 0);
