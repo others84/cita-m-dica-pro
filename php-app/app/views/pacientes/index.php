@@ -76,6 +76,14 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
     <label style="grid-column:1/-1">Observaciones
       <textarea name="observaciones" rows="3" maxlength="500"><?= htmlspecialchars((string)($editRow['observaciones'] ?? '')) ?></textarea>
     </label>
+    <label class="chk">
+      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked' : '' ?>>
+      Enviar notificación por correo
+    </label>
+    <label class="chk">
+      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked' : '' ?>>
+      Enviar notificación por WhatsApp
+    </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit" <?= $clinicaForm <= 0 ? 'disabled' : '' ?>><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('pacientes') ?>">Cancelar</button><?php  endif; ?>
