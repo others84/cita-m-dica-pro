@@ -126,11 +126,9 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
 
     <label>Notificar por email
       <input type="checkbox" id="notif_email_txt" value="1" disabled<?= !empty($editRow['notifica_email']) ? ' checked' : '' ?>>
-      <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
     <label>Notificar por WhatsApp
       <input type="checkbox" id="notif_wa_txt" value="1" disabled<?= !empty($editRow['notifica_wa']) ? ' checked' : '' ?>>
-      <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
 
     <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : ($atender ? 'Observaciones de la cita' : 'Observaciones') ?>
