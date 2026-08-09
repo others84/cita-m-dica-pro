@@ -84,8 +84,10 @@ class CitaModel extends Model {
 
     /** Citas (de la clinica/medico dados) que ya estan en su ventana de notificacion. */
     public static function porNotificar(?int $idMedico = null, ?int $idClinica = null): array {
-        $desde = date('Y-m-d', strtotime('-1 day'));
-        $hasta = date('Y-m-d', strtotime('+30 days'));
+        // Mismo rango que la tabla de "Citas registradas" para que el contador
+        // del menu coincida exactamente con las filas resaltadas.
+        $desde = date('Y-m-d', strtotime('-30 days'));
+        $hasta = date('Y-m-d', strtotime('+90 days'));
         $rows = self::listar($idMedico, $desde, $hasta, $idClinica);
         if ($idMedico !== null) {
             $rows = array_values(array_filter($rows, fn($c) => (int)($c['id_MEDICO'] ?? 0) === $idMedico));
