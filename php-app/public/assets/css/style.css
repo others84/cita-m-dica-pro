@@ -189,3 +189,5 @@ table.data{min-width:640px}
   .form-actions{flex-wrap:wrap}
   .login-card{max-width:100%;margin:1rem}
 }
+
+.cal-contador{margin:0 0 .75rem;padding:.5rem .75rem;background:var(--c1,#eaf2fb);border-left:4px solid var(--c5,#1d4e89);border-radius:6px;color:var(--c5,#1d4e89);font-weight:600}
