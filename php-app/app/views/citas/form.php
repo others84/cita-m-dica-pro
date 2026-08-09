@@ -125,11 +125,11 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label>Notificar por email
-      <input type="text" id="notif_email_txt" readonly value="<?= !empty($editRow['notifica_email']) ? 'Si' : 'No' ?>">
+      <input type="checkbox" id="notif_email_txt" value="1" disabled<?= !empty($editRow['notifica_email']) ? ' checked' : '' ?>>
       <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
     <label>Notificar por WhatsApp
-      <input type="text" id="notif_wa_txt" readonly value="<?= !empty($editRow['notifica_wa']) ? 'Si' : 'No' ?>">
+      <input type="checkbox" id="notif_wa_txt" value="1" disabled<?= !empty($editRow['notifica_wa']) ? ' checked' : '' ?>>
       <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
 
@@ -171,14 +171,14 @@ function validaMotivoCancelacion() {
     var o = sel.options[sel.selectedIndex];
     if (!o || !o.value) {
       em.value = ''; tel.value = ''; if (obs) obs.value = '';
-      if (nEm) nEm.value = 'No'; if (nWa) nWa.value = 'No';
+      if (nEm) nEm.checked = false; if (nWa) nWa.checked = false;
       return;
     }
     em.value  = o.getAttribute('data-email') || '';
     tel.value = o.getAttribute('data-tel') || '';
     if (obs) obs.value = o.getAttribute('data-obs') || '';
-    if (nEm) nEm.value = o.getAttribute('data-nemail') === '1' ? 'Si' : 'No';
-    if (nWa) nWa.value = o.getAttribute('data-nwa') === '1' ? 'Si' : 'No';
+    if (nEm) nEm.checked = o.getAttribute('data-nemail') === '1';
+    if (nWa) nWa.checked = o.getAttribute('data-nwa') === '1';
   }
   sel.addEventListener('change', function () { sync(); updCount(); });
   var cnt = document.getElementById('obs_paciente_count');
@@ -193,8 +193,8 @@ function validaMotivoCancelacion() {
     var oi = sel.options[sel.selectedIndex];
     obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
     if (oi) {
-      if (nEm) nEm.value = oi.getAttribute('data-nemail') === '1' ? 'Si' : 'No';
-      if (nWa) nWa.value = oi.getAttribute('data-nwa') === '1' ? 'Si' : 'No';
+      if (nEm) nEm.checked = oi.getAttribute('data-nemail') === '1';
+      if (nWa) nWa.checked = oi.getAttribute('data-nwa') === '1';
     }
   }
   updCount();
