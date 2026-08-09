@@ -338,10 +338,6 @@ CREATE TABLE citas.CITA (
     hora_fin                    TIME(0)           NOT NULL,
     id_CATALOGO_ESTADO_CITAS    INT               NOT NULL,
     observaciones               VARCHAR(500)      NOT NULL,
-    notifica_email              BIT               NOT NULL,
-    notifica_wa                 BIT               NOT NULL,
-    email_notif                 VARCHAR(120)      NOT NULL,
-    celular_notif               VARCHAR(20)       NOT NULL,
     horas_anticipacion_notif    TINYINT           NOT NULL CONSTRAINT DF_horas_anticipacion_CITA DEFAULT 24,
     precio                      DECIMAL(10,2)     NOT NULL,
     notificado                  BIT               NOT NULL CONSTRAINT DF_notificado_CITA DEFAULT (0),
@@ -366,9 +362,7 @@ CREATE TABLE citas.CITA (
         FOREIGN KEY (id_CONSULTORIO) REFERENCES citas.CONSULTORIO(id_CONSULTORIO),
     CONSTRAINT CHK_hora_CITA               CHECK (hora_fin > hora_inicio),
     CONSTRAINT CHK_precio_CITA             CHECK (precio >= 0),
-    CONSTRAINT CHK_horas_anticipacion_CITA CHECK (horas_anticipacion_notif BETWEEN 1 AND 168),
-    CONSTRAINT CHK_notifica_email_CITA     CHECK (notifica_email IN (0,1)),
-    CONSTRAINT CHK_notifica_wa_CITA        CHECK (notifica_wa IN (0,1))
+    CONSTRAINT CHK_horas_anticipacion_CITA CHECK (horas_anticipacion_notif BETWEEN 1 AND 168)
 );
 GO
 CREATE INDEX IX_fecha_cita_id_MEDICO_CITA ON citas.CITA(fecha_cita, id_MEDICO);
@@ -1876,7 +1870,6 @@ GO
 CREATE OR ALTER PROCEDURE citas.spAltaCita
     @id_PACIENTE INT, @fecha_cita DATE, @hora_inicio TIME(0), @hora_fin TIME(0),
     @id_CATALOGO_ESTADO_CITAS INT, @observaciones VARCHAR(500),
-    @notifica_email BIT, @notifica_wa BIT,
     @horas_anticipacion_notif TINYINT, @precio DECIMAL(10,2),
     @id_MEDICO INT, @id_CATALOGO_ESPECIALIDAD INT, @id_CONSULTORIO INT,
     @id_usuario TINYINT, @id_nuevo INT OUTPUT
@@ -1885,20 +1878,13 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            -- Copia email/celular desde el paciente (no se aceptan como parametros).
-            DECLARE @email_notif VARCHAR(120), @celular_notif VARCHAR(20);
-            SELECT @email_notif = email, @celular_notif = telefono
-              FROM citas.PACIENTE WHERE id_PACIENTE = @id_PACIENTE;
-
             INSERT INTO citas.CITA(id_PACIENTE,fecha_cita,hora_inicio,hora_fin,
                                     id_CATALOGO_ESTADO_CITAS,observaciones,
-                                    notifica_email,notifica_wa,email_notif,celular_notif,
                                     horas_anticipacion_notif,precio,
                                     id_MEDICO,id_CATALOGO_ESPECIALIDAD,id_CONSULTORIO,
                                     id_usuario_creacion,fecha_creacion)
             VALUES(@id_PACIENTE,@fecha_cita,@hora_inicio,@hora_fin,
                    @id_CATALOGO_ESTADO_CITAS,@observaciones,
-                   @notifica_email,@notifica_wa,@email_notif,@celular_notif,
                    @horas_anticipacion_notif,@precio,
                    @id_MEDICO,@id_CATALOGO_ESPECIALIDAD,@id_CONSULTORIO,
                    @id_usuario,GETDATE());
@@ -1924,7 +1910,6 @@ CREATE OR ALTER PROCEDURE citas.spCambioCita
     @id_CITA INT, @id_PACIENTE INT, @fecha_cita DATE,
     @hora_inicio TIME(0), @hora_fin TIME(0),
     @id_CATALOGO_ESTADO_CITAS INT, @observaciones VARCHAR(500),
-    @notifica_email BIT, @notifica_wa BIT,
     @horas_anticipacion_notif TINYINT, @precio DECIMAL(10,2),
     @id_MEDICO INT, @id_CATALOGO_ESPECIALIDAD INT, @id_CONSULTORIO INT,
     @id_usuario TINYINT
@@ -1933,17 +1918,12 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
-            DECLARE @email_notif VARCHAR(120), @celular_notif VARCHAR(20);
-            SELECT @email_notif = email, @celular_notif = telefono
-              FROM citas.PACIENTE WHERE id_PACIENTE = @id_PACIENTE;
-
             UPDATE citas.CITA
                SET id_PACIENTE=@id_PACIENTE, fecha_cita=@fecha_cita,
                    hora_inicio=@hora_inicio, hora_fin=@hora_fin,
                    id_CATALOGO_ESTADO_CITAS=@id_CATALOGO_ESTADO_CITAS,
-                   observaciones=@observaciones, notifica_email=@notifica_email,
-                   notifica_wa=@notifica_wa, email_notif=@email_notif,
-                   celular_notif=@celular_notif, horas_anticipacion_notif=@horas_anticipacion_notif,
+                   observaciones=@observaciones,
+                   horas_anticipacion_notif=@horas_anticipacion_notif,
                    precio=@precio, id_MEDICO=@id_MEDICO,
                    id_CATALOGO_ESPECIALIDAD=@id_CATALOGO_ESPECIALIDAD,
                    id_CONSULTORIO=@id_CONSULTORIO,
