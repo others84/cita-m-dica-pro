@@ -303,7 +303,31 @@ class CitasController extends Controller {
     /** El medico confirma la cita. */
     public function confirmar(): void {
         $this->requireLogin();
-        $this->cambiaEstado((int)$this->input('id'), ['confirmada', 'confirmado'], 'Cita confirmada.');
+        $id = (int)$this->input('id');
+        // Tras confirmar se abre la ventana de la cita para su atencion.
+        $this->cambiaEstado($id, ['confirmada', 'confirmado'], 'Cita confirmada.', null, 'citas/atenderForm', true);
+    }
+
+    /**
+     * Guarda las observaciones capturadas en la ventana de atencion y
+     * cambia el estatus de Confirmada a Atendida.
+     */
+    public function atenderGuardar(): void {
+        $this->requireLogin();
+        $id  = (int)$this->input('id');
+        $obs = (string)($this->input('observaciones') ?? '');
+        try {
+            $c = $id ? CitaModel::obtener($id) : null;
+            if ($c) {
+                PacienteModel::cambioObservaciones(
+                    (int)$c['id_PACIENTE'],
+                    (string)($this->input('observaciones_paciente') ?? '')
+                );
+            }
+        } catch (Throwable $e) {
+            Database::log('CITAS.atenderGuardar obs paciente ERR: ' . $e->getMessage());
+        }
+        $this->cambiaEstado($id, ['atendida', 'atendido'], 'Cita marcada como Atendida.', $obs);
     }
 
     /** Marca la cita como notificada. */
