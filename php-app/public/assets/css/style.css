@@ -156,3 +156,36 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){
   background:var(--c3) !important;color:var(--c5) !important;font-weight:700;
 }
 .nav-badge{margin-left:.35rem;font-weight:700;color:#fff}
+
+/* ===== Responsive (Safari / iOS incluidos) ===== */
+/* Safari no encoge los items flex por defecto: sin min-width:0 el contenido
+   ancho (tablas, graficas) desborda y rompe el layout en telefono/tablet. */
+.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars{min-width:0;max-width:100%}
+.card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+img,canvas,svg{max-width:100%;height:auto}
+.form-grid input,.form-grid select,.form-grid textarea{max-width:100%;width:100%;font-size:16px} /* evita el zoom automatico de iOS */
+table.data{min-width:640px}
+.rep-pie{max-width:100%}
+
+@media (max-width:900px){
+  .app{flex-direction:column;min-height:auto}
+  .sidebar{width:100%;flex:0 0 auto;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom))}
+  .sidebar nav{max-height:60vh}
+  .sidebar nav .logout{margin-top:.75rem}
+  .content{width:100%}
+  .topbar{padding:.85rem 1rem}
+  .page{padding:1rem}
+  .card{padding:1rem}
+  .toolbar{align-items:stretch}
+  .toolbar .btn{text-align:center}
+  .calendar-card{min-height:0}
+  .calendar-card #ec,.calendar-box{height:480px;min-height:480px}
+  .rep-pie-wrap{gap:1rem}
+  .modal{min-width:0;width:calc(100% - 2rem)}
+}
+
+@media (max-width:600px){
+  .form-grid{grid-template-columns:1fr}
+  .form-actions{flex-wrap:wrap}
+  .login-card{max-width:100%;margin:1rem}
+}
