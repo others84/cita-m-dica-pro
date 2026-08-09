@@ -79,6 +79,15 @@ class CitasController extends Controller {
             return $dir === 'desc' ? -$r : $r;
         });
 
+        // --- Paginacion: 15 elementos por pagina ---
+        $porPagina = 15;
+        $total     = count($citas);
+        $paginas   = max(1, (int)ceil($total / $porPagina));
+        $pag       = (int)($this->stateParam('pag', 1) ?? 1);
+        if ($pag < 1) $pag = 1;
+        if ($pag > $paginas) { $pag = $paginas; $_SESSION['ui']['citas']['pag'] = $pag; }
+        $citas = array_slice($citas, ($pag - 1) * $porPagina, $porPagina);
+
         $this->view('citas/index', [
             'title'    => 'Citas',
             'citas'    => $citas,
@@ -91,6 +100,10 @@ class CitasController extends Controller {
             'fEstado'  => $fEstado,
             'ord'      => $ord,
             'dir'      => $dir,
+            'pag'       => $pag,
+            'paginas'   => $paginas,
+            'totalCitas'=> $total,
+            'porPagina' => $porPagina,
         ]);
     }
 
@@ -99,6 +112,15 @@ class CitasController extends Controller {
         $this->requireLogin();
         $this->stateParam('f_fecha', '');
         $this->stateParam('f_estado', null);
+        $_SESSION['ui']['citas']['pag'] = 1;
+        $this->redirect('citas');
+    }
+
+    /** Cambia la pagina de la tabla de citas. */
+    public function pagina(): void {
+        $this->requireLogin();
+        $p = (int)$this->input('pag');
+        $_SESSION['ui']['citas']['pag'] = $p > 0 ? $p : 1;
         $this->redirect('citas');
     }
 
@@ -113,6 +135,7 @@ class CitasController extends Controller {
         $nuevo  = ($actual === $col && $dir === 'asc') ? 'desc' : 'asc';
         $_SESSION['ui']['citas']['ord'] = $col;
         $_SESSION['ui']['citas']['dir'] = $nuevo;
+        $_SESSION['ui']['citas']['pag'] = 1;
         $this->redirect('citas');
     }
 
