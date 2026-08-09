@@ -39,8 +39,15 @@ class CitaModel extends Model {
     }
     /** Marca la cita como notificada (notificado = 1). */
     public static function notifica(int $id, ?string $usuario = null): void {
-        self::execute('EXEC citas.spNotificaCita @id_CITA=:id, @id_usuario=:u, @usuario=:us',
-            [':id'=>$id, ':u'=>self::currentUserId(), ':us'=>$usuario]);
+        try {
+            self::execute('EXEC citas.spNotificaCita @id_CITA=:id, @id_usuario=:u, @usuario=:us',
+                [':id'=>$id, ':u'=>self::currentUserId(), ':us'=>$usuario]);
+        } catch (Throwable $e) {
+            // La base aun tiene la version anterior del SP (sin @usuario): reintenta.
+            if (strpos($e->getMessage(), 'too many arguments') === false) throw $e;
+            self::execute('EXEC citas.spNotificaCita @id_CITA=:id, @id_usuario=:u',
+                [':id'=>$id, ':u'=>self::currentUserId()]);
+        }
     }
     /** Regresa una cita puntual (sin filtro de clinica ni de fechas). */
     public static function obtener(int $id): ?array {
