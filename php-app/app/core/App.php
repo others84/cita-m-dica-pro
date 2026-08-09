@@ -111,6 +111,17 @@ if (!function_exists('wa_link')) {
     }
 }
 
+if (!function_exists('mail_link')) {
+    /** Enlace mailto: para abrir el cliente de correo instalado en la computadora. */
+    function mail_link(array $c): string {
+        $para = trim((string)($c['email_notif'] ?? ''));
+        if ($para === '' || !filter_var($para, FILTER_VALIDATE_EMAIL)) return '';
+        return 'mailto:' . rawurlencode($para)
+            . '?subject=' . rawurlencode('Recordatorio de cita medica')
+            . '&body=' . rawurlencode(wa_mensaje($c));
+    }
+}
+
 class App {
     public function run(): void {
         if (session_status() !== PHP_SESSION_ACTIVE) {
