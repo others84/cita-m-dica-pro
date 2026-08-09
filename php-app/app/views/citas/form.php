@@ -10,15 +10,20 @@ $hi = $hi ? substr((string)$hi,0,5) : '';
 $hf = $hf ? substr((string)$hf,0,5) : '';
 $modo = $modo ?? 'edicion';
 $soloCancelar = ($modo === 'cancelar');
-$dis = $soloCancelar ? ' disabled' : '';
+$atender = ($modo === 'atender');
+$dis = ($soloCancelar || $atender) ? ' disabled' : '';
+$accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGuardar' : 'citas/guardar');
 ?>
 <?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card">
-  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita') ?></h2>
+  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($atender ? 'Atencion de la cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita')) ?></h2>
   <?php if ($soloCancelar): ?>
     <p style="color:var(--c4);margin-top:0">Escriba el motivo de la cancelacion en Observaciones. Los demas campos no se pueden modificar.</p>
   <?php endif; ?>
-  <form method="post" action="<?= url($soloCancelar ? 'citas/cancelarGuardar' : 'citas/guardar') ?>" class="form-grid"><?= csrf_field() ?>
+  <?php if ($atender): ?>
+    <p style="color:var(--c4);margin-top:0">Revise la informacion de la cita y del paciente. Capture las observaciones y presione "Atendida" para cerrar la consulta.</p>
+  <?php endif; ?>
+  <form method="post" action="<?= url($accion) ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
 
     <label>Paciente
@@ -124,14 +129,14 @@ $dis = $soloCancelar ? ' disabled' : '';
       Notificar por WhatsApp
     </label>
 
-    <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : 'Observaciones' ?>
+    <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : ($atender ? 'Observaciones de la cita' : 'Observaciones') ?>
       <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
       <?php if ($soloCancelar): ?><small style="color:#b00020">Obligatorio: capture la razon de la cancelacion.</small><?php endif; ?>
     </label>
 
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : '' ?>><?= $soloCancelar ? 'Cancelar cita' : ($editId ? 'Actualizar' : 'Agendar') ?></button>
-      <a class="btn btn-sec" href="<?= url('citas') ?>">Cancelar</a>
+      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : ($atender ? ' onclick="return confirm(\'\u00bfMarcar esta cita como Atendida?\');"' : '') ?>><?= $soloCancelar ? 'Cancelar cita' : ($atender ? 'Atendida' : ($editId ? 'Actualizar' : 'Agendar')) ?></button>
+      <a class="btn btn-sec" href="<?= url('citas') ?>"><?= $atender ? 'Regresar' : 'Cancelar' ?></a>
     </div>
   </form>
 </div>

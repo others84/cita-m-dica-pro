@@ -88,7 +88,7 @@
             <?php if (in_array($estadoNom, ['agendada','agendado'], true)): ?>
               <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
             <?php elseif (in_array($estadoNom, ['confirmada','confirmado'], true)): ?>
-              <?php post_button('citas/atendida', ['id' => (int)$c['id_CITA']], 'Atendida', 'btn', '¿Marcar esta cita como Atendida?'); ?>
+              <?php post_button('citas/atenderForm', ['id' => (int)$c['id_CITA']], 'Atender', 'btn'); ?>
             <?php endif; ?>
           <?php else: ?>
             <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>

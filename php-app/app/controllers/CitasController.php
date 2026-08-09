@@ -159,6 +159,8 @@ class CitasController extends Controller {
     public function editar(): void { $this->form(); }
     /** Muestra la cita en solo lectura para capturar el motivo de cancelacion. */
     public function cancelarForm(): void { $this->form('cancelar'); }
+    /** Ventana de atencion: el medico revisa la cita y la marca como Atendida. */
+    public function atenderForm(): void { $this->form('atender'); }
 
     private function form(string $modo = 'edicion'): void {
         $this->requireLogin();
@@ -301,7 +303,31 @@ class CitasController extends Controller {
     /** El medico confirma la cita. */
     public function confirmar(): void {
         $this->requireLogin();
-        $this->cambiaEstado((int)$this->input('id'), ['confirmada', 'confirmado'], 'Cita confirmada.');
+        $id = (int)$this->input('id');
+        // Tras confirmar se abre la ventana de la cita para su atencion.
+        $this->cambiaEstado($id, ['confirmada', 'confirmado'], 'Cita confirmada.', null, 'citas/atenderForm', true);
+    }
+
+    /**
+     * Guarda las observaciones capturadas en la ventana de atencion y
+     * cambia el estatus de Confirmada a Atendida.
+     */
+    public function atenderGuardar(): void {
+        $this->requireLogin();
+        $id  = (int)$this->input('id');
+        $obs = (string)($this->input('observaciones') ?? '');
+        try {
+            $c = $id ? CitaModel::obtener($id) : null;
+            if ($c) {
+                PacienteModel::cambioObservaciones(
+                    (int)$c['id_PACIENTE'],
+                    (string)($this->input('observaciones_paciente') ?? '')
+                );
+            }
+        } catch (Throwable $e) {
+            Database::log('CITAS.atenderGuardar obs paciente ERR: ' . $e->getMessage());
+        }
+        $this->cambiaEstado($id, ['atendida', 'atendido'], 'Cita marcada como Atendida.', $obs);
     }
 
     /** Marca la cita como notificada. */
@@ -331,7 +357,9 @@ class CitasController extends Controller {
     }
 
     /** Cambia el estado de una cita conservando el resto de los datos. */
-    private function cambiaEstado(int $id, array $nombresEstado, string $okMsg, ?string $observaciones = null): void {
+    private function cambiaEstado(int $id, array $nombresEstado, string $okMsg, ?string $observaciones = null,
+                                  string $redirect = 'citas', bool $conservaId = false): void {
+        $c = null;
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if (!$c) throw new RuntimeException('No se encontro la cita.');
@@ -368,14 +396,21 @@ class CitasController extends Controller {
                 $id,
                 (string)($c['estado'] ?? ''),
                 $this->nombreEstado($idEstado),
-                (int)($c['id_CLINICA'] ?? 0)
+                (int)($c['id_CLINICA'] ?? 0),
+                $c
             );
             $this->flash('ok', $okMsg);
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo actualizar la cita: ' . $e->getMessage());
+            $redirect = 'citas';
+            $conservaId = false;
         }
-        $this->clearState('id');
-        $this->redirect('citas');
+        if ($conservaId && $id) {
+            $_SESSION['ui'][$this->stateNs()]['id'] = $id;
+        } else {
+            $this->clearState('id');
+        }
+        $this->redirect($redirect);
     }
 
     /** Regresa el nombre del estado de cita a partir de su id. */
@@ -389,7 +424,7 @@ class CitasController extends Controller {
     }
 
     /** Registra el cambio de estatus en citas.LOG y en app.log. */
-    private function registraLogEstado(int $idCita, ?string $antes, string $nuevo, int $idClinica): void {
+    private function registraLogEstado(int $idCita, ?string $antes, string $nuevo, int $idClinica, ?array $cita = null): void {
         $nombreClinica = '';
         foreach (ClinicaModel::listar() as $cl) {
             if ((int)($cl['id_CLINICA'] ?? 0) === $idClinica) {
@@ -397,13 +432,22 @@ class CitasController extends Controller {
                 break;
             }
         }
+        if ($nombreClinica === '' && $cita) $nombreClinica = trim((string)($cita['clinica'] ?? ''));
         $usuario = (string)($_SESSION['user']['usuario'] ?? '?');
         $linea = $this->eventoLog($idCita, $antes, $nuevo,
             $nombreClinica !== '' ? $nombreClinica : '(n/d)', $idClinica, $usuario,
-            (int)($_SESSION['user']['id_USUARIOS'] ?? 0));
+            (int)($_SESSION['user']['id_USUARIOS'] ?? 0), $cita);
         try {
-            LogModel::estadoCita($idCita, $antes, $nuevo, $idClinica ?: null,
-                $nombreClinica !== '' ? $nombreClinica : null, $usuario);
+            $n = mb_strtolower(trim($nuevo));
+            $esAtendida = in_array($n, ['atendida', 'atendido'], true);
+            LogModel::estadoCita(
+                $idCita, $antes, $nuevo, $idClinica ?: null,
+                $nombreClinica !== '' ? $nombreClinica : null, $usuario,
+                $esAtendida && $cita ? (string)($cita['medico'] ?? '') : null,
+                $esAtendida && $cita ? (string)($cita['paciente'] ?? '') : null,
+                $esAtendida && $cita ? (string)($cita['especialidad'] ?? '') : null,
+                $esAtendida && $cita ? (string)($cita['consultorio'] ?? '') : null
+            );
             Database::log($linea . ' | LOG BD=OK');
         } catch (Throwable $e) {
             Database::log($linea . ' | LOG BD=ERROR: ' . $e->getMessage());
@@ -412,12 +456,20 @@ class CitasController extends Controller {
 
     /** Construye el mensaje de evento con el mismo formato que citas.LOG. */
     private function eventoLog(int $idCita, ?string $antes, string $nuevo, string $clinica,
-                               int $idClinica, string $usuario, int $idUsuario): string {
+                               int $idClinica, string $usuario, int $idUsuario, ?array $cita = null): string {
         $n = mb_strtolower(trim($nuevo));
         if ($antes === null || trim($antes) === '') {
             $prefijo = 'ALTA CITA';
         } elseif (in_array($n, ['atendida', 'atendido'], true)) {
-            $prefijo = 'CITA ATENDIDA';
+            return 'CITA ATENDIDA'
+                . ' medico=' . trim((string)($cita['medico'] ?? '(n/d)'))
+                . ' paciente=' . trim((string)($cita['paciente'] ?? '(n/d)'))
+                . ' clinica=' . $clinica
+                . ' especialidad=' . trim((string)($cita['especialidad'] ?? '(n/d)'))
+                . ' consultorio=' . trim((string)($cita['consultorio'] ?? '(n/d)'))
+                . ' id_CITA=' . $idCita
+                . ' usuario=' . $usuario
+                . ' id_usuario=' . $idUsuario;
         } elseif (in_array($n, ['cancelada', 'cancelado'], true)) {
             return 'CITA CANCELADA clinica=' . $clinica
                 . ' id_CLINICA=' . $idClinica
