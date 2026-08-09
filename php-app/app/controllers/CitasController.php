@@ -359,6 +359,32 @@ class CitasController extends Controller {
     public function notificado(): void {
         $this->requireLogin();
         $id = (int)$this->input('id');
+        $this->notificadoReal($id);
+    }
+
+    /** Registra en app.log que se genero el enlace de WhatsApp para una cita. */
+    public function waLog(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        try {
+            $c = $id ? CitaModel::obtener($id) : null;
+            if ($c) {
+                Database::log('WHATSAPP ENLACE GENERADO id_CITA=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
+                    . ' paciente=' . trim((string)($c['paciente'] ?? '(n/d)'))
+                    . ' clinica=' . trim((string)($c['clinica'] ?? '(n/d)'))
+                    . ' celular=' . wa_numero((string)($c['celular_notif'] ?? '')));
+            }
+        } catch (Throwable $e) {
+            Database::log('CITAS.waLog ERR: ' . $e->getMessage());
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
+    /** Marca la cita como notificada (implementacion). */
+    private function notificadoReal(int $id): void {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if (!$c) throw new RuntimeException('No se encontro la cita.');
