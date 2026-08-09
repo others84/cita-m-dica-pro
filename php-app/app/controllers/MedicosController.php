@@ -40,16 +40,16 @@ class MedicosController extends Controller {
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS'] === $editId) { $editRow = $r; break; }
 
-        // Panel de asignacion multi-clinica.
-        $idMedicoCl = $this->stateInt('med_cl');
-        $medicoSel = null; $asignadas = []; $asignadasIds = [];
-        if ($idMedicoCl) {
-            foreach ($rows as $r) if ((int)$r['id_USUARIOS'] === $idMedicoCl) { $medicoSel = $r; break; }
-            if (!$medicoSel) { $idMedicoCl = null; $this->clearState('med_cl'); }
-            else {
-                $asignadas = UsuarioClinicaModel::listarPorUsuario($idMedicoCl);
-                $asignadasIds = array_map(fn($r) => (int)$r['id_CLINICA'], $asignadas);
-            }
+        // Clinicas asignadas por medico (se muestran en la tabla inferior).
+        $clinicasPorMedico = [];
+        foreach ($rows as $r) {
+            $idU = (int)($r['id_USUARIOS'] ?? 0);
+            if ($idU <= 0) continue;
+            $clinicasPorMedico[$idU] = UsuarioClinicaModel::listarPorUsuario($idU);
+        }
+        $asignadasIds = [];
+        if ($editId && isset($clinicasPorMedico[$editId])) {
+            $asignadasIds = array_map(fn($r) => (int)$r['id_CLINICA'], $clinicasPorMedico[$editId]);
         }
 
         $this->view('medicos/index', [
@@ -57,8 +57,8 @@ class MedicosController extends Controller {
             'editId' => $editId, 'editRow' => $editRow,
             'clinicas'=>ClinicaModel::listar(), 'fClinica'=>$fClinica, 'rol'=>$rol,
             'clinicasFiltro' => $clinicasFiltro,
-            'idMedicoCl' => $idMedicoCl, 'medicoSel' => $medicoSel,
-            'asignadas' => $asignadas, 'asignadasIds' => $asignadasIds,
+            'clinicasPorMedico' => $clinicasPorMedico,
+            'asignadasIds' => $asignadasIds,
         ]);
     }
 
@@ -77,7 +77,7 @@ class MedicosController extends Controller {
             foreach (UsuarioClinicaModel::listarPorUsuario($idMedico) as $r) {
                 if ((int)$r['id_CLINICA'] === $idClinica) {
                     $this->flash('ok', 'La clinica ya estaba asignada.');
-                    $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+                    $_SESSION['ui']['medicos']['edit'] = $idMedico;
                     $this->redirect('medicos');
                     return;
                 }
@@ -89,7 +89,7 @@ class MedicosController extends Controller {
             Database::log("MEDICO CLINICA ASIGNADA id_USUARIOS={$idMedico} clinica='{$nomCl}' (id={$idClinica}) agregado por='{$usr}'");
             $this->flash('ok', 'Clinica asignada al medico.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+        $_SESSION['ui']['medicos']['edit'] = $idMedico;
         $this->redirect('medicos');
     }
 
@@ -110,7 +110,7 @@ class MedicosController extends Controller {
             Database::log("MEDICO CLINICA REMOVIDA id_USUARIOS={$idMedico} clinica_id={$idClinica} por='{$usr}'");
             $this->flash('ok', 'Clinica removida del medico.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        $_SESSION['ui']['medicos']['med_cl'] = $idMedico;
+        $_SESSION['ui']['medicos']['edit'] = $idMedico;
         $this->redirect('medicos');
     }
     public function guardar(): void {
