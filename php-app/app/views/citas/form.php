@@ -37,6 +37,8 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
                   data-email="<?= htmlspecialchars((string)($p['email'] ?? '')) ?>"
                   data-tel="<?= htmlspecialchars((string)($p['telefono'] ?? '')) ?>"
                   data-obs="<?= htmlspecialchars((string)($p['observaciones'] ?? '')) ?>"
+                  data-nemail="<?= !empty($p['notifica_email']) ? '1' : '0' ?>"
+                  data-nwa="<?= !empty($p['notifica_wa']) ? '1' : '0' ?>"
                   <?= isset($editRow) && (int)($editRow['id_PACIENTE']??0)===(int)$p['id_PACIENTE'] ? 'selected':'' ?>>
             <?= htmlspecialchars($nom) ?>
           </option>
@@ -122,13 +124,13 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
       <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
 
-    <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_email" value="1" <?= !empty($editRow['notifica_email']) ? 'checked':'' ?><?= $notifDis ?>>
-      Notificar por email
+    <label>Notificar por email
+      <input type="text" id="notif_email_txt" readonly value="<?= !empty($editRow['notifica_email']) ? 'Si' : 'No' ?>">
+      <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
-    <label style="flex-direction:row;align-items:center;gap:.5rem">
-      <input type="checkbox" name="notifica_wa" value="1" <?= !empty($editRow['notifica_wa']) ? 'checked':'' ?><?= $notifDis ?>>
-      Notificar por WhatsApp
+    <label>Notificar por WhatsApp
+      <input type="text" id="notif_wa_txt" readonly value="<?= !empty($editRow['notifica_wa']) ? 'Si' : 'No' ?>">
+      <small style="color:var(--c4)">Se toma del paciente</small>
     </label>
 
     <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : ($atender ? 'Observaciones de la cita' : 'Observaciones') ?>
@@ -162,13 +164,21 @@ function validaMotivoCancelacion() {
   var em  = document.getElementById('email_notif');
   var tel = document.getElementById('celular_notif');
   var obs = document.getElementById('obs_paciente');
+  var nEm = document.getElementById('notif_email_txt');
+  var nWa = document.getElementById('notif_wa_txt');
   if (!sel || !em || !tel) return;
   function sync() {
     var o = sel.options[sel.selectedIndex];
-    if (!o || !o.value) { em.value = ''; tel.value = ''; if (obs) obs.value = ''; return; }
+    if (!o || !o.value) {
+      em.value = ''; tel.value = ''; if (obs) obs.value = '';
+      if (nEm) nEm.value = 'No'; if (nWa) nWa.value = 'No';
+      return;
+    }
     em.value  = o.getAttribute('data-email') || '';
     tel.value = o.getAttribute('data-tel') || '';
     if (obs) obs.value = o.getAttribute('data-obs') || '';
+    if (nEm) nEm.value = o.getAttribute('data-nemail') === '1' ? 'Si' : 'No';
+    if (nWa) nWa.value = o.getAttribute('data-nwa') === '1' ? 'Si' : 'No';
   }
   sel.addEventListener('change', function () { sync(); updCount(); });
   var cnt = document.getElementById('obs_paciente_count');
@@ -182,6 +192,10 @@ function validaMotivoCancelacion() {
   else if (obs) {
     var oi = sel.options[sel.selectedIndex];
     obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
+    if (oi) {
+      if (nEm) nEm.value = oi.getAttribute('data-nemail') === '1' ? 'Si' : 'No';
+      if (nWa) nWa.value = oi.getAttribute('data-nwa') === '1' ? 'Si' : 'No';
+    }
   }
   updCount();
 })();
