@@ -13,7 +13,6 @@ class CitaModel extends Model {
             '@fecha_cita'=>$d['fecha_cita'], '@hora_inicio'=>$d['hora_inicio'], '@hora_fin'=>$d['hora_fin'],
             '@id_CATALOGO_ESTADO_CITAS'=>$d['id_CATALOGO_ESTADO_CITAS'],
             '@observaciones'=>$d['observaciones'] ?? '',
-            '@notifica_email'=>$d['notifica_email'] ?? 0, '@notifica_wa'=>$d['notifica_wa'] ?? 0,
             '@horas_anticipacion_notif'=>$d['horas_anticipacion_notif'] ?? 24,
             '@precio'=>$d['precio'] ?? 0,
             '@id_MEDICO'=>$d['id_MEDICO'],
@@ -23,11 +22,10 @@ class CitaModel extends Model {
         ]);
     }
     public static function cambio(int $id, array $d): void {
-        self::execute('EXEC citas.spCambioCita @id_CITA=:id, @id_PACIENTE=:p, @fecha_cita=:f, @hora_inicio=:hi, @hora_fin=:hf, @id_CATALOGO_ESTADO_CITAS=:es, @observaciones=:ob, @notifica_email=:ne, @notifica_wa=:nw, @horas_anticipacion_notif=:ha, @precio=:pr, @id_MEDICO=:m, @id_CATALOGO_ESPECIALIDAD=:e, @id_CONSULTORIO=:co, @id_usuario=:u', [
+        self::execute('EXEC citas.spCambioCita @id_CITA=:id, @id_PACIENTE=:p, @fecha_cita=:f, @hora_inicio=:hi, @hora_fin=:hf, @id_CATALOGO_ESTADO_CITAS=:es, @observaciones=:ob, @horas_anticipacion_notif=:ha, @precio=:pr, @id_MEDICO=:m, @id_CATALOGO_ESPECIALIDAD=:e, @id_CONSULTORIO=:co, @id_usuario=:u', [
             ':id'=>$id, ':p'=>$d['id_PACIENTE'], ':f'=>$d['fecha_cita'],
             ':hi'=>$d['hora_inicio'], ':hf'=>$d['hora_fin'],
             ':es'=>$d['id_CATALOGO_ESTADO_CITAS'], ':ob'=>$d['observaciones'] ?? '',
-            ':ne'=>$d['notifica_email'] ?? 0, ':nw'=>$d['notifica_wa'] ?? 0,
             ':ha'=>$d['horas_anticipacion_notif'] ?? 24, ':pr'=>$d['precio'] ?? 0,
             ':m'=>$d['id_MEDICO'], ':e'=>$d['id_CATALOGO_ESPECIALIDAD'],
             ':co'=>$d['id_CONSULTORIO'], ':u'=>self::currentUserId(),
