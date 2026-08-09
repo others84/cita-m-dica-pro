@@ -11,7 +11,9 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
 $modo = $modo ?? 'edicion';
 $soloCancelar = ($modo === 'cancelar');
 $atender = ($modo === 'atender');
+$notifEditable = $notifEditable ?? true;   // solo citas agendadas permiten editar notificaciones
 $dis = ($soloCancelar || $atender) ? ' disabled' : '';
+$notifDis = $notifEditable ? '' : ' disabled';
 $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGuardar' : 'citas/guardar');
 ?>
 <?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
