@@ -273,6 +273,13 @@ class CitasController extends Controller {
                     $this->redirect('citas');
                     return;
                 }
+                // Si la cita no esta agendada, los checkboxes de notificacion
+                // estan deshabilitados en el formulario y no se envian; se
+                // conservan los valores que ya tenia la cita.
+                if (strpos($estPrev, 'agendad') === false) {
+                    $data['notifica_email'] = (int)($prev['notifica_email'] ?? 0);
+                    $data['notifica_wa']    = (int)($prev['notifica_wa'] ?? 0);
+                }
                 CitaModel::cambio($id, $data);
                 $this->flash('ok', 'Cita actualizada.');
                 $antes = (string)($prev['estado'] ?? '');
