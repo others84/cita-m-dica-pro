@@ -249,7 +249,7 @@ table.data.ord-col-2 tbody tr.cita-por-notificar td:nth-child(2),
 table.data.ord-col-3 tbody tr.cita-por-notificar td:nth-child(3),
 table.data.ord-col-4 tbody tr.cita-por-notificar td:nth-child(4),
 table.data.ord-col-5 tbody tr.cita-por-notificar td:nth-child(5),
-table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(--grad-medio) !important}
+table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(--c3) !important;background-image:none !important}
 .badge{background:var(--grad-suave)}
 .cal-contador{background:var(--grad-suave)}
 .chart-col{background:linear-gradient(45deg,var(--c3),var(--c4),var(--c5))}
