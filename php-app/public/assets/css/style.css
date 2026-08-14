@@ -214,9 +214,20 @@ body{background:var(--grad-suave);background-attachment:fixed}
 
 /* Layout */
 .content{background:transparent}
-.sidebar{background:var(--grad-oscuro)}
-.sidebar nav a:hover,.sidebar nav .menu-group > summary:hover{background:linear-gradient(45deg,var(--c4),var(--c3),var(--c4))}
-.sidebar nav a.active,.sidebar nav .menu-group > a.active{background:var(--grad-medio)}
+/* El menu es alto y angosto: un 45deg real se ve plano, por eso se usa
+   'to top right' con paradas explicitas para que el degradado se note. */
+.sidebar{background:linear-gradient(to top right,var(--c5) 0%,var(--c4) 55%,var(--c3) 100%)}
+.sidebar .user{background:linear-gradient(45deg,rgba(255,255,255,.06),rgba(255,255,255,.18),rgba(255,255,255,.06))}
+.sidebar nav a,
+.sidebar nav .menu-group > summary{
+  background:linear-gradient(45deg,rgba(255,255,255,.04),rgba(255,255,255,.14),rgba(255,255,255,.04));
+}
+.sidebar nav .menu-group > a{background:linear-gradient(45deg,rgba(255,255,255,.02),rgba(255,255,255,.09),rgba(255,255,255,.02))}
+.sidebar nav a:hover,
+.sidebar nav .menu-group > summary:hover{background:linear-gradient(45deg,var(--c5),var(--c4),var(--c3))}
+.sidebar nav a.active,
+.sidebar nav .menu-group > a.active{background:linear-gradient(45deg,var(--c2),var(--c3),var(--c2));color:var(--c5)}
+.sidebar nav .logout{background:linear-gradient(45deg,rgba(255,255,255,.05),rgba(255,255,255,.16),rgba(255,255,255,.05))}
 .topbar{background:linear-gradient(45deg,#fff,var(--c1),var(--c2))}
 .card{background:linear-gradient(45deg,#fff,var(--c1) 70%,var(--c2))}
 
