@@ -127,6 +127,9 @@ class App {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
+        // Credenciales por variables de entorno (.env fuera del control de
+        // versiones); config.properties queda solo como respaldo local.
+        Config::loadEnv(__DIR__ . '/../../.env');
         Config::load(__DIR__ . '/../../config/config.properties');
 
         // Blindaje de URL limpia: ningun dato de negocio puede viajar por la
