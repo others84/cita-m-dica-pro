@@ -12,6 +12,7 @@ $csrf = $_SESSION['csrf_token'];
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= htmlspecialchars($title) ?></title>
 <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
+<link rel="icon" type="image/png" href="<?= url('favicon.png') ?>">
 </head>
 <body class="login-body">
   <form class="login-card" method="post" action="<?= url('auth/login') ?>">
