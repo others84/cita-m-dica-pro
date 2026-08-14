@@ -39,8 +39,28 @@ class Database {
         if (self::$silencioso) return;
         $dir = __DIR__ . '/../../storage/logs';
         if (!is_dir($dir)) @mkdir($dir, 0777, true);
-        @file_put_contents($dir . '/app.log',
+        $hoy = date('Y-m-d');
+        @file_put_contents($dir . '/app-' . $hoy . '.log',
             '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL,
             FILE_APPEND);
+        self::purgarLogs($dir, $hoy);
+    }
+
+    /**
+     * Elimina los archivos app-YYYY-MM-DD.log mas antiguos que la retencion
+     * configurada (LOG_RETENTION_DAYS, 30 dias por defecto).
+     * Solo se ejecuta una vez por dia y por proceso.
+     */
+    private static ?string $purgaHecha = null;
+    private static function purgarLogs(string $dir, string $hoy): void {
+        if (self::$purgaHecha === $hoy) return;
+        self::$purgaHecha = $hoy;
+        $dias = (int)(Config::get('log.retention_days', 30));
+        if ($dias <= 0) $dias = 30;
+        $limite = time() - ($dias * 86400);
+        foreach (glob($dir . '/app-*.log') ?: [] as $f) {
+            $mt = @filemtime($f);
+            if ($mt !== false && $mt < $limite) @unlink($f);
+        }
     }
 }

@@ -30,6 +30,11 @@ class AuthController extends Controller {
             $password = $_POST['password'] ?? '';
             $user = Auth::attempt($usuario, $password);
             if ($user) {
+                // Anti session fixation: se emite un identificador de sesion
+                // nuevo al autenticar, conservando el token CSRF vigente.
+                $csrf = $_SESSION['csrf_token'] ?? null;
+                session_regenerate_id(true);
+                if ($csrf) { $_SESSION['csrf_token'] = $csrf; }
                 $_SESSION['user'] = $user;
                 $destino = $user['rol'] === 'admin_sistema' ? url('clinicas') : url('calendario');
                 header('Location: ' . $destino);
