@@ -1,0 +1,12 @@
+# Plantilla. Copia como config.properties (queda fuera del control de versiones).
+# Las variables de entorno / .env tienen prioridad sobre estos valores.
+db.instance=SERVIDOR\SQLEXPRESS
+db.name=CitasMedicas
+db.user=citasadmin
+db.password=
+db.port=1433
+
+app.name=Citas Médicas
+app.base_url=/
+mail.from=no-reply@citasmedicas.local
+log.retention_days=30
