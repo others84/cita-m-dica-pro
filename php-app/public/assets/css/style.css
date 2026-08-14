@@ -6,7 +6,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--c1);color:var(--c5);overflow-x:hidden}
 
 /* Login */
-.login-body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--c2),var(--c4))}
+.login-body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,var(--c2),var(--c3),var(--c4))}
 .login-card{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 10px 30px rgba(30,58,95,.2);width:100%;max-width:360px;display:flex;flex-direction:column;gap:.75rem}
 .login-card h1{margin:0;color:var(--c5);font-size:1.35rem;text-align:center;line-height:1.25}
 .login-logo{display:block;width:96px;height:96px;margin:0 auto .25rem;object-fit:contain}
@@ -137,7 +137,7 @@ table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
 /* ===== Reportes: graficos ===== */
 .chart-bars{display:flex;align-items:flex-end;gap:.5rem;height:280px;overflow-x:auto;padding:.5rem .25rem 0;border-bottom:2px solid var(--c2)}
 .chart-bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:52px;flex:1;height:100%}
-.chart-col{width:70%;max-width:46px;background:linear-gradient(180deg,var(--c3),var(--c5));border-radius:6px 6px 0 0}
+.chart-col{width:70%;max-width:46px;background:linear-gradient(45deg,var(--c3),var(--c4),var(--c5));border-radius:6px 6px 0 0}
 .chart-val{font-size:.7rem;color:var(--c5);margin-bottom:.25rem;white-space:nowrap}
 .chart-lbl{font-size:.68rem;color:var(--c4);margin-top:.35rem;text-align:center;word-break:break-word;line-height:1.1}
 .rep-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
