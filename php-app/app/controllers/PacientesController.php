@@ -55,6 +55,16 @@ class PacientesController extends Controller {
         $id = $this->intOrNull($_POST['id'] ?? null);
         $idClinica = (int)$this->input('id_CLINICA');
         $ctx = $this->resolveClinicaContext();
+        // IDOR: al editar, el paciente destino debe pertenecer a una clinica
+        // autorizada para el usuario (no basta con validar la clinica enviada).
+        if ($id) {
+            $actual = PacienteModel::obtener((int)$id);
+            if (!$actual || !$this->clinicaPermitida((int)($actual['id_CLINICA'] ?? 0))) {
+                $this->clearState('edit');
+                $this->denegarRecurso('PACIENTE', $id, $actual ? (int)($actual['id_CLINICA'] ?? 0) : null, 'pacientes');
+                return;
+            }
+        }
         $idsPermitidos = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $ctx['clinicasFiltro'] ?? []);
         if (($ctx['rol'] ?? '') !== 'admin_sistema' && !empty($idsPermitidos) && !in_array($idClinica, $idsPermitidos, true)) {
             $idClinica = (int)($ctx['fClinica'] ?? 0);
@@ -127,6 +137,12 @@ class PacientesController extends Controller {
     public function eliminar(): void {
         $this->requireLogin();
         $id = (int)$this->input('id');
+        $actual = $id ? PacienteModel::obtener($id) : null;
+        if (!$actual || !$this->clinicaPermitida((int)($actual['id_CLINICA'] ?? 0))) {
+            $this->clearState('edit');
+            $this->denegarRecurso('PACIENTE', $id, $actual ? (int)($actual['id_CLINICA'] ?? 0) : null, 'pacientes');
+            return;
+        }
         try { PacienteModel::baja($id); $this->flash('ok','Paciente eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $fClinica = (int)($_SESSION['f_clinica'] ?? 0);

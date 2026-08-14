@@ -32,6 +32,24 @@ class MedicosController extends Controller {
         return $rows;
     }
 
+    /**
+     * True si el usuario destino es alcanzable por el administrador actual:
+     * debe estar asignado (o pertenecer) a alguna de sus clinicas.
+     */
+    private function medicoPermitido(int $idUsuario): bool {
+        if ($idUsuario <= 0) return false;
+        $permitidas = $this->clinicasPermitidas();
+        if ($permitidas === null) return true;             // admin_sistema
+        foreach (UsuarioClinicaModel::listarPorUsuario($idUsuario) as $r) {
+            if (in_array((int)($r['id_CLINICA'] ?? 0), $permitidas, true)) return true;
+        }
+        foreach (UsuarioModel::listar() as $u) {
+            if ((int)($u['id_USUARIOS'] ?? 0) === $idUsuario
+                && in_array((int)($u['id_CLINICA'] ?? 0), $permitidas, true)) return true;
+        }
+        return false;
+    }
+
     public function index(): void {
         $this->requireLogin(['administrador']);
         $ctx = $this->resolveClinicaContext();
@@ -72,6 +90,9 @@ class MedicosController extends Controller {
         $idClinica = (int)$this->input('id_CLINICA');
         try {
             if ($idMedico <= 0) throw new RuntimeException('Selecciona un medico.');
+            if (!$this->medicoPermitido($idMedico)) {
+                throw new RuntimeException('Medico fuera del alcance del administrador.');
+            }
             if (!in_array($idClinica, $idsAdmin, true)) {
                 throw new RuntimeException('Clinica fuera del alcance del administrador.');
             }
@@ -121,6 +142,9 @@ class MedicosController extends Controller {
         $idUC     = (int)$this->input('id_USUARIOS_CLINICA');
         $idClinica= (int)$this->input('id_CLINICA');
         try {
+            if (!$this->medicoPermitido($idMedico)) {
+                throw new RuntimeException('Medico fuera del alcance del administrador.');
+            }
             if (!in_array($idClinica, $idsAdmin, true)) {
                 throw new RuntimeException('Clinica fuera del alcance del administrador.');
             }
@@ -139,6 +163,11 @@ class MedicosController extends Controller {
     public function guardar(): void {
         $this->requireLogin(['administrador']);
         $id = $this->intOrNull($_POST['id'] ?? null);
+        if ($id && !$this->medicoPermitido((int)$id)) {
+            $this->clearState('edit');
+            $this->denegarRecurso('MEDICO', $id, null, 'medicos');
+            return;
+        }
         $idClinica = (int)$this->input('id_CLINICA', 0);
         if ($idClinica <= 0) {
             // Fallback: la clinica del filtro en sesion o la del usuario.
@@ -177,7 +206,13 @@ class MedicosController extends Controller {
     }
     public function eliminar(): void {
         $this->requireLogin(['administrador']);
-        try { UsuarioModel::baja((int)$this->input('id')); $this->flash('ok','Eliminado.'); }
+        $id = (int)$this->input('id');
+        if (!$this->medicoPermitido($id)) {
+            $this->clearState('edit');
+            $this->denegarRecurso('MEDICO', $id, null, 'medicos');
+            return;
+        }
+        try { UsuarioModel::baja($id); $this->flash('ok','Eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->clearState('edit');
         $this->redirect('medicos');
@@ -185,6 +220,10 @@ class MedicosController extends Controller {
     public function activar(): void {
         $this->requireLogin(['administrador']);
         $id = (int)$this->input('id');
+        if (!$this->medicoPermitido($id)) {
+            $this->denegarRecurso('MEDICO', $id, null, 'medicos');
+            return;
+        }
         try {
             UsuarioModel::activa($id);
             $usr = $_SESSION['user']['usuario'] ?? '?';
@@ -196,6 +235,10 @@ class MedicosController extends Controller {
     public function desactivar(): void {
         $this->requireLogin(['administrador']);
         $id = (int)$this->input('id');
+        if (!$this->medicoPermitido($id)) {
+            $this->denegarRecurso('MEDICO', $id, null, 'medicos');
+            return;
+        }
         try {
             UsuarioModel::desactiva($id);
             $usr = $_SESSION['user']['usuario'] ?? '?';

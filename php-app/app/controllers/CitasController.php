@@ -196,6 +196,11 @@ class CitasController extends Controller {
         $notifEditable = true;
         if ($editId) {
             $editRow = CitaModel::obtener($editId);
+            if ($editRow && !$this->citaPermitida($editRow)) {
+                $this->clearState('id');
+                $this->denegarRecurso('CITA', $editId, (int)($editRow['id_CLINICA'] ?? 0), 'citas');
+                return;
+            }
             if ($editRow) {
                 $est = mb_strtolower(trim((string)($editRow['estado'] ?? '')));
                 if (in_array($est, ['cancelada', 'cancelado'], true)) {
@@ -265,6 +270,11 @@ class CitasController extends Controller {
         try {
             if ($id) {
                 $prev = CitaModel::obtener($id);
+                if (!$prev || !$this->citaPermitida($prev)) {
+                    $this->clearState('id');
+                    $this->denegarRecurso('CITA', $id, $prev ? (int)($prev['id_CLINICA'] ?? 0) : null, 'citas');
+                    return;
+                }
                 $estPrev = mb_strtolower(trim((string)($prev['estado'] ?? '')));
                 if (in_array($estPrev, ['cancelada', 'cancelado'], true)) {
                     $this->flash('error', 'La cita esta cancelada y no puede modificarse.');
@@ -301,6 +311,12 @@ class CitasController extends Controller {
         $this->requireLogin();
         $id = (int)$this->input('id');
         $idEstado = (int)$this->input('id_estado'); // pasar "Cancelada"
+        $cita = $id ? CitaModel::obtener($id) : null;
+        if (!$cita || !$this->citaPermitida($cita)) {
+            $this->clearState('id');
+            $this->denegarRecurso('CITA', $id, $cita ? (int)($cita['id_CLINICA'] ?? 0) : null, 'citas');
+            return;
+        }
         try { CitaModel::cancela($id, $idEstado); $this->flash('ok', 'Cita cancelada.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->clearState('id');
@@ -350,6 +366,11 @@ class CitasController extends Controller {
         $obs = (string)($this->input('observaciones') ?? '');
         try {
             $c = $id ? CitaModel::obtener($id) : null;
+            if ($c && !$this->citaPermitida($c)) {
+                $this->clearState('id');
+                $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
+                return;
+            }
             if ($c) {
                 PacienteModel::cambioObservaciones(
                     (int)$c['id_PACIENTE'],
@@ -376,6 +397,14 @@ class CitasController extends Controller {
         $id = (int)$this->input('id');
         try {
             $c = $id ? CitaModel::obtener($id) : null;
+            if ($c && !$this->citaPermitida($c)) {
+                Database::log('ACCESO DENEGADO recurso=CITA id=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'forbidden']);
+                exit;
+            }
             if ($c) {
                 Database::log('WHATSAPP ENLACE GENERADO id_CITA=' . $id
                     . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
@@ -397,6 +426,14 @@ class CitasController extends Controller {
         $id = (int)$this->input('id');
         try {
             $c = $id ? CitaModel::obtener($id) : null;
+            if ($c && !$this->citaPermitida($c)) {
+                Database::log('ACCESO DENEGADO recurso=CITA id=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'forbidden']);
+                exit;
+            }
             if ($c) {
                 Database::log('EMAIL CLIENTE LOCAL ABIERTO id_CITA=' . $id
                     . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
@@ -416,6 +453,11 @@ class CitasController extends Controller {
     private function notificadoReal(int $id): void {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
+            if ($c && !$this->citaPermitida($c)) {
+                $this->clearState('id');
+                $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
+                return;
+            }
             if (!$c) throw new RuntimeException('No se encontro la cita.');
             $usuario = (string)($_SESSION['user']['usuario'] ?? '?');
             CitaModel::notifica($id, $usuario);
@@ -442,6 +484,11 @@ class CitasController extends Controller {
         $c = null;
         try {
             $c = $id ? CitaModel::obtener($id) : null;
+            if ($c && !$this->citaPermitida($c)) {
+                $this->clearState('id');
+                $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
+                return;
+            }
             if (!$c) throw new RuntimeException('No se encontro la cita.');
             $actual = mb_strtolower(trim((string)($c['estado'] ?? '')));
             if (in_array($actual, ['cancelada', 'cancelado'], true)) {
@@ -489,6 +536,19 @@ class CitasController extends Controller {
             $this->clearState('id');
         }
         $this->redirect($redirect);
+    }
+
+    /**
+     * Verifica que la cita pertenezca a una clinica autorizada para el usuario
+     * y, si el rol es medico, que sea una de sus propias citas (anti-IDOR).
+     */
+    private function citaPermitida(?array $c): bool {
+        if (!$c) return false;
+        if (!$this->clinicaPermitida((int)($c['id_CLINICA'] ?? 0))) return false;
+        if (($_SESSION['user']['rol'] ?? '') === 'medico') {
+            return (int)($c['id_MEDICO'] ?? 0) === (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
+        }
+        return true;
     }
 
     /** Regresa el nombre del estado de cita a partir de su id. */
