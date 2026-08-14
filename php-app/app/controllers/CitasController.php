@@ -398,9 +398,12 @@ class CitasController extends Controller {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if ($c && !$this->citaPermitida($c)) {
-                $this->clearState('id');
-                $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
-                return;
+                Database::log('ACCESO DENEGADO recurso=CITA id=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'forbidden']);
+                exit;
             }
             if ($c) {
                 Database::log('WHATSAPP ENLACE GENERADO id_CITA=' . $id
@@ -424,9 +427,12 @@ class CitasController extends Controller {
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if ($c && !$this->citaPermitida($c)) {
-                $this->clearState('id');
-                $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
-                return;
+                Database::log('ACCESO DENEGADO recurso=CITA id=' . $id
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'forbidden']);
+                exit;
             }
             if ($c) {
                 Database::log('EMAIL CLIENTE LOCAL ABIERTO id_CITA=' . $id
