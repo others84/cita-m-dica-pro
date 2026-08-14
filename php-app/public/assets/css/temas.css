@@ -35,6 +35,17 @@ html[data-escala="normal"] body{font-size:16px}
 html[data-escala="grande"] body{font-size:18px}
 
 /* Modulo de apariencia */
+/* --- Logo: se tinta segun la paleta activa (el original es azul/turquesa) --- */
+.login-logo,.sidebar .brand img{transition:filter .2s ease}
+html[data-tema="esmeralda"] .login-logo,
+html[data-tema="esmeralda"] .sidebar .brand img{filter:hue-rotate(-45deg) saturate(1.05)}
+html[data-tema="amatista"] .login-logo,
+html[data-tema="amatista"] .sidebar .brand img{filter:hue-rotate(70deg) saturate(1.1)}
+html[data-tema="atardecer"] .login-logo,
+html[data-tema="atardecer"] .sidebar .brand img{filter:hue-rotate(165deg) saturate(1.25)}
+html[data-tema="grafito"] .login-logo,
+html[data-tema="grafito"] .sidebar .brand img{filter:grayscale(1) contrast(1.05)}
+
 .tema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:.5rem}
 .tema-card{border:2px solid var(--c2);border-radius:10px;padding:.75rem;background:#fff;cursor:pointer;text-align:left}
 .tema-card:hover{border-color:var(--c3)}
