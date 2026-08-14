@@ -1,16 +1,15 @@
 <?php include __DIR__ . '/_filtros.php'; ?>
 <?php
   include __DIR__ . '/_chartjs.php';
-  $colores = ['#1E3A5F','#2E6DA4','#4A9BD1','#7FC3E8','#A8D8F0','#C9E7F7','#5B8DB8','#173049','#93B7D4','#6FA8C9'];
   $tot = (float)($total ?: 0);
-  $labels = []; $values = []; $bg = []; $i = 0;
+  $labels = []; $values = [];
   foreach (($serie ?? []) as $esp => $n) {
-      $labels[] = (string)$esp; $values[] = (int)$n; $bg[] = $colores[$i % count($colores)]; $i++;
+      $labels[] = (string)$esp; $values[] = (int)$n;
   }
   $cid = 'pie_' . bin2hex(random_bytes(4));
-  $labelsM = []; $valuesM = []; $bgM = []; $j = 0;
+  $labelsM = []; $valuesM = [];
   foreach (($montos ?? []) as $esp => $m) {
-      $labelsM[] = (string)$esp; $valuesM[] = (float)$m; $bgM[] = $colores[$j % count($colores)]; $j++;
+      $labelsM[] = (string)$esp; $valuesM[] = (float)$m;
   }
   $totM = (float)($totalMonto ?? array_sum($valuesM));
   $cidM = 'pie_' . bin2hex(random_bytes(4));
@@ -26,18 +25,20 @@
   <div style="position:relative;height:380px"><canvas id="<?= $cid ?>"></canvas></div>
   <script>
   (function(){
+    var T = window.temaColores();
+    var bg = window.temaPaleta(<?= count($values) ?>);
     var total = <?= (float)($tot ?: 1) ?>;
     new Chart(document.getElementById('<?= $cid ?>').getContext('2d'), {
       type: 'pie',
       data: {
         labels: <?= json_encode($labels, JSON_UNESCAPED_UNICODE) ?>,
-        datasets: [{ data: <?= json_encode($values) ?>, backgroundColor: <?= json_encode($bg) ?>, borderColor: '#fff', borderWidth: 2 }]
+        datasets: [{ data: <?= json_encode($values) ?>, backgroundColor: bg, borderColor: '#fff', borderWidth: 2 }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         layout: { padding: 8 },
         plugins: {
-          legend: { position: 'right', labels: { color: '#1E3A5F' } },
+          legend: { position: 'right', labels: { color: T.c5 } },
           tooltip: { callbacks: { label: function(c){
             var pct = total > 0 ? (c.parsed / total * 100).toFixed(1) : '0.0';
             return c.label + ': ' + c.parsed + ' (' + pct + '%)';
@@ -82,19 +83,21 @@
   <div style="position:relative;height:380px"><canvas id="<?= $cidM ?>"></canvas></div>
   <script>
   (function(){
+    var T = window.temaColores();
+    var bg = window.temaPaleta(<?= count($valuesM) ?>);
     var total = <?= json_encode($totM ?: 1) ?>;
     var money = function(v){ return '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); };
     new Chart(document.getElementById('<?= $cidM ?>').getContext('2d'), {
       type: 'pie',
       data: {
         labels: <?= json_encode($labelsM, JSON_UNESCAPED_UNICODE) ?>,
-        datasets: [{ data: <?= json_encode($valuesM) ?>, backgroundColor: <?= json_encode($bgM) ?>, borderColor: '#fff', borderWidth: 2 }]
+        datasets: [{ data: <?= json_encode($valuesM) ?>, backgroundColor: bg, borderColor: '#fff', borderWidth: 2 }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         layout: { padding: 8 },
         plugins: {
-          legend: { position: 'right', labels: { color: '#1E3A5F' } },
+          legend: { position: 'right', labels: { color: T.c5 } },
           tooltip: { callbacks: { label: function(c){
             var pct = total > 0 ? (c.parsed / total * 100).toFixed(1) : '0.0';
             return c.label + ': ' + money(c.parsed) + ' (' + pct + '%)';

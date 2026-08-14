@@ -18,6 +18,7 @@ $__max    = $__step !== null && !empty($__values) ? ceil(max($__values) / $__ste
 <div style="position:relative;height:340px"><canvas id="<?= $__cid ?>"></canvas></div>
 <script>
 (function(){
+  var T = window.temaColores();
   var money = <?= $__money ? 'true' : 'false' ?>;
   var fmt = function(v){ return money ? '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}) : Math.round(Number(v)).toLocaleString('es-MX'); };
   new Chart(document.getElementById('<?= $__cid ?>').getContext('2d'), {
@@ -29,7 +30,7 @@ $__max    = $__step !== null && !empty($__values) ? ceil(max($__values) / $__ste
         chart.getDatasetMeta(0).data.forEach(function(bar, i){
           var v = chart.data.datasets[0].data[i];
           ctx.save();
-          ctx.fillStyle = '#1E3A5F';
+          ctx.fillStyle = T.c5;
           ctx.font = 'bold 12px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
@@ -43,8 +44,8 @@ $__max    = $__step !== null && !empty($__values) ? ceil(max($__values) / $__ste
       datasets: [{
         label: <?= json_encode($__money ? 'Ingresos' : 'Citas', JSON_UNESCAPED_UNICODE) ?>,
         data: <?= json_encode($__values) ?>,
-        backgroundColor: '#2E6DA4',
-        hoverBackgroundColor: '#1E3A5F',
+        backgroundColor: T.c4,
+        hoverBackgroundColor: T.c5,
         borderRadius: 4,
         maxBarThickness: 56
       }]
@@ -56,8 +57,8 @@ $__max    = $__step !== null && !empty($__values) ? ceil(max($__values) / $__ste
         tooltip: { callbacks: { label: function(c){ return fmt(c.parsed.y); } } }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#1E3A5F', autoSkip: false, maxRotation: 60, minRotation: 0 } },
-        y: { beginAtZero: true, <?= $__max !== null ? 'max: ' . json_encode($__max) . ',' : '' ?> ticks: { color: '#1E3A5F', precision: 0, stepSize: <?= $__step !== null ? json_encode($__step) : '1' ?>, callback: function(v){ return fmt(v); } }, grid: { color: '#EAF6FF' } }
+        x: { grid: { display: false }, ticks: { color: T.c5, autoSkip: false, maxRotation: 60, minRotation: 0 } },
+        y: { beginAtZero: true, <?= $__max !== null ? 'max: ' . json_encode($__max) . ',' : '' ?> ticks: { color: T.c5, precision: 0, stepSize: <?= $__step !== null ? json_encode($__step) : '1' ?>, callback: function(v){ return fmt(v); } }, grid: { color: T.c1 } }
       }
     }
   });
