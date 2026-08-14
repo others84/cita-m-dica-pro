@@ -193,3 +193,53 @@ table.data{min-width:640px}
 }
 
 .cal-contador{margin:0 0 .75rem;padding:.5rem .75rem;background:var(--c1,#eaf2fb);border-left:4px solid var(--c5,#1d4e89);border-radius:6px;color:var(--c5,#1d4e89);font-weight:600}
+
+/* ============================================================
+   Degradados a 45 grados (3 colores) segun la paleta activa.
+   Usan las variables --c1..--c5, por lo que cambian solos al
+   elegir otra paleta en el modulo de Apariencia.
+   ============================================================ */
+:root{
+  --grad-suave:linear-gradient(45deg,var(--c1),var(--c2),var(--c3));
+  --grad-medio:linear-gradient(45deg,var(--c2),var(--c3),var(--c4));
+  --grad-fuerte:linear-gradient(45deg,var(--c3),var(--c4),var(--c5));
+  --grad-oscuro:linear-gradient(45deg,var(--c5),var(--c4),var(--c5));
+}
+
+/* Fondo general y login */
+body{background:var(--grad-suave);background-attachment:fixed}
+.login-body{background:var(--grad-fuerte)}
+.login-card button{background:var(--grad-fuerte)}
+.login-card button:hover{background:var(--grad-oscuro)}
+
+/* Layout */
+.content{background:transparent}
+.sidebar{background:var(--grad-oscuro)}
+.sidebar nav a:hover,.sidebar nav .menu-group > summary:hover{background:linear-gradient(45deg,var(--c4),var(--c3),var(--c4))}
+.sidebar nav a.active,.sidebar nav .menu-group > a.active{background:var(--grad-medio)}
+.topbar{background:linear-gradient(45deg,#fff,var(--c1),var(--c2))}
+.card{background:linear-gradient(45deg,#fff,var(--c1) 70%,var(--c2))}
+
+/* Botones */
+.btn{background:var(--grad-fuerte)}
+.btn:hover{background:var(--grad-oscuro)}
+.btn-sec{background:var(--grad-suave);color:var(--c5)}
+.btn-sec:hover{background:var(--grad-medio)}
+.btn-danger{background:linear-gradient(45deg,#e0533f,#c0392b,#8f2317)}
+.btn-danger:hover{background:linear-gradient(45deg,#c0392b,#922d22,#6d1a13)}
+.btn-link,.sort-btn{background:transparent !important}
+
+/* Tablas, avisos y detalles */
+table.data thead{background:var(--grad-suave)}
+table.data th.col-ordenada{background:var(--grad-medio) !important}
+table.data tbody tr.cita-por-notificar td,
+table.data.ord-col-1 tbody tr.cita-por-notificar td:nth-child(1),
+table.data.ord-col-2 tbody tr.cita-por-notificar td:nth-child(2),
+table.data.ord-col-3 tbody tr.cita-por-notificar td:nth-child(3),
+table.data.ord-col-4 tbody tr.cita-por-notificar td:nth-child(4),
+table.data.ord-col-5 tbody tr.cita-por-notificar td:nth-child(5),
+table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(--grad-medio) !important}
+.badge{background:var(--grad-suave)}
+.cal-contador{background:var(--grad-suave)}
+.chart-col{background:linear-gradient(45deg,var(--c3),var(--c4),var(--c5))}
+.tema-card.sel{background:linear-gradient(45deg,#fff,var(--c1),var(--c2))}
