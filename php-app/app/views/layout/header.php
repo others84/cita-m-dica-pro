@@ -49,7 +49,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand">Citas Médicas</div>
+    <div class="brand"><img src="<?= asset('img/logo.png') ?>" alt="" width="28" height="28"> Citas Médicas</div>
     <div class="user">
       <strong><?= htmlspecialchars($user['nombre']) ?></strong>
       <small><?= htmlspecialchars($rol) ?></small>

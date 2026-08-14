@@ -16,7 +16,8 @@ $csrf = $_SESSION['csrf_token'];
 <body class="login-body">
   <form class="login-card" method="post" action="<?= url('auth/login') ?>">
     <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES) ?>">
-    <h1>Citas Médicas</h1>
+    <img class="login-logo" src="<?= asset('img/logo.png') ?>" alt="Logo SGCO" width="96" height="96">
+    <h1>Sistema de gestión de citas online (SGCO)</h1>
     <p class="subtitle">Inicia sesión</p>
     <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>
     <label>Usuario
