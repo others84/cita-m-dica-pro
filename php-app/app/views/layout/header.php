@@ -70,9 +70,10 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if (in_array($rol, ['asistente','medico'], true)): ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
           <summary>Opciones</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
       <?php endif; ?>
@@ -80,10 +81,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if ($rol === 'administrador'): ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios', 'opciones/apariencia'], $__cur) ?>>
           <summary>Opciones</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/passwordUsuarios', 'Contraseña de usuarios', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('medicos', 'Médicos', $__cur) ?>
@@ -124,6 +126,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
           <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
           <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
+        </details>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
+          <summary>Opciones</summary>
+          <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
       <?php endif; ?>
