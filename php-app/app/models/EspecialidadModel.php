@@ -9,8 +9,8 @@ class EspecialidadModel extends Model {
             '@nombre'=>$nombre, '@id_CLINICA'=>$idClinica, '@id_usuario'=>self::currentUserId(),
         ]);
     }
-    public static function cambio(int $id, string $nombre, int $idClinica): void {
-        self::execute('EXEC citas.spCambioEspecialidad @id_CATALOGO_ESPECIALIDAD=:id, @nombre=:n, @id_CLINICA=:c, @id_usuario=:u',
-            [':id'=>$id, ':n'=>$nombre, ':c'=>$idClinica, ':u'=>self::currentUserId()]);
+    public static function cambio(int $id, string $nombre, int $idClinica, ?int $idClinicaEsperada = null): void {
+        self::execute('EXEC citas.spCambioEspecialidad @id_CATALOGO_ESPECIALIDAD=:id, @nombre=:n, @id_CLINICA=:c, @id_usuario=:u, @id_CLINICA_esperada=:ce',
+            [':id'=>$id, ':n'=>$nombre, ':c'=>$idClinica, ':u'=>self::currentUserId(), ':ce'=>$idClinicaEsperada]);
     }
 }
