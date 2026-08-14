@@ -57,7 +57,7 @@ class EspecialidadesController extends Controller {
             $this->redirect('especialidades');
         }
         try {
-            if ($id) EspecialidadModel::cambio($id, $nombre, $idClinica);
+            if ($id) EspecialidadModel::cambio($id, $nombre, $idClinica, isset($cl) && $cl ? (int)$cl : null);
             else     EspecialidadModel::alta($nombre, $idClinica);
             $cliNombre = '?';
             foreach (ClinicaModel::listar() as $cl) if ((int)$cl['id_CLINICA']===$idClinica) { $cliNombre=$cl['nombre']; break; }

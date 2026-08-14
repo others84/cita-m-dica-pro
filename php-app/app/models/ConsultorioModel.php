@@ -15,9 +15,12 @@ class ConsultorioModel extends Model {
             '@id_CLINICA'=>$idClinica, '@nombre'=>$nombre, '@id_usuario'=>self::currentUserId(),
         ]);
     }
-    public static function cambio(int $id, int $idClinica, string $nombre): void {
-        self::execute('EXEC citas.spCambioConsultorio @id_CONSULTORIO=:id, @id_CLINICA=:c, @nombre=:n, @id_usuario=:u',
-            [':id'=>$id, ':c'=>$idClinica, ':n'=>$nombre, ':u'=>self::currentUserId()]);
+    public static function cambio(int $id, int $idClinica, string $nombre, ?int $idClinicaEsperada = null): void {
+        self::execute('EXEC citas.spCambioConsultorio @id_CONSULTORIO=:id, @id_CLINICA=:c, @nombre=:n, @id_usuario=:u, @id_CLINICA_esperada=:ce',
+            [':id'=>$id, ':c'=>$idClinica, ':n'=>$nombre, ':u'=>self::currentUserId(), ':ce'=>$idClinicaEsperada]);
     }
-    public static function baja(int $id): void { self::execute('EXEC citas.spBajaConsultorio @id_CONSULTORIO=:id, @id_usuario=:u', [':id'=>$id, ':u'=>self::currentUserId()]); }
+    public static function baja(int $id, ?int $idClinicaEsperada = null): void {
+        self::execute('EXEC citas.spBajaConsultorio @id_CONSULTORIO=:id, @id_usuario=:u, @id_CLINICA_esperada=:ce',
+            [':id'=>$id, ':u'=>self::currentUserId(), ':ce'=>$idClinicaEsperada]);
+    }
 }

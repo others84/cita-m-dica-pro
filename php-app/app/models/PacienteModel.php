@@ -26,15 +26,16 @@ class PacienteModel extends Model {
             '@id_usuario'=>self::currentUserId(),
         ]);
     }
-    public static function cambio(int $id, int $idClinica, string $apPat, string $apMat, string $nombre, string $direccion, string $tel, string $email, string $fechaNac, int $idGenero, int $idMunicipio, string $observaciones = '', int $notificaEmail = 0, int $notificaWa = 0): void {
+    public static function cambio(int $id, int $idClinica, string $apPat, string $apMat, string $nombre, string $direccion, string $tel, string $email, string $fechaNac, int $idGenero, int $idMunicipio, string $observaciones = '', int $notificaEmail = 0, int $notificaWa = 0, ?int $idClinicaEsperada = null): void {
         Database::log(sprintf('PACIENTE.cambio params id=%d clinica=%d ap=%s am=%s nom=%s dir=%s tel=%s email=%s fnac=%s gen=%d mun=%d',
             $id, $idClinica, self::s($apPat), self::s($apMat), self::s($nombre), self::s($direccion), self::s($tel), self::s($email), self::s($fechaNac), $idGenero, $idMunicipio));
-        self::execute('EXEC citas.spCambioPaciente @id_PACIENTE=:id, @id_CLINICA=:c, @ap_paterno=:ap, @ap_materno=:am, @nombre=:n, @direccion=:d, @telefono=:t, @email=:e, @fecha_nacimiento=:f, @id_CATALOGO_GENERO=:g, @id_CATALOGO_MUNICIPIO=:m, @observaciones=:o, @notifica_email=:ne, @notifica_wa=:nw, @id_usuario=:u', [
+        self::execute('EXEC citas.spCambioPaciente @id_PACIENTE=:id, @id_CLINICA=:c, @ap_paterno=:ap, @ap_materno=:am, @nombre=:n, @direccion=:d, @telefono=:t, @email=:e, @fecha_nacimiento=:f, @id_CATALOGO_GENERO=:g, @id_CATALOGO_MUNICIPIO=:m, @observaciones=:o, @notifica_email=:ne, @notifica_wa=:nw, @id_usuario=:u, @id_CLINICA_esperada=:ce', [
             ':id'=>$id, ':c'=>$idClinica, ':ap'=>self::s($apPat), ':am'=>self::s($apMat), ':n'=>self::s($nombre),
             ':d'=>self::s($direccion), ':t'=>self::s($tel), ':e'=>self::s($email), ':f'=>self::s($fechaNac), ':g'=>$idGenero,
             ':m'=>$idMunicipio, ':o'=>self::s($observaciones),
             ':ne'=>$notificaEmail ? 1 : 0, ':nw'=>$notificaWa ? 1 : 0,
             ':u'=>self::currentUserId(),
+            ':ce'=>$idClinicaEsperada,
         ]);
     }
     public static function cambioObservaciones(int $id, string $observaciones): void {
@@ -42,5 +43,8 @@ class PacienteModel extends Model {
             ':id'=>$id, ':o'=>self::s($observaciones), ':u'=>self::currentUserId(),
         ]);
     }
-    public static function baja(int $id): void { self::execute('EXEC citas.spBajaPaciente @id_PACIENTE=:id, @id_usuario=:u', [':id'=>$id, ':u'=>self::currentUserId()]); }
+    public static function baja(int $id, ?int $idClinicaEsperada = null): void {
+        self::execute('EXEC citas.spBajaPaciente @id_PACIENTE=:id, @id_usuario=:u, @id_CLINICA_esperada=:ce',
+            [':id'=>$id, ':u'=>self::currentUserId(), ':ce'=>$idClinicaEsperada]);
+    }
 }

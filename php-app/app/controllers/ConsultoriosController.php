@@ -56,7 +56,7 @@ class ConsultoriosController extends Controller {
             $this->redirect('consultorios');
         }
         try {
-            if ($id) ConsultorioModel::cambio($id, $idClinica, $nombre);
+            if ($id) ConsultorioModel::cambio($id, $idClinica, $nombre, isset($cl) && $cl ? (int)$cl : null);
             else     ConsultorioModel::alta($idClinica, $nombre);
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
@@ -72,7 +72,7 @@ class ConsultoriosController extends Controller {
             $this->denegarRecurso('CONSULTORIO', $id, $cl, 'consultorios');
             return;
         }
-        try { ConsultorioModel::baja($id); $this->flash('ok','Eliminado.'); }
+        try { ConsultorioModel::baja($id, $cl ? (int)$cl : null); $this->flash('ok','Eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->clearState('edit');
         $this->redirect('consultorios');

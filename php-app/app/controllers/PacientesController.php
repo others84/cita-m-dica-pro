@@ -120,7 +120,8 @@ class PacientesController extends Controller {
                 ));
             }
             if ($id) {
-                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa);
+                $cliEsperada = isset($actual) && $actual ? (int)($actual['id_CLINICA'] ?? 0) : null;
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa, $cliEsperada ?: null);
                 $this->flash('ok', 'Paciente actualizado.');
             } else {
                 PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa);
@@ -143,7 +144,7 @@ class PacientesController extends Controller {
             $this->denegarRecurso('PACIENTE', $id, $actual ? (int)($actual['id_CLINICA'] ?? 0) : null, 'pacientes');
             return;
         }
-        try { PacienteModel::baja($id); $this->flash('ok','Paciente eliminado.'); }
+        try { PacienteModel::baja($id, ((int)($actual['id_CLINICA'] ?? 0)) ?: null); $this->flash('ok','Paciente eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $fClinica = (int)($_SESSION['f_clinica'] ?? 0);
         if (class_exists('Database')) {
