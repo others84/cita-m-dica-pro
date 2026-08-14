@@ -194,4 +194,53 @@ class Controller {
             'rol' => $rol,
         ];
     }
+
+    /**
+     * Clinicas que el usuario tiene permitido tocar.
+     * Retorna null cuando el rol puede operar sobre todas (admin_sistema).
+     * @return int[]|null
+     */
+    protected function clinicasPermitidas(): ?array {
+        $rol = $_SESSION['user']['rol'] ?? '';
+        if ($rol === 'admin_sistema') return null;
+        $sess = $_SESSION['user']['clinicas'] ?? [];
+        if (empty($sess) && !empty($_SESSION['user']['id_USUARIOS'])) {
+            require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+            $sess = UsuarioClinicaModel::listarPorUsuario((int)$_SESSION['user']['id_USUARIOS']);
+            $_SESSION['user']['clinicas'] = $sess;
+        }
+        $ids = array_values(array_filter(array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sess)));
+        $propia = (int)($_SESSION['user']['id_CLINICA'] ?? 0);
+        if ($propia > 0 && !in_array($propia, $ids, true)) $ids[] = $propia;
+        return $ids;
+    }
+
+    /** True si el usuario puede operar sobre registros de esa clinica. */
+    protected function clinicaPermitida(?int $idClinica): bool {
+        $permitidas = $this->clinicasPermitidas();
+        if ($permitidas === null) return true;              // admin_sistema
+        if ($idClinica === null || (int)$idClinica <= 0) return false;
+        return in_array((int)$idClinica, $permitidas, true);
+    }
+
+    /**
+     * Bloquea la operacion cuando el registro no pertenece a una clinica
+     * autorizada (IDOR). Registra el intento y regresa al listado.
+     */
+    protected function denegarRecurso(string $recurso, $id, ?int $idClinica, string $redirect): void {
+        if (class_exists('Database')) {
+            Database::log(sprintf(
+                'ACCESO DENEGADO recurso=%s id=%s id_CLINICA=%s rol=%s usuario=%s id_usuario=%s uri=%s',
+                $recurso,
+                (string)$id,
+                $idClinica === null ? 'NULL' : (string)$idClinica,
+                $_SESSION['user']['rol'] ?? '?',
+                $_SESSION['user']['usuario'] ?? '?',
+                (string)($_SESSION['user']['id_USUARIOS'] ?? '?'),
+                $_SERVER['REQUEST_URI'] ?? '?'
+            ));
+        }
+        $this->flash('error', 'No tiene permiso para operar sobre ese registro.');
+        $this->redirect($redirect);
+    }
 }
