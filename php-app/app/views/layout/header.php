@@ -46,6 +46,17 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
 <title><?= htmlspecialchars($title ?? 'Citas Médicas') ?></title>
 <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 <link rel="icon" type="image/png" href="<?= url('favicon.png') ?>">
+<link rel="stylesheet" href="<?= asset('css/temas.css') ?>">
+<script>
+/* Aplica la apariencia guardada en el dispositivo antes de pintar la pagina. */
+(function(){try{
+  var d=document.documentElement, g=function(k){return localStorage.getItem(k)||'';};
+  var t=g('sgco:tema'), f=g('sgco:fuente'), e=g('sgco:escala');
+  if(t) d.setAttribute('data-tema',t);
+  if(f) d.setAttribute('data-fuente',f);
+  if(e) d.setAttribute('data-escala',e);
+}catch(x){}})();
+</script>
 </head>
 <body>
 <div class="app">
