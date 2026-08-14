@@ -1,0 +1,5 @@
+# Secretos y datos locales: nunca deben versionarse
+.env
+config/config.properties
+storage/logs/
+*.log
