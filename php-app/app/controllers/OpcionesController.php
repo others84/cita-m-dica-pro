@@ -26,6 +26,12 @@ class OpcionesController extends Controller {
     }
     public function actualizarDatos(): void { $this->requireLogin(); $this->view('opciones/actualizar_datos', ['title' => 'Actualizar datos']); }
 
+    /** Apariencia: paleta de colores y tipografia (se guarda en el dispositivo). */
+    public function apariencia(): void {
+        $this->requireLogin();
+        $this->view('opciones/apariencia', ['title' => 'Apariencia']);
+    }
+
     /**
      * Administrador de clinica: cambia la contrasena de cualquier usuario
      * que pertenezca a las clinicas a las que tiene acceso.
