@@ -20,9 +20,25 @@ class ConsultoriosController extends Controller {
             'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
+    /** Clinica a la que pertenece el consultorio, o null si no existe. */
+    private function clinicaDelConsultorio(int $id): ?int {
+        foreach (ConsultorioModel::listar() as $r) {
+            if ((int)($r['id_CONSULTORIO'] ?? 0) === $id) return (int)($r['id_CLINICA'] ?? 0);
+        }
+        return null;
+    }
+
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
+        if ($id) {
+            $cl = $this->clinicaDelConsultorio((int)$id);
+            if ($cl === null || !$this->clinicaPermitida($cl)) {
+                $this->clearState('edit');
+                $this->denegarRecurso('CONSULTORIO', $id, $cl, 'consultorios');
+                return;
+            }
+        }
         $idClinica = (int)$this->input('id_CLINICA', 0);
         if ($idClinica <= 0) {
             // Fallback: la clinica del filtro en sesion o la del usuario.
@@ -49,7 +65,14 @@ class ConsultoriosController extends Controller {
     }
     public function eliminar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
-        try { ConsultorioModel::baja((int)$this->input('id')); $this->flash('ok','Eliminado.'); }
+        $id = (int)$this->input('id');
+        $cl = $id ? $this->clinicaDelConsultorio($id) : null;
+        if ($cl === null || !$this->clinicaPermitida($cl)) {
+            $this->clearState('edit');
+            $this->denegarRecurso('CONSULTORIO', $id, $cl, 'consultorios');
+            return;
+        }
+        try { ConsultorioModel::baja($id); $this->flash('ok','Eliminado.'); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->clearState('edit');
         $this->redirect('consultorios');

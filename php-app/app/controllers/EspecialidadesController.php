@@ -21,9 +21,25 @@ class EspecialidadesController extends Controller {
             'clinicasFiltro' => $clinicasFiltro,
         ]);
     }
+    /** Clinica a la que pertenece la especialidad, o null si no existe. */
+    private function clinicaDeEspecialidad(int $id): ?int {
+        foreach (EspecialidadModel::listar() as $r) {
+            if ((int)($r['id_CATALOGO_ESPECIALIDAD'] ?? 0) === $id) return (int)($r['id_CLINICA'] ?? 0);
+        }
+        return null;
+    }
+
     public function guardar(): void {
         $this->requireLogin(['administrador','admin_sistema']);
         $id = $this->intOrNull($_POST['id'] ?? null);
+        if ($id) {
+            $cl = $this->clinicaDeEspecialidad((int)$id);
+            if ($cl === null || !$this->clinicaPermitida($cl)) {
+                $this->clearState('edit');
+                $this->denegarRecurso('ESPECIALIDAD', $id, $cl, 'especialidades');
+                return;
+            }
+        }
         $nombre = trim((string)$this->input('nombre', ''));
         $idClinica = (int)$this->input('id_CLINICA', 0);
         if ($idClinica <= 0) {
