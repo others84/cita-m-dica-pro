@@ -1,0 +1,44 @@
+/* ============================================================
+   Temas (paletas de color) y tipografias seleccionables.
+   Se aplican con atributos en <html>: data-tema y data-fuente.
+   La preferencia se guarda en el dispositivo (localStorage).
+   Sin atributos, se conserva la paleta original de style.css.
+   ============================================================ */
+
+/* --- Paleta 1: Esmeralda --- */
+html[data-tema="esmeralda"]{
+  --c1:#EAF7F1; --c2:#BFE8D6; --c3:#6FC79E; --c4:#2E8B62; --c5:#144736;
+}
+/* --- Paleta 2: Amatista --- */
+html[data-tema="amatista"]{
+  --c1:#F3EEFB; --c2:#DCCBF3; --c3:#A985DF; --c4:#6D45B0; --c5:#3A1F63;
+}
+/* --- Paleta 3: Atardecer --- */
+html[data-tema="atardecer"]{
+  --c1:#FFF2E8; --c2:#FFD9BE; --c3:#F2A472; --c4:#C96A2E; --c5:#6E3312;
+}
+/* --- Paleta 4: Grafito (alto contraste) --- */
+html[data-tema="grafito"]{
+  --c1:#EFF1F4; --c2:#D3D8E0; --c3:#8B95A5; --c4:#4A5567; --c5:#1C2330;
+}
+
+/* --- Tipografias --- */
+html[data-fuente="sistema"] body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html[data-fuente="serif"] body{font-family:Georgia,"Times New Roman",'Nimbus Roman',serif}
+html[data-fuente="mono"] body{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Courier New",monospace}
+html[data-fuente="redondeada"] body{font-family:"Trebuchet MS","Segoe UI",Verdana,"Helvetica Neue",sans-serif}
+html[data-fuente="condensada"] body{font-family:"Arial Narrow","Roboto Condensed","Segoe UI",Arial,sans-serif}
+
+/* Escala de tamano de letra */
+html[data-escala="chica"] body{font-size:14px}
+html[data-escala="normal"] body{font-size:16px}
+html[data-escala="grande"] body{font-size:18px}
+
+/* Modulo de apariencia */
+.tema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:.5rem}
+.tema-card{border:2px solid var(--c2);border-radius:10px;padding:.75rem;background:#fff;cursor:pointer;text-align:left}
+.tema-card:hover{border-color:var(--c3)}
+.tema-card.sel{border-color:var(--c4);box-shadow:0 0 0 3px color-mix(in srgb,var(--c3) 45%,transparent)}
+.tema-card h4{margin:0 0 .5rem;font-size:.95rem;color:var(--c5)}
+.tema-swatches{display:flex;gap:.3rem}
+.tema-swatches span{width:100%;height:26px;border-radius:5px;border:1px solid rgba(0,0,0,.06)}

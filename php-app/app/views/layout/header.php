@@ -46,6 +46,17 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
 <title><?= htmlspecialchars($title ?? 'Citas Médicas') ?></title>
 <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 <link rel="icon" type="image/png" href="<?= url('favicon.png') ?>">
+<link rel="stylesheet" href="<?= asset('css/temas.css') ?>">
+<script>
+/* Aplica la apariencia guardada en el dispositivo antes de pintar la pagina. */
+(function(){try{
+  var d=document.documentElement, g=function(k){return localStorage.getItem(k)||'';};
+  var t=g('sgco:tema'), f=g('sgco:fuente'), e=g('sgco:escala');
+  if(t) d.setAttribute('data-tema',t);
+  if(f) d.setAttribute('data-fuente',f);
+  if(e) d.setAttribute('data-escala',e);
+}catch(x){}})();
+</script>
 </head>
 <body>
 <div class="app">
@@ -59,9 +70,10 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if (in_array($rol, ['asistente','medico'], true)): ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
           <summary>Opciones</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
       <?php endif; ?>
@@ -69,10 +81,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if ($rol === 'administrador'): ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios', 'opciones/apariencia'], $__cur) ?>>
           <summary>Opciones</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/passwordUsuarios', 'Contraseña de usuarios', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('medicos', 'Médicos', $__cur) ?>
@@ -113,6 +126,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
           <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
           <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
+        </details>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
+          <summary>Opciones</summary>
+          <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
       <?php endif; ?>
