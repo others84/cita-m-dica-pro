@@ -11,6 +11,11 @@ class ReportesController extends Controller {
         $rows = [];
         try { $rows = ReporteModel::ingresosPorMedico($f['fClinica'], $f['ini'], $f['fin']); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
+        // El medico solo ve su propia informacion.
+        if (($_SESSION['user']['rol'] ?? '') === 'medico') {
+            $yo = trim((string)($_SESSION['user']['nombre'] ?? ''));
+            $rows = array_values(array_filter($rows, fn($r) => trim((string)($r['medico'] ?? '')) === $yo));
+        }
         // Grafica: monto total por medico en el periodo (citas atendidas).
         $serie = []; $citasMed = [];
         foreach ($this->citasAtendidas($f) as $c) {
