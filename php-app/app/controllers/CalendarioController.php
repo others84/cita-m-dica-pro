@@ -3,6 +3,7 @@ require_once __DIR__ . '/../core/Controller.php';
 
 require_once __DIR__ . '/../models/CitaModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
+require_once __DIR__ . '/../models/UsuarioModel.php';
 
 class CalendarioController extends Controller {
     public function index(): void {
@@ -11,6 +12,20 @@ class CalendarioController extends Controller {
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
 
         $idMedico = $rol === 'medico' ? ((int)($_SESSION['user']['id_USUARIOS'] ?? 0) ?: null) : null;
+
+        // Filtro de medico (solo para roles distintos de medico).
+        $medicos = [];
+        $fMedico = null;
+        if ($rol !== 'medico') {
+            try { $medicos = UsuarioModel::listarMedicos($fClinica); } catch (Throwable $e) { $medicos = []; }
+            $fMedico = $this->stateInt('f_medico');
+            if ($fMedico !== null) {
+                $ids = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
+                if (!in_array($fMedico, $ids, true)) { $fMedico = null; $this->clearState('f_medico'); }
+            }
+            if ($fMedico !== null) $idMedico = $fMedico;
+        }
+
         $desde = date('Y-m-d', strtotime('-30 days'));
         $hasta = date('Y-m-d', strtotime('+90 days'));
 
@@ -63,6 +78,15 @@ class CalendarioController extends Controller {
             'fClinica'    => $fClinica,
             'rol'         => $rol,
             'clinicasFiltro' => $clinicasFiltro,
+            'medicos'     => $medicos,
+            'fMedico'     => $fMedico,
         ]);
+    }
+
+    /** Aplica el filtro de medico del calendario. */
+    public function filtrar(): void {
+        $this->requireLogin();
+        $this->stateParam('f_medico', null);
+        $this->redirect('calendario');
     }
 }
