@@ -1,6 +1,24 @@
 <link rel="stylesheet" href="<?= asset('vendor/event-calendar/event-calendar.min.css') ?>?v=372">
 <?php $controller='calendario'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 
+<?php if (!empty($medicos)): ?>
+<div class="card" style="margin-bottom:1rem">
+  <h3 style="margin-top:0;color:var(--c5)">Medico</h3>
+  <form method="post" action="<?= url('calendario/filtrar') ?>" class="form-grid"><?= csrf_field() ?>
+    <label>Medico
+      <select name="f_medico" onchange="this.form.submit()">
+        <option value="">-- todos --</option>
+        <?php foreach ($medicos as $m): ?>
+          <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= (int)($fMedico ?? 0) === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
+            <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+  </form>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($errorCarga)): ?>
   <div class="flash flash-error">No se pudieron cargar las citas desde la base de datos: <?= htmlspecialchars($errorCarga) ?></div>
 <?php endif; ?>
