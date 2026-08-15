@@ -79,9 +79,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php endif; ?>
 
       <?php if ($rol === 'medico'): ?>
-        <details class="menu-group"<?= nav_group_open(['reportes/ingresos'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion'], $__cur) ?>>
           <summary>Reportes</summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
+          <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
+          <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
         </details>
       <?php endif; ?>
 
