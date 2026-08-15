@@ -8,6 +8,11 @@ include __DIR__ . '/../_partials/filtro_clinica.php';
   <form method="post" action="<?= url('reportes/filtrar') ?>" class="form-grid"><?= csrf_field() ?>
     <input type="hidden" name="destino" value="<?= htmlspecialchars($destino) ?>">
     <input type="hidden" name="ns" value="<?= htmlspecialchars($ns) ?>">
+    <?php if (!empty($soloMedico)): ?>
+      <label>Medico
+        <input type="text" value="<?= htmlspecialchars($_SESSION['user']['nombre'] ?? '') ?>" readonly>
+      </label>
+    <?php else: ?>
     <label>Medico
       <select name="f_medico" onchange="this.form.submit()">
         <option value="">-- todos --</option>
@@ -18,6 +23,7 @@ include __DIR__ . '/../_partials/filtro_clinica.php';
         <?php endforeach; ?>
       </select>
     </label>
+    <?php endif; ?>
     <label>Fecha inicio
       <input type="date" name="f_ini" value="<?= htmlspecialchars($ini) ?>" onchange="this.form.submit()">
     </label>
