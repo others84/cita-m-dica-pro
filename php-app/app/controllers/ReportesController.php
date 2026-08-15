@@ -53,9 +53,15 @@ class ReportesController extends Controller {
         $medicos = [];
         try { $medicos = UsuarioModel::listarMedicos($ctx['fClinica']); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        // Rol medico: forzado a si mismo, sin selector de otros medicos.
+        if (($_SESSION['user']['rol'] ?? '') === 'medico') {
+            $yoId = (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
+            $medicos = array_values(array_filter($medicos, fn($m) => (int)$m['id_USUARIOS'] === $yoId));
+            return $ctx + ['ini'=>$ini, 'fin'=>$fin, 'medico'=>$yoId, 'medicos'=>$medicos, 'ns'=>$ns, 'soloMedico'=>true];
+        }
         $ids = array_map(fn($m) => (int)$m['id_USUARIOS'], $medicos);
         if ($med !== null && !in_array($med, $ids, true)) { $med = null; $this->clearState('f_medico', $ns); }
-        return $ctx + ['ini'=>$ini, 'fin'=>$fin, 'medico'=>$med, 'medicos'=>$medicos, 'ns'=>$ns];
+        return $ctx + ['ini'=>$ini, 'fin'=>$fin, 'medico'=>$med, 'medicos'=>$medicos, 'ns'=>$ns, 'soloMedico'=>false];
     }
 
     /** Citas atendidas en el rango, ya filtradas por clinica/medico. */
@@ -74,10 +80,11 @@ class ReportesController extends Controller {
     }
 
     public function filtrar(): void {
-        $this->requireLogin(self::ROLES_REP);
+        $this->requireLogin(['medico','administrador','admin_sistema']);
         $destino = (string)$this->input('destino', 'reportes/repIngresos');
         $permitidos = ['reportes/repIngresos','reportes/repAtencion','reportes/repTop10','reportes/repEspecialidad','reportes/ingresos'];
         if (!in_array($destino, $permitidos, true)) $destino = 'reportes/repIngresos';
+        if (($_SESSION['user']['rol'] ?? '') === 'medico') $destino = 'reportes/ingresos';
         $ns = (string)$this->input('ns', 'rep');
         $this->stateParam('f_ini', null, $ns);
         $this->stateParam('f_fin', null, $ns);
