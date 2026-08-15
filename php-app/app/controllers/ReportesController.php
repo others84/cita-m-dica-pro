@@ -84,7 +84,10 @@ class ReportesController extends Controller {
         $destino = (string)$this->input('destino', 'reportes/repIngresos');
         $permitidos = ['reportes/repIngresos','reportes/repAtencion','reportes/repTop10','reportes/repEspecialidad','reportes/ingresos'];
         if (!in_array($destino, $permitidos, true)) $destino = 'reportes/repIngresos';
-        if (($_SESSION['user']['rol'] ?? '') === 'medico') $destino = 'reportes/ingresos';
+        if (($_SESSION['user']['rol'] ?? '') === 'medico'
+            && !in_array($destino, ['reportes/ingresos','reportes/repIngresos','reportes/repAtencion'], true)) {
+            $destino = 'reportes/ingresos';
+        }
         $ns = (string)$this->input('ns', 'rep');
         $this->stateParam('f_ini', null, $ns);
         $this->stateParam('f_fin', null, $ns);
@@ -94,7 +97,7 @@ class ReportesController extends Controller {
 
     /** Ingresos: suma del costo de las citas atendidas por dia. */
     public function repIngresos(): void {
-        $this->requireLogin(self::ROLES_REP);
+        $this->requireLogin(array_merge(self::ROLES_REP, ['medico']));
         $f = $this->filtros('rep_ingresos');
         $serie = [];
         foreach ($this->citasAtendidas($f) as $c) {
@@ -116,7 +119,7 @@ class ReportesController extends Controller {
 
     /** Citas atendidas por dia, ordenadas por fecha de atencion. */
     public function repAtencion(): void {
-        $this->requireLogin(self::ROLES_REP);
+        $this->requireLogin(array_merge(self::ROLES_REP, ['medico']));
         $f = $this->filtros('rep_atencion');
         $serie = [];
         foreach ($this->citasAtendidas($f) as $c) {
