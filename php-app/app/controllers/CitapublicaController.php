@@ -354,7 +354,8 @@ class CitapublicaController extends Controller {
                 'id_CONSULTORIO' => $idConsultorio,
             ]);
 
-            LogModel::estadoCita($idCita, null, 'Agendada', $idClinica, $clinicaNom, 'GENERICO');
+            try { LogModel::estadoCita($idCita, null, 'Agendada', $idClinica, $clinicaNom, 'GENERICO'); }
+            catch (Throwable $e) { Database::log('CITA PUBLICA log estado ERR: ' . $e->getMessage()); }
             $this->ev('CITA', 'CITA',
                 'ALTA CITA PUBLICA id_CITA=' . $idCita . ' id_PACIENTE=' . $idPaciente .
                 ' id_MEDICO=' . $idMedico . ' clinica=' . $clinicaNom . ' fecha=' . $fecha . ' hora=' . substr($hi, 0, 5) .
