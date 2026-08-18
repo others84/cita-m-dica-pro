@@ -480,7 +480,7 @@ class CitasController extends Controller {
 
     /** Cambia el estado de una cita conservando el resto de los datos. */
     private function cambiaEstado(int $id, array $nombresEstado, string $okMsg, ?string $observaciones = null,
-                                  string $redirect = 'citas', bool $conservaId = false): void {
+                                  string $redirect = 'citas', bool $conservaId = false, ?float $precio = null): void {
         $c = null;
         try {
             $c = $id ? CitaModel::obtener($id) : null;
@@ -515,7 +515,7 @@ class CitasController extends Controller {
                 'id_CATALOGO_ESTADO_CITAS' => $idEstado,
                 'observaciones'            => $observaciones !== null ? $observaciones : (string)($c['observaciones'] ?? ''),
                 'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
-                'precio'                   => (float)($c['precio'] ?? 0),
+                'precio'                   => $precio !== null ? $precio : (float)($c['precio'] ?? 0),
             ]);
             $this->registraLogEstado(
                 $id,
