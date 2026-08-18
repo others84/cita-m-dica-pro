@@ -328,6 +328,9 @@ class CitasController extends Controller {
         $this->requireLogin();
         $id  = (int)$this->input('id');
         $obs = (string)($this->input('observaciones') ?? '');
+        $pIn = $this->input('precio');
+        $precio = ($pIn === null || $pIn === '') ? null : (float)$pIn;
+        if ($precio !== null && $precio < 0) $precio = 0.0;
         if (mb_strlen(trim($obs)) < 5) {
             $this->flash('error', 'Debe capturar la razon de la cancelacion en Observaciones (minimo 5 caracteres).');
             $this->redirect('citas/cancelarForm');
@@ -380,7 +383,7 @@ class CitasController extends Controller {
         } catch (Throwable $e) {
             Database::log('CITAS.atenderGuardar obs paciente ERR: ' . $e->getMessage());
         }
-        $this->cambiaEstado($id, ['atendida', 'atendido'], 'Cita marcada como Atendida.', $obs);
+        $this->cambiaEstado($id, ['atendida', 'atendido'], 'Cita marcada como Atendida.', $obs, 'citas', false, $precio);
     }
 
     /** Marca la cita como notificada. */
