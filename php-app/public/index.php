@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+// Algunos hostings no tienen la extension mbstring habilitada.
+require_once __DIR__ . '/../app/core/mbstring_polyfill.php';
+
 // Sesion de larga duracion: los formularios extensos (alta de paciente,
 // alta de cita) pueden tardar varios minutos en llenarse. Con el valor por
 // defecto (24 min) la sesion se recicla, se pierde el token y el POST
