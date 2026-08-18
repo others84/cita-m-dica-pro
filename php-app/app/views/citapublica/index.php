@@ -40,7 +40,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 
 <main class="publica-wrap">
   <?php foreach (($flash ?? []) as $f): ?>
-    <div class="flash flash-<?= htmlspecialchars($f['tipo'] ?? 'info') ?>"><?= htmlspecialchars($f['msg'] ?? (is_string($f) ? $f : '')) ?></div>
+    <div class="flash flash-<?= htmlspecialchars($f['type'] ?? 'info') ?>"><?= htmlspecialchars($f['msg'] ?? '') ?></div>
   <?php endforeach; ?>
 
   <!-- Paso 1: identificacion por celular -->

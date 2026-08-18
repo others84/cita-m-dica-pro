@@ -173,6 +173,12 @@ class App {
             // regenerar el token y volver al formulario con un aviso.
             if (empty($_SESSION['user'])) {
                 csrf_token();
+                // Pagina publica de citas: regresar a la misma pantalla.
+                if (strncasecmp(trim((string)($_GET['url'] ?? ''), '/'), 'citapublica', 11) === 0) {
+                    $_SESSION['flash'][] = ['type' => 'error', 'msg' => 'La pagina estuvo inactiva demasiado tiempo. Intenta de nuevo.'];
+                    header('Location: ' . url('citapublica'));
+                    return;
+                }
                 $_SESSION['flash_error'] = 'Tu sesión expiró. Vuelve a intentarlo.';
                 header('Location: ' . url('auth/login'));
                 return;
