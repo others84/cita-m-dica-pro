@@ -254,3 +254,20 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(
 .cal-contador{background:var(--grad-suave)}
 .chart-col{background:linear-gradient(45deg,var(--c3),var(--c4),var(--c5))}
 .tema-card.sel{background:linear-gradient(45deg,#fff,var(--c1),var(--c2))}
+
+/* ===== Pagina publica "Generar cita" ===== */
+.publica-body { background: var(--bg, #f1f5f9); margin: 0; }
+.publica-top {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .9rem 1.2rem; background: var(--c5, #0f2f5b); color: #fff;
+}
+.publica-top h1 { margin: 0; font-size: 1.25rem; }
+.publica-top .subtitle { margin: 0; opacity: .85; font-size: .85rem; }
+.publica-top .btn { margin-left: auto; }
+.publica-wrap { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 3rem; }
+.publica-wrap .card { margin-bottom: 1rem; }
+.publica-wrap h2 { margin-top: 0; color: var(--c5, #0f2f5b); font-size: 1.05rem; }
+.publica-wrap .muted { color: #64748b; font-size: .9rem; }
+.publica-wrap .col-span { grid-column: 1 / -1; }
+.publica-wrap .chk { display: flex; align-items: center; gap: .45rem; }
+.login-alt { margin-top: .75rem; text-align: center; }

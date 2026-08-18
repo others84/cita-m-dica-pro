@@ -47,4 +47,28 @@ class PacienteModel extends Model {
         self::execute('EXEC citas.spBajaPaciente @id_PACIENTE=:id, @id_usuario=:u, @id_CLINICA_esperada=:ce',
             [':id'=>$id, ':u'=>self::currentUserId(), ':ce'=>$idClinicaEsperada]);
     }
+
+    /** Solo digitos de un telefono (para comparar celulares). */
+    public static function soloDigitos(?string $tel): string {
+        $d = preg_replace('/\D+/', '', (string)$tel);
+        return (string)$d;
+    }
+
+    /**
+     * Busca pacientes cuyo telefono coincida exactamente (comparando solo
+     * digitos, ignorando lada 52 inicial). Uso: pagina publica de citas.
+     * @return array<int,array<string,mixed>> una fila por clinica donde exista
+     */
+    public static function buscarPorTelefono(string $telefono): array {
+        $bus = self::soloDigitos($telefono);
+        if (strlen($bus) < 10) return [];
+        $cola = substr($bus, -10);
+        $out = [];
+        foreach (self::listar() as $p) {
+            $t = self::soloDigitos((string)($p['telefono'] ?? ''));
+            if ($t === '' ) continue;
+            if (substr($t, -10) === $cola) $out[] = $p;
+        }
+        return $out;
+    }
 }
