@@ -83,4 +83,23 @@ class UsuarioModel extends Model {
     public static function desactiva(int $id): void {
         self::execute('EXEC citas.spDesactivaUsuario @id_USUARIOS=:id, @id_usuario=:u', [':id' => $id, ':u' => self::currentUserId()]);
     }
+
+    /**
+     * Usuario GENERICO (rol asistente) usado por la pagina publica de citas.
+     * Devuelve ['id_USUARIOS'=>int,'usuario'=>string,'clinicas'=>int[]] o null.
+     */
+    public static function generico(): ?array {
+        $id = 0; $nombre = 'GENERICO'; $clinicas = []; $rol = '';
+        foreach (self::listar() as $u) {
+            if (strcasecmp(trim((string)($u['usuario'] ?? '')), 'GENERICO') !== 0) continue;
+            if ((int)($u['activo'] ?? 1) !== 1) continue;
+            $id  = (int)($u['id_USUARIOS'] ?? 0);
+            $rol = strtolower((string)($u['rol'] ?? ''));
+            $nombre = (string)($u['nombre_completo'] ?? 'GENERICO');
+            $cl = (int)($u['id_CLINICA'] ?? 0);
+            if ($cl > 0) $clinicas[$cl] = $cl;
+        }
+        if ($id <= 0) return null;
+        return ['id_USUARIOS'=>$id, 'usuario'=>'GENERICO', 'nombre'=>$nombre, 'rol'=>$rol, 'clinicas'=>array_values($clinicas)];
+    }
 }
