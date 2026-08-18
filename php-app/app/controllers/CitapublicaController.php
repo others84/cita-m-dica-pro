@@ -223,9 +223,8 @@ class CitapublicaController extends Controller {
                 ? 'No existe el usuario GENERICO activo en el sistema; no es posible registrar la cita.'
                 : 'El usuario GENERICO no esta asignado a la clinica ' . $clinicaNom . '; no es posible registrar la cita.';
             Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
-            try { LogModel::evento('CITA', 'CitapublicaController::agendar', 'CITA',
-                'ERROR CITA PUBLICA usuario=GENERICO id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg); }
-            catch (Throwable $e) {}
+            $this->ev('CITA', 'CITA',
+                'ERROR CITA PUBLICA usuario=GENERICO id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
             $this->flash('error', $msg . ' Contacta a la clinica.');
             $this->redirect('citapublica');
         }
@@ -335,7 +334,7 @@ class CitapublicaController extends Controller {
                     $p['notifica_email'], $p['notifica_wa']);
                 if ($idPaciente <= 0) throw new RuntimeException('No se pudo registrar el paciente.');
                 $this->set('id_PACIENTE', $idPaciente);
-                LogModel::evento('PACIENTE', 'CitapublicaController::agendar', 'PACIENTE',
+                $this->ev('PACIENTE', 'PACIENTE',
                     'ALTA PACIENTE PUBLICA id_PACIENTE=' . $idPaciente . ' clinica=' . $clinicaNom .
                     ' id_CLINICA=' . $idClinica . ' usuario=GENERICO');
                 Database::log('CITA PUBLICA alta paciente id=' . $idPaciente . ' clinica=' . $clinicaNom);
@@ -356,7 +355,7 @@ class CitapublicaController extends Controller {
             ]);
 
             LogModel::estadoCita($idCita, null, 'Agendada', $idClinica, $clinicaNom, 'GENERICO');
-            LogModel::evento('CITA', 'CitapublicaController::agendar', 'CITA',
+            $this->ev('CITA', 'CITA',
                 'ALTA CITA PUBLICA id_CITA=' . $idCita . ' id_PACIENTE=' . $idPaciente .
                 ' id_MEDICO=' . $idMedico . ' clinica=' . $clinicaNom . ' fecha=' . $fecha . ' hora=' . substr($hi, 0, 5) .
                 ' usuario=GENERICO');
@@ -365,13 +364,25 @@ class CitapublicaController extends Controller {
             $this->flash('ok', 'Tu cita quedo agendada para el ' . date('d/m/Y', strtotime($fecha)) . ' a las ' . substr($hi, 0, 5) . ' hrs.');
         } catch (Throwable $e) {
             Database::log('CITA PUBLICA ERROR alta: ' . $e->getMessage());
-            try { LogModel::evento('CITA', 'CitapublicaController::agendar', 'CITA',
-                'ERROR ALTA CITA PUBLICA clinica=' . $clinicaNom . ' detalle=' . $e->getMessage()); } catch (Throwable $x) {}
+            $this->ev('CITA', 'CITA', 'ERROR ALTA CITA PUBLICA clinica=' . $clinicaNom . ' detalle=' . $e->getMessage());
             $this->flash('error', 'No se pudo agendar la cita: ' . $e->getMessage());
         } finally {
             Model::usarUsuario(null);
         }
         $this->redirect('citapublica');
+    }
+
+    /** Log tolerante: si el modelo/SP no existe, solo escribe en app.log. */
+    private function ev(string $modulo, string $tabla, string $evento): void {
+        try {
+            if (method_exists('LogModel', 'evento')) {
+                LogModel::evento($modulo, 'CitapublicaController::agendar', $tabla, $evento);
+                return;
+            }
+        } catch (Throwable $e) {
+            Database::log('CITA PUBLICA log ERR: ' . $e->getMessage());
+        }
+        Database::log('[' . $modulo . '] ' . $evento);
     }
 
     /** Empieza de nuevo (otro paciente). */
