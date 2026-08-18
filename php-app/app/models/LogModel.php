@@ -34,4 +34,16 @@ class LogModel extends Model {
             $base
         );
     }
+
+    /** Registra un evento libre en citas.LOG (pagina publica de citas). */
+    public static function evento(string $modulo, string $procedimiento, string $tabla, string $evento): void {
+        try {
+            self::execute(
+                'EXEC citas.spLogEvento @modulo=:m, @procedimiento=:p, @tabla=:t, @evento=:e, @id_usuario=:u',
+                [':m'=>$modulo, ':p'=>$procedimiento, ':t'=>$tabla, ':e'=>mb_substr($evento, 0, 1900), ':u'=>self::currentUserId()]
+            );
+        } catch (Throwable $ex) {
+            Database::log('LOG evento ERR: ' . $ex->getMessage() . ' | evento=' . $evento);
+        }
+    }
 }

@@ -2,6 +2,14 @@
 require_once __DIR__ . '/Database.php';
 
 class Model {
+    /** Id de usuario forzado (pagina publica: usuario GENERICO). */
+    protected static ?int $usuarioForzado = null;
+
+    /** Fija el id de usuario a usar en los SP (en lugar del de sesion). */
+    public static function usarUsuario(?int $id): void {
+        self::$usuarioForzado = $id === null ? null : max(0, min(255, $id));
+    }
+
     /**
      * Ejecuta un SP y devuelve todas las filas del primer resultset.
      * $params: array asociativo [':nombre' => valor] o posicional [val,val,...]
@@ -74,6 +82,7 @@ class Model {
     }
 
     protected static function currentUserId(): int {
+        if (self::$usuarioForzado !== null) return self::$usuarioForzado;
         $id = $_SESSION['user']['id_USUARIOS'] ?? 0;
         $id = (int)$id;
         if ($id < 0) $id = 0;
