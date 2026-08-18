@@ -105,7 +105,9 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label>Precio
-      <input type="number" name="precio" step="0.01" min="0" value="<?= htmlspecialchars((string)($editRow['precio'] ?? '0.00')) ?>"<?= $dis ?>>
+      <input type="number" name="precio" step="0.01" min="0" required
+             value="<?= htmlspecialchars((string)($editRow['precio'] ?? '0.00')) ?>"<?= $atender ? '' : $dis ?>>
+      <?php if ($atender): ?><small style="color:var(--c4)">Capture el precio de la consulta antes de marcarla como atendida.</small><?php endif; ?>
     </label>
 
     <label>Email notificacion
