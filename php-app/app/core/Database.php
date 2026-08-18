@@ -21,12 +21,26 @@ class Database {
              . ';Database=' . $database
              . ';Encrypt=yes;TrustServerCertificate=yes';
 
+        $opciones = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ];
+        // La codificacion UTF-8 solo existe si la extension pdo_sqlsrv esta
+        // cargada; en otros drivers la constante no esta definida.
+        if (defined('PDO::SQLSRV_ATTR_ENCODING') && defined('PDO::SQLSRV_ENCODING_UTF8')) {
+            $opciones[constant('PDO::SQLSRV_ATTR_ENCODING')] = constant('PDO::SQLSRV_ENCODING_UTF8');
+        }
+
+        if (!in_array('sqlsrv', PDO::getAvailableDrivers(), true)) {
+            $msg = 'El driver pdo_sqlsrv no esta habilitado en PHP. '
+                 . 'Instale/active php_pdo_sqlsrv y php_sqlsrv (extension=...) y reinicie el servidor web. '
+                 . 'Drivers disponibles: ' . implode(', ', PDO::getAvailableDrivers());
+            self::log('DB config error: ' . $msg);
+            throw new RuntimeException($msg);
+        }
+
         try {
-            self::$pdo = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::SQLSRV_ATTR_ENCODING    => PDO::SQLSRV_ENCODING_UTF8,
-            ]);
+            self::$pdo = new PDO($dsn, $user, $pass, $opciones);
         } catch (Throwable $e) {
             self::log('DB connect error: ' . $e->getMessage());
             throw $e;
