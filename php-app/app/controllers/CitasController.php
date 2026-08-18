@@ -328,9 +328,6 @@ class CitasController extends Controller {
         $this->requireLogin();
         $id  = (int)$this->input('id');
         $obs = (string)($this->input('observaciones') ?? '');
-        $pIn = $this->input('precio');
-        $precio = ($pIn === null || $pIn === '') ? null : (float)$pIn;
-        if ($precio !== null && $precio < 0) $precio = 0.0;
         if (mb_strlen(trim($obs)) < 5) {
             $this->flash('error', 'Debe capturar la razon de la cancelacion en Observaciones (minimo 5 caracteres).');
             $this->redirect('citas/cancelarForm');
@@ -367,6 +364,9 @@ class CitasController extends Controller {
         $this->requireLogin();
         $id  = (int)$this->input('id');
         $obs = (string)($this->input('observaciones') ?? '');
+        $pIn = $this->input('precio');
+        $precio = ($pIn === null || $pIn === '') ? null : (float)$pIn;
+        if ($precio !== null && $precio < 0) $precio = 0.0;
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if ($c && !$this->citaPermitida($c)) {
