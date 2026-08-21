@@ -3,21 +3,23 @@
 <div class="card" style="margin-bottom:1rem">
   <h2 style="margin-top:0"><?= $editId ? 'Editar asistente' : 'Nuevo asistente' ?></h2>
   <p style="margin:.2rem 0 1rem;color:var(--c5)">El usuario se da de alta con perfil <strong>asistente</strong> y se asigna automaticamente a la clinica seleccionada en el filtro.</p>
-  <form method="post" action="<?= url('asistentes/guardar') ?>" class="form-grid"><?= csrf_field() ?>
+  <form method="post" action="<?= url('asistentes/guardar') ?>" class="form-grid" autocomplete="off"><?= csrf_field() ?>
+    <input type="text" name="_fake_user" style="display:none" autocomplete="username" tabindex="-1" aria-hidden="true">
+    <input type="password" name="_fake_pass" style="display:none" autocomplete="new-password" tabindex="-1" aria-hidden="true">
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
     <input type="hidden" name="id_CLINICA" value="<?= $clinicaForm ?>">
     <?php if ($clinicaForm <= 0): ?>
       <p style="grid-column:1/-1;color:var(--c5);margin:0">Selecciona una clinica en el filtro para registrar un asistente.</p>
     <?php endif; ?>
     <label>Usuario
-      <input name="usuario" required maxlength="50" value="<?= htmlspecialchars($editRow['usuario'] ?? '') ?>" <?= $editId?'readonly':'' ?>>
+      <input name="usuario" required maxlength="50" autocomplete="off" value="<?= htmlspecialchars($editId ? ($editRow['usuario'] ?? '') : '') ?>" <?= $editId?'readonly':'' ?>>
     </label>
     <label>Nombre completo
-      <input name="nombre_completo" required maxlength="150" value="<?= htmlspecialchars($editRow['nombre_completo'] ?? '') ?>">
+      <input name="nombre_completo" required maxlength="150" autocomplete="off" value="<?= htmlspecialchars($editId ? ($editRow['nombre_completo'] ?? '') : '') ?>">
     </label>
-    <label>Email <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
+    <label>Email <input type="email" name="email" autocomplete="off" value="<?= htmlspecialchars($editId ? ($editRow['email'] ?? '') : '') ?>"></label>
     <label>Password <?= $editId ? '(dejar vacio para no cambiar)' : '' ?>
-      <input type="password" name="password" <?= $editId?'':'required' ?> minlength="4">
+      <input type="password" name="password" autocomplete="new-password" value="" <?= $editId?'':'required' ?> minlength="4">
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" <?= $clinicaForm <= 0 ? 'disabled' : '' ?>><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
