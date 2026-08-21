@@ -98,6 +98,8 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('medicos', 'Médicos', $__cur) ?>
+        <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
+
         <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
         <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
