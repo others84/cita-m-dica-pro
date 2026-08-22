@@ -143,13 +143,14 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : ($atender ? 'Observaciones de la cita' : 'Observaciones') ?>
-      <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
+      <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $horario ? ' disabled' : '' ?><?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
       <?php if ($soloCancelar): ?><small style="color:#b00020">Obligatorio: capture la razon de la cancelacion.</small><?php endif; ?>
     </label>
 
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : ($atender ? ' onclick="return confirm(\'\u00bfMarcar esta cita como Atendida?\');"' : '') ?>><?= $soloCancelar ? 'Cancelar cita' : ($atender ? 'Atendida' : ($editId ? 'Actualizar' : 'Agendar')) ?></button>
-      <a class="btn btn-sec" href="<?= url('citas') ?>"><?= $atender ? 'Regresar' : 'Cancelar' ?></a>
+      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : ($atender ? ' onclick="return confirm(\'\u00bfMarcar esta cita como Atendida?\');"' : '') ?>><?= $soloCancelar ? 'Cancelar cita' : ($atender ? 'Atendida' : ($horario ? 'Guardar hora fin' : ($editId ? 'Actualizar' : 'Agendar'))) ?></button>
+      <a class="btn btn-sec" href="<?= url('citas') ?>"><?= ($atender || $horario) ? 'Regresar' : 'Cancelar' ?></a>
+
     </div>
   </form>
 </div>
