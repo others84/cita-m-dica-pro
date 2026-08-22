@@ -52,8 +52,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       </label>
       <div class="form-actions">
         <button class="btn" type="submit">Buscar mis datos</button>
-        <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Empezar de nuevo</a>
+        <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Agendar cita</a>
       </div>
+
     </form>
     <?php if ($paso === 'elige_clinica' && !empty($coincidencias)): ?>
       <p>Encontramos tu registro en varias clinicas. Selecciona en cual deseas atenderte:</p>
@@ -193,8 +194,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <div class="form-grid">
         <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>"></label>
         <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" required></label>
-        <label>Hora fin <input type="time" id="f_hf" name="hora_fin" required></label>
+        <input type="hidden" id="f_hf" name="hora_fin">
       </div>
+
       <div class="form-actions">
         <button class="btn btn-primary" type="submit">Agendar</button>
       </div>
@@ -227,9 +229,25 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
   if (est)  est.addEventListener('change', function () { if (mun) mun.value = ''; sync(); });
   sync();
 
+  /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  (function () {
+    var hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf'),
+        frm = document.getElementById('form-cita');
+    if (!hi || !hf) return;
+    function calc() {
+      var p = (hi.value || '').split(':');
+      if (p.length < 2) { hf.value = ''; return; }
+      var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
+      hf.value = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+    hi.addEventListener('change', calc);
+    if (frm) frm.addEventListener('submit', function () { if (!hf.value) calc(); });
+  })();
+
   /* Calendario del medico */
   var ecEl = document.getElementById('ec');
   if (!ecEl) return;
+
   var scriptUrls = [
     <?= json_encode(asset('vendor/event-calendar/event-calendar.min.js') . '?v=372') ?>,
     'https://unpkg.com/@event-calendar/build@5.7.1/dist/event-calendar.min.js',
@@ -253,6 +271,9 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     document.getElementById('form-cita').scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
+
+
+
   function options() {
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',

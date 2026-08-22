@@ -11,17 +11,24 @@ $hf = $hf ? substr((string)$hf,0,5) : '';
 $modo = $modo ?? 'edicion';
 $soloCancelar = ($modo === 'cancelar');
 $atender = ($modo === 'atender');
+$horario = ($modo === 'horario');
 $notifEditable = $notifEditable ?? true;   // solo citas agendadas permiten editar notificaciones
-$dis = ($soloCancelar || $atender) ? ' disabled' : '';
+if ($horario) $notifEditable = false;
+$dis = ($soloCancelar || $atender || $horario) ? ' disabled' : '';
 $notifDis = $notifEditable ? '' : ' disabled';
-$accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGuardar' : 'citas/guardar');
+$accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGuardar' : ($horario ? 'citas/horarioGuardar' : 'citas/guardar'));
+
 ?>
 <?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card">
-  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($atender ? 'Atencion de la cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita')) ?></h2>
+  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($atender ? 'Atencion de la cita #' . (int)$editId : ($horario ? 'Modificar hora fin de la cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita'))) ?></h2>
   <?php if ($soloCancelar): ?>
     <p style="color:var(--c4);margin-top:0">Escriba el motivo de la cancelacion en Observaciones. Los demas campos no se pueden modificar.</p>
   <?php endif; ?>
+  <?php if ($horario): ?>
+    <p style="color:var(--c4);margin-top:0">Solo puede modificar la hora de finalizacion de la cita.</p>
+  <?php endif; ?>
+
   <?php if ($atender): ?>
     <p style="color:var(--c4);margin-top:0">Revise la informacion de la cita y del paciente. Capture las observaciones y presione "Atendida" para cerrar la consulta.</p>
   <?php endif; ?>
@@ -90,7 +97,8 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
       <input type="time" name="hora_inicio" required value="<?= htmlspecialchars($hi) ?>"<?= $dis ?>>
     </label>
     <label>Hora fin
-      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>"<?= $dis ?>>
+      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>"<?= $horario ? ' autofocus' : $dis ?>>
+
     </label>
 
     <label>Estado
@@ -123,8 +131,9 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label style="grid-column:1/-1">Observaciones paciente <small id="obs_paciente_count" style="color:var(--c4,#1E3A5F);font-weight:400">(0/5000)</small>
-      <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
+      <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"<?= $horario ? ' disabled' : '' ?>><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
+
 
     <label>Notificar por email
       <input type="checkbox" id="notif_email_txt" value="1" disabled<?= !empty($editRow['notifica_email']) ? ' checked' : '' ?>>
@@ -134,13 +143,14 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label style="grid-column:1/-1"><?= $soloCancelar ? 'Observaciones (motivo de cancelacion)' : ($atender ? 'Observaciones de la cita' : 'Observaciones') ?>
-      <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
+      <textarea id="txt_observaciones" name="observaciones" rows="3"<?= $horario ? ' disabled' : '' ?><?= $soloCancelar ? ' required autofocus minlength="5" placeholder="Escriba la razon por la que se cancela la cita (obligatorio)"' : '' ?>><?= htmlspecialchars($editRow['observaciones'] ?? '') ?></textarea>
       <?php if ($soloCancelar): ?><small style="color:#b00020">Obligatorio: capture la razon de la cancelacion.</small><?php endif; ?>
     </label>
 
     <div class="form-actions" style="grid-column:1/-1">
-      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : ($atender ? ' onclick="return confirm(\'\u00bfMarcar esta cita como Atendida?\');"' : '') ?>><?= $soloCancelar ? 'Cancelar cita' : ($atender ? 'Atendida' : ($editId ? 'Actualizar' : 'Agendar')) ?></button>
-      <a class="btn btn-sec" href="<?= url('citas') ?>"><?= $atender ? 'Regresar' : 'Cancelar' ?></a>
+      <button class="btn" type="submit"<?= $soloCancelar ? ' onclick="return validaMotivoCancelacion();"' : ($atender ? ' onclick="return confirm(\'\u00bfMarcar esta cita como Atendida?\');"' : '') ?>><?= $soloCancelar ? 'Cancelar cita' : ($atender ? 'Atendida' : ($horario ? 'Guardar hora fin' : ($editId ? 'Actualizar' : 'Agendar'))) ?></button>
+      <a class="btn btn-sec" href="<?= url('citas') ?>"><?= ($atender || $horario) ? 'Regresar' : 'Cancelar' ?></a>
+
     </div>
   </form>
 </div>
