@@ -71,6 +71,8 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <?php endif; ?>
   </section>
 
+<?php $mostrarResto = in_array($paso, ['nuevo', 'cita'], true); ?>
+<?php if ($mostrarResto): ?>
   <!-- Paso 2: panel clinica -->
   <section class="card">
     <h2>2. Clinica</h2>
@@ -88,7 +90,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     </form>
 
     <?php if (!$idClinica): ?>
-      <p class="muted">Selecciona una clinica para ver medicos, consultorios y especialidades.</p>
+      <p class="muted">Selecciona una clinica para ver los medicos disponibles.</p>
     <?php else: ?>
       <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
         <label>Medico
@@ -102,28 +104,15 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           </select>
         </label>
         <label>Consultorio
-          <select name="id_CONSULTORIO" required onchange="this.form.submit()">
-            <option value="">-- seleccione --</option>
-            <?php foreach ($consultorios as $co): ?>
-              <option value="<?= (int)$co['id_CONSULTORIO'] ?>" <?= $idConsultorio === (int)$co['id_CONSULTORIO'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($co['nombre'] ?? '') ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" value="<?= htmlspecialchars($consultorioNom ?: 'No disponible') ?>" readonly>
         </label>
         <label>Especialidad
-          <select name="id_CATALOGO_ESPECIALIDAD" required onchange="this.form.submit()">
-            <option value="">-- seleccione --</option>
-            <?php foreach ($especialidades as $es): ?>
-              <option value="<?= (int)$es['id_CATALOGO_ESPECIALIDAD'] ?>" <?= $idEspecialidad === (int)$es['id_CATALOGO_ESPECIALIDAD'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($es['nombre'] ?? '') ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" value="<?= htmlspecialchars($especialidadNom ?: 'No disponible') ?>" readonly>
         </label>
       </form>
     <?php endif; ?>
   </section>
+
 
   <!-- Paso 3: calendario del medico -->
   <section class="card calendar-card">
