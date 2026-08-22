@@ -40,6 +40,6 @@ $csrf = $_SESSION['csrf_token'];
     </label>
     <button type="submit">Acceder</button>
   </form>
-  <p class="login-alt"><a class="btn" href="<?= url('citapublica') ?>">Generar cita</a></p>
+  <p class="login-alt"><a class="btn" href="<?= url('citapublica/reiniciar') ?>">Generar cita</a></p>
 </body>
 </html>

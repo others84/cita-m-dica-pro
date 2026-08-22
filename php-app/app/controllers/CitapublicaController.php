@@ -394,6 +394,9 @@ class CitapublicaController extends Controller {
             Database::log('CITA PUBLICA alta cita id=' . $idCita . ' clinica=' . $clinicaNom .
                 ' medico=' . $idMedico . ' paciente=' . $idPaciente . ' fecha=' . $fecha . ' ' . substr($hi, 0, 5));
             $this->flash('ok', 'Tu cita quedo agendada para el ' . date('d/m/Y', strtotime($fecha)) . ' a las ' . substr($hi, 0, 5) . ' hrs.');
+            // Deja la pantalla como recien abierta para poder generar otra cita.
+            $this->reset();
+
         } catch (Throwable $e) {
             Database::log('CITA PUBLICA ERROR alta: ' . $e->getMessage());
             $this->ev('CITA', 'CITA', 'ERROR ALTA CITA PUBLICA clinica=' . $clinicaNom . ' detalle=' . $e->getMessage());
