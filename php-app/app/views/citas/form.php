@@ -21,10 +21,14 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
 ?>
 <?php $controller='citas/nueva'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <div class="card">
-  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($atender ? 'Atencion de la cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita')) ?></h2>
+  <h2 style="margin-top:0;color:var(--c5)"><?= $soloCancelar ? 'Cancelar cita #' . (int)$editId : ($atender ? 'Atencion de la cita #' . (int)$editId : ($horario ? 'Modificar hora fin de la cita #' . (int)$editId : ($editId ? 'Modificar cita #' . (int)$editId : 'Nueva cita'))) ?></h2>
   <?php if ($soloCancelar): ?>
     <p style="color:var(--c4);margin-top:0">Escriba el motivo de la cancelacion en Observaciones. Los demas campos no se pueden modificar.</p>
   <?php endif; ?>
+  <?php if ($horario): ?>
+    <p style="color:var(--c4);margin-top:0">Solo puede modificar la hora de finalizacion de la cita.</p>
+  <?php endif; ?>
+
   <?php if ($atender): ?>
     <p style="color:var(--c4);margin-top:0">Revise la informacion de la cita y del paciente. Capture las observaciones y presione "Atendida" para cerrar la consulta.</p>
   <?php endif; ?>
