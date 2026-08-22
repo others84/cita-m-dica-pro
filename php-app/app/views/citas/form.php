@@ -97,7 +97,8 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
       <input type="time" name="hora_inicio" required value="<?= htmlspecialchars($hi) ?>"<?= $dis ?>>
     </label>
     <label>Hora fin
-      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>"<?= $dis ?>>
+      <input type="time" name="hora_fin" required value="<?= htmlspecialchars($hf) ?>"<?= $horario ? ' autofocus' : $dis ?>>
+
     </label>
 
     <label>Estado
@@ -130,8 +131,9 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label style="grid-column:1/-1">Observaciones paciente <small id="obs_paciente_count" style="color:var(--c4,#1E3A5F);font-weight:400">(0/5000)</small>
-      <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
+      <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"<?= $horario ? ' disabled' : '' ?>><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
+
 
     <label>Notificar por email
       <input type="checkbox" id="notif_email_txt" value="1" disabled<?= !empty($editRow['notifica_email']) ? ' checked' : '' ?>>
