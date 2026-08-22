@@ -229,9 +229,25 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
   if (est)  est.addEventListener('change', function () { if (mun) mun.value = ''; sync(); });
   sync();
 
+  /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  (function () {
+    var hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf'),
+        frm = document.getElementById('form-cita');
+    if (!hi || !hf) return;
+    function calc() {
+      var p = (hi.value || '').split(':');
+      if (p.length < 2) { hf.value = ''; return; }
+      var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
+      hf.value = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+    hi.addEventListener('change', calc);
+    if (frm) frm.addEventListener('submit', function () { if (!hf.value) calc(); });
+  })();
+
   /* Calendario del medico */
   var ecEl = document.getElementById('ec');
   if (!ecEl) return;
+
   var scriptUrls = [
     <?= json_encode(asset('vendor/event-calendar/event-calendar.min.js') . '?v=372') ?>,
     'https://unpkg.com/@event-calendar/build@5.7.1/dist/event-calendar.min.js',
