@@ -47,6 +47,14 @@ class CitapublicaController extends Controller {
             if (!in_array($idMedico, $ids, true)) { $idMedico = null; $this->set('id_MEDICO', 0); }
         }
 
+        // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
+        $genCons = $idClinica ? $this->buscaGenerico($consultorios, 'id_CONSULTORIO') : null;
+        $genEsp  = $idClinica ? $this->buscaGenerico($especialidades, 'id_CATALOGO_ESPECIALIDAD') : null;
+        if ($idClinica && !$genCons) $this->flash('error', 'No existe el consultorio GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        if ($idClinica && !$genEsp)  $this->flash('error', 'No existe la especialidad GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        $this->set('id_CONSULTORIO', $genCons ? (int)$genCons['id'] : 0);
+        $this->set('id_CATALOGO_ESPECIALIDAD', $genEsp ? (int)$genEsp['id'] : 0);
+
         $eventos = $idClinica && $idMedico ? $this->eventosMedico($idMedico, $idClinica) : [];
 
         $this->render([
@@ -56,8 +64,10 @@ class CitapublicaController extends Controller {
             'especialidades' => $especialidades,
             'idClinica'      => $idClinica,
             'idMedico'       => $idMedico,
-            'idConsultorio'  => (int)$this->get('id_CONSULTORIO', 0),
-            'idEspecialidad' => (int)$this->get('id_CATALOGO_ESPECIALIDAD', 0),
+            'idConsultorio'  => $genCons ? (int)$genCons['id'] : 0,
+            'idEspecialidad' => $genEsp ? (int)$genEsp['id'] : 0,
+            'consultorioNom' => $genCons['nombre'] ?? '',
+            'especialidadNom'=> $genEsp['nombre'] ?? '',
             'eventos'        => $eventos,
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
@@ -70,6 +80,16 @@ class CitapublicaController extends Controller {
             'municipios'     => $this->cat(fn() => MunicipioModel::listar()),
         ]);
     }
+
+    /** Localiza el registro llamado GENERICO en un catalogo de la clinica. */
+    private function buscaGenerico(array $rows, string $key): ?array {
+        foreach ($rows as $r) {
+            $n = strtolower(strtr(trim((string)($r['nombre'] ?? '')), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u']));
+            if ($n === 'generico') return ['id' => (int)($r[$key] ?? 0), 'nombre' => (string)$r['nombre']];
+        }
+        return null;
+    }
+
 
     private function cat(callable $f): array {
         try { return $f(); } catch (Throwable $e) { return []; }
