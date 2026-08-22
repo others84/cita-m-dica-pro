@@ -52,8 +52,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       </label>
       <div class="form-actions">
         <button class="btn" type="submit">Buscar mis datos</button>
-        <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Empezar de nuevo</a>
+        <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Agendar cita</a>
       </div>
+
     </form>
     <?php if ($paso === 'elige_clinica' && !empty($coincidencias)): ?>
       <p>Encontramos tu registro en varias clinicas. Selecciona en cual deseas atenderte:</p>
@@ -193,8 +194,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <div class="form-grid">
         <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>"></label>
         <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" required></label>
-        <label>Hora fin <input type="time" id="f_hf" name="hora_fin" required></label>
+        <input type="hidden" id="f_hf" name="hora_fin">
       </div>
+
       <div class="form-actions">
         <button class="btn btn-primary" type="submit">Agendar</button>
       </div>
