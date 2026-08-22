@@ -335,8 +335,8 @@ class CitapublicaController extends Controller {
             if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Captura un correo valido.';
             if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Selecciona el genero.';
             if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Selecciona pais, estado y municipio.';
-            if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
         }
+        if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
 
         if ($err) {
             foreach (array_unique($err) as $m) $this->flash('error', $m);
