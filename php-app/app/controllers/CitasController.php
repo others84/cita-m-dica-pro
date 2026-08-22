@@ -253,7 +253,59 @@ class CitasController extends Controller {
         ]);
     }
 
+    /** Guarda unicamente la hora de finalizacion (citas agendadas). */
+    public function horarioGuardar(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        $hf = substr((string)$this->input('hora_fin'), 0, 5);
+        $c  = $id ? CitaModel::obtener($id) : null;
+        if (!$c || !$this->citaPermitida($c)) {
+            $this->clearState('id');
+            $this->denegarRecurso('CITA', $id, $c ? (int)($c['id_CLINICA'] ?? 0) : null, 'citas');
+            return;
+        }
+        $est = mb_strtolower(trim((string)($c['estado'] ?? '')));
+        if (strpos($est, 'agendad') === false) {
+            $this->flash('error', 'Solo se puede modificar la hora fin de citas agendadas.');
+            $this->clearState('id');
+            $this->redirect('citas');
+            return;
+        }
+        $g  = fn($v, $f) => $v instanceof DateTime ? $v->format($f) : (string)$v;
+        $fe = substr($g($c['fecha_cita'] ?? '', 'Y-m-d'), 0, 10);
+        $hi = substr($g($c['hora_inicio'] ?? '', 'H:i:s'), 0, 5);
+        if (!preg_match('/^\d{2}:\d{2}$/', $hf) || strtotime($fe . ' ' . $hf) <= strtotime($fe . ' ' . $hi)) {
+            $this->flash('error', 'La hora fin debe ser mayor a la hora de inicio.');
+            $this->redirect('citas/horarioForm');
+            return;
+        }
+        try {
+            CitaModel::cambio($id, [
+                'id_PACIENTE'              => (int)$c['id_PACIENTE'],
+                'id_MEDICO'                => (int)$c['id_MEDICO'],
+                'id_CONSULTORIO'           => (int)$c['id_CONSULTORIO'],
+                'id_CATALOGO_ESPECIALIDAD' => (int)$c['id_CATALOGO_ESPECIALIDAD'],
+                'fecha_cita'               => $fe,
+                'hora_inicio'              => $hi . ':00',
+                'hora_fin'                 => $hf . ':00',
+                'id_CATALOGO_ESTADO_CITAS' => (int)$c['id_CATALOGO_ESTADO_CITAS'],
+                'observaciones'            => (string)($c['observaciones'] ?? ''),
+                'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
+                'precio'                   => (float)($c['precio'] ?? 0),
+            ]);
+            Database::log('CITA HORA FIN MODIFICADA id_CITA=' . $id . ' hora_fin=' . $hf
+                . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?')
+                . ' clinica=' . (string)($c['clinica'] ?? ''));
+            $this->flash('ok', 'Hora de finalizacion actualizada.');
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo actualizar la hora fin: ' . $e->getMessage());
+        }
+        $this->clearState('id');
+        $this->redirect('citas');
+    }
+
     public function guardar(): void {
+
         $this->requireLogin();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $data = [
