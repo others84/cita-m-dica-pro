@@ -186,6 +186,9 @@ class CitasController extends Controller {
     public function cancelarForm(): void { $this->form('cancelar'); }
     /** Ventana de atencion: el medico revisa la cita y la marca como Atendida. */
     public function atenderForm(): void { $this->form('atender'); }
+    /** El medico ajusta la hora de finalizacion (solo citas agendadas). */
+    public function horarioForm(): void { $this->form('horario'); }
+
 
     private function form(string $modo = 'edicion'): void {
         $this->requireLogin();
