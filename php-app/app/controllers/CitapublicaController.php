@@ -335,8 +335,8 @@ class CitapublicaController extends Controller {
             if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Captura un correo valido.';
             if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Selecciona el genero.';
             if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Selecciona pais, estado y municipio.';
-            if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
         }
+        if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
 
         if ($err) {
             foreach (array_unique($err) as $m) $this->flash('error', $m);
@@ -377,7 +377,7 @@ class CitapublicaController extends Controller {
                 'hora_inicio' => substr($hi, 0, 5) . ':00',
                 'hora_fin'    => substr($hf, 0, 5) . ':00',
                 'id_CATALOGO_ESTADO_CITAS' => $idEstado,
-                'observaciones' => 'Cita generada desde la pagina publica',
+                'observaciones' => $p['observaciones'],
                 'horas_anticipacion_notif' => 24,
                 'precio' => 0,
                 'id_MEDICO' => $idMedico,
