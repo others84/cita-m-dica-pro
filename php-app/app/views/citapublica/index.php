@@ -200,7 +200,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       </div>
     </section>
   </form>
+<?php endif; ?>
 </main>
+
 
 <script>
 window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
