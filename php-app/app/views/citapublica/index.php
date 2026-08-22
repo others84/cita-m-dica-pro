@@ -255,6 +255,18 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     document.getElementById('form-cita').scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
+  /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  (function () {
+    var hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf');
+    if (!hi || !hf) return;
+    hi.addEventListener('change', function () {
+      var p = (hi.value || '').split(':');
+      if (p.length < 2) { hf.value = ''; return; }
+      var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
+      hf.value = hora(d);
+    });
+  })();
+
   function options() {
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',
