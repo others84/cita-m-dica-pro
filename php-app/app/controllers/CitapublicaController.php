@@ -47,6 +47,14 @@ class CitapublicaController extends Controller {
             if (!in_array($idMedico, $ids, true)) { $idMedico = null; $this->set('id_MEDICO', 0); }
         }
 
+        // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
+        $genCons = $idClinica ? $this->buscaGenerico($consultorios, 'id_CONSULTORIO') : null;
+        $genEsp  = $idClinica ? $this->buscaGenerico($especialidades, 'id_CATALOGO_ESPECIALIDAD') : null;
+        if ($idClinica && !$genCons) $this->flash('error', 'No existe el consultorio GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        if ($idClinica && !$genEsp)  $this->flash('error', 'No existe la especialidad GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        $this->set('id_CONSULTORIO', $genCons ? (int)$genCons['id'] : 0);
+        $this->set('id_CATALOGO_ESPECIALIDAD', $genEsp ? (int)$genEsp['id'] : 0);
+
         $eventos = $idClinica && $idMedico ? $this->eventosMedico($idMedico, $idClinica) : [];
 
         $this->render([
@@ -56,8 +64,10 @@ class CitapublicaController extends Controller {
             'especialidades' => $especialidades,
             'idClinica'      => $idClinica,
             'idMedico'       => $idMedico,
-            'idConsultorio'  => (int)$this->get('id_CONSULTORIO', 0),
-            'idEspecialidad' => (int)$this->get('id_CATALOGO_ESPECIALIDAD', 0),
+            'idConsultorio'  => $genCons ? (int)$genCons['id'] : 0,
+            'idEspecialidad' => $genEsp ? (int)$genEsp['id'] : 0,
+            'consultorioNom' => $genCons['nombre'] ?? '',
+            'especialidadNom'=> $genEsp['nombre'] ?? '',
             'eventos'        => $eventos,
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
@@ -70,6 +80,16 @@ class CitapublicaController extends Controller {
             'municipios'     => $this->cat(fn() => MunicipioModel::listar()),
         ]);
     }
+
+    /** Localiza el registro llamado GENERICO en un catalogo de la clinica. */
+    private function buscaGenerico(array $rows, string $key): ?array {
+        foreach ($rows as $r) {
+            $n = strtolower(strtr(trim((string)($r['nombre'] ?? '')), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u']));
+            if ($n === 'generico') return ['id' => (int)($r[$key] ?? 0), 'nombre' => (string)$r['nombre']];
+        }
+        return null;
+    }
+
 
     private function cat(callable $f): array {
         try { return $f(); } catch (Throwable $e) { return []; }
@@ -230,11 +250,25 @@ class CitapublicaController extends Controller {
         }
 
         $idMedico       = (int)$this->input('id_MEDICO', 0);
-        $idConsultorio  = (int)$this->input('id_CONSULTORIO', 0);
-        $idEspecialidad = (int)$this->input('id_CATALOGO_ESPECIALIDAD', 0);
         $fecha          = (string)$this->input('fecha_cita', '');
         $hi             = (string)$this->input('hora_inicio', '');
         $hf             = (string)$this->input('hora_fin', '');
+
+        // Consultorio y especialidad SIEMPRE GENERICO (tomados de la BD).
+        $genCons = $genEsp = null;
+        try { $genCons = $this->buscaGenerico(ConsultorioModel::listar($idClinica), 'id_CONSULTORIO'); } catch (Throwable $e) {}
+        try { $genEsp  = $this->buscaGenerico(EspecialidadModel::listar($idClinica), 'id_CATALOGO_ESPECIALIDAD'); } catch (Throwable $e) {}
+        if (!$genCons || !$genEsp) {
+            $msg = !$genCons
+                ? 'No existe el consultorio GENERICO en la clinica seleccionada; no es posible registrar la cita.'
+                : 'No existe la especialidad GENERICO en la clinica seleccionada; no es posible registrar la cita.';
+            Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
+            $this->ev('CITA', 'CITA', 'ERROR CITA PUBLICA id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
+            $this->flash('error', $msg . ' Contacta a la clinica.');
+            $this->redirect('citapublica');
+        }
+        $idConsultorio  = (int)$genCons['id'];
+        $idEspecialidad = (int)$genEsp['id'];
 
         $this->set('id_MEDICO', $idMedico);
         $this->set('id_CONSULTORIO', $idConsultorio);
@@ -242,8 +276,6 @@ class CitapublicaController extends Controller {
 
         $err = [];
         if ($idMedico <= 0)       $err[] = 'Selecciona el medico.';
-        if ($idConsultorio <= 0)  $err[] = 'Selecciona el consultorio.';
-        if ($idEspecialidad <= 0) $err[] = 'Selecciona la especialidad.';
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Captura una fecha valida.';
         if (!preg_match('/^\d{2}:\d{2}/', $hi) || !preg_match('/^\d{2}:\d{2}/', $hf)) $err[] = 'Captura el horario.';
         if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora fin debe ser mayor a la de inicio.';
@@ -256,11 +288,10 @@ class CitapublicaController extends Controller {
                 return false;
             };
             try {
-                if (!$en(UsuarioModel::listarMedicos($idClinica), 'id_USUARIOS', $idMedico))            $err[] = 'El medico no pertenece a la clinica.';
-                if (!$en(ConsultorioModel::listar($idClinica), 'id_CONSULTORIO', $idConsultorio))       $err[] = 'El consultorio no pertenece a la clinica.';
-                if (!$en(EspecialidadModel::listar($idClinica), 'id_CATALOGO_ESPECIALIDAD', $idEspecialidad)) $err[] = 'La especialidad no pertenece a la clinica.';
+                if (!$en(UsuarioModel::listarMedicos($idClinica), 'id_USUARIOS', $idMedico)) $err[] = 'El medico no pertenece a la clinica.';
             } catch (Throwable $e) { $err[] = 'No se pudo validar la clinica: ' . $e->getMessage(); }
         }
+
 
         // Traslape con las citas del medico.
         if (!$err) {
