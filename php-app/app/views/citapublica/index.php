@@ -181,7 +181,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           </select>
         </label>
         <label class="col-span">Observaciones - motivo de la consulta
-          <textarea name="observaciones" rows="3" maxlength="500" <?= $soloLectura ? 'readonly' : '' ?>><?= $v('observaciones') ?></textarea>
+          <textarea name="observaciones" rows="3" maxlength="500"><?= $v('observaciones') ?></textarea>
         </label>
 
         <label class="chk"><input type="checkbox" name="notifica_wa" value="1" <?= !empty($paciente['notifica_wa']) ? 'checked' : '' ?>> Avisarme por WhatsApp</label>
