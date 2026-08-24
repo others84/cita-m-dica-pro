@@ -356,7 +356,7 @@ class CitapublicaController extends Controller {
                 }
             }
         } catch (Throwable $e) {}
-        if ($idEstado <= 0) { $this->flash('error', 'No existe el estado "Agendada" en el catalogo.'); $this->redirect('citapublica'); }
+        if ($idEstado <= 0) { $this->flash('error', 'No pudimos agendar en este momento. Intenta mas tarde o llama a la clinica.'); $this->redirect('citapublica'); }
 
         // A partir de aqui, todo se guarda como el usuario GENERICO.
         Model::usarUsuario((int)$gen['id_USUARIOS']);
