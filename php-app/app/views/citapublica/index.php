@@ -81,7 +81,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 <?php if ($mostrarResto): ?>
   <!-- Paso 2: panel clinica -->
   <section class="card">
-    <h2>2. Clinica</h2>
+    <p class="paso-num">Paso 2 de 5</p>
+    <h2>Elige clinica y medico</h2>
+    <p class="ayuda">Elige la clinica a la que quieres ir y despues el medico con el que deseas atenderte.</p>
     <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
       <label>Clinica
         <select name="id_CLINICA" required onchange="this.form.submit()">
@@ -96,7 +98,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     </form>
 
     <?php if (!$idClinica): ?>
-      <p class="muted">Selecciona una clinica para ver los medicos disponibles.</p>
+      <p class="ayuda">Primero elige tu clinica; enseguida apareceran los medicos que atienden ahi.</p>
     <?php else: ?>
       <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
         <label>Medico
@@ -115,6 +117,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
         <label>Especialidad
           <input type="text" value="<?= htmlspecialchars($especialidadNom ?: 'No disponible') ?>" readonly>
         </label>
+        <p class="ayuda col-span">El consultorio y la especialidad se llenan solos. No tienes que hacer nada aqui.</p>
       </form>
     <?php endif; ?>
   </section>
@@ -122,11 +125,13 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 
   <!-- Paso 3: calendario del medico -->
   <section class="card calendar-card">
-    <h2>3. Agenda del medico</h2>
+    <p class="paso-num">Paso 3 de 5</p>
+    <h2>Elige el dia y la hora</h2>
     <?php if (!$idMedico): ?>
-      <p class="muted">Selecciona un medico para ver sus horarios ocupados y elegir el tuyo.</p>
+      <p class="ayuda">Primero elige un medico arriba para ver sus horarios.</p>
     <?php else: ?>
-      <p class="muted">Los bloques en gris ya estan ocupados. Haz clic en un espacio libre para tomar ese horario.</p>
+      <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
+      <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Tu consulta dura 30 minutos.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
         <div class="calendar-loading">Cargando calendario...</div>
       </div>
