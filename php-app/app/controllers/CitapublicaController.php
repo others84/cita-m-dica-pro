@@ -282,14 +282,17 @@ class CitapublicaController extends Controller {
         if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'Ese dia y hora ya pasaron. Elige un horario proximo en el calendario.';
 
         // Pertenencia a la clinica seleccionada.
+        $medicoNom = '';
         if (!$err) {
-            $en = function (array $rows, string $key, int $id) {
-                foreach ($rows as $r) if ((int)($r[$key] ?? 0) === $id) return true;
-                return false;
-            };
             try {
-                if (!$en(UsuarioModel::listarMedicos($idClinica), 'id_USUARIOS', $idMedico)) $err[] = 'El medico no pertenece a la clinica.';
-            } catch (Throwable $e) { $err[] = 'No se pudo validar la clinica: ' . $e->getMessage(); }
+                $ok = false;
+                foreach (UsuarioModel::listarMedicos($idClinica) as $r) {
+                    if ((int)($r['id_USUARIOS'] ?? 0) === $idMedico) {
+                        $ok = true; $medicoNom = (string)($r['nombre_completo'] ?? ''); break;
+                    }
+                }
+                if (!$ok) $err[] = 'Ese medico no atiende en la clinica que elegiste. Elige otro medico.';
+            } catch (Throwable $e) { $err[] = 'No pudimos comprobar tus datos en este momento. Intenta de nuevo en unos minutos.'; }
         }
 
 
