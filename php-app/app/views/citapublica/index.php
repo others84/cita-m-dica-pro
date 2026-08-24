@@ -267,9 +267,30 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
   sync();
 
   /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  var DIAS = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function resumen() {
+    var box = document.getElementById('resumen-cita');
+    if (!box) return;
+    var f = document.getElementById('f_fecha'), hi = document.getElementById('f_hi');
+    if (!f || !f.value || !hi || !hi.value) {
+      box.textContent = 'Aun no eliges dia y hora. Toca un espacio en blanco del calendario.';
+      box.classList.remove('ok');
+      return;
+    }
+    var p = f.value.split('-');
+    var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    var txt = 'Tu cita: ' + DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] +
+              ' de ' + d.getFullYear() + ' a las ' + hi.value + ' hrs';
+    var info = window.CITA_INFO || {};
+    if (info.medico) txt += ', con ' + info.medico;
+    if (info.clinica) txt += ', en ' + info.clinica;
+    box.textContent = txt + '.';
+    box.classList.add('ok');
+  }
   (function () {
     var hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf'),
-        frm = document.getElementById('form-cita');
+        fe = document.getElementById('f_fecha'), frm = document.getElementById('form-cita');
     if (!hi || !hf) return;
     function calc() {
       var p = (hi.value || '').split(':');
@@ -277,8 +298,10 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
       var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
       hf.value = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
     }
-    hi.addEventListener('change', calc);
+    hi.addEventListener('change', function () { calc(); resumen(); });
+    if (fe) fe.addEventListener('change', resumen);
     if (frm) frm.addEventListener('submit', function () { if (!hf.value) calc(); });
+    resumen();
   })();
 
   /* Calendario del medico */
