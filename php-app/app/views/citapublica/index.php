@@ -32,32 +32,37 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 <header class="publica-top">
   <img src="<?= asset('img/logo.png') ?>" alt="Logo SGCO" width="48" height="48">
   <div>
-    <h1>Generar cita</h1>
+    <h1>Agenda tu cita</h1>
     <p class="subtitle">Sistema de gestion de citas online (SGCO)</p>
   </div>
   <a class="btn" href="<?= url('auth/login') ?>">Iniciar sesion</a>
 </header>
 
 <main class="publica-wrap">
+  <p class="publica-intro">Son 5 pasos cortos y te tomara unos 3 minutos. Si te equivocas, puedes corregir antes de terminar.</p>
+
   <?php foreach (($flash ?? []) as $f): ?>
     <div class="flash flash-<?= htmlspecialchars($f['type'] ?? 'info') ?>"><?= htmlspecialchars($f['msg'] ?? '') ?></div>
   <?php endforeach; ?>
 
   <!-- Paso 1: identificacion por celular -->
   <section class="card">
-    <h2>1. Identificate</h2>
+    <p class="paso-num">Paso 1 de 5</p>
+    <h2>Identificate</h2>
+    <p class="ayuda">Escribe tu numero de celular a 10 digitos, sin espacios ni guiones. Ejemplo: 2221234567.</p>
+    <p class="ayuda">Si ya te has atendido con nosotros, tus datos apareceran solos. Si es tu primera vez, te pediremos algunos datos mas adelante.</p>
     <form method="post" action="<?= url('citapublica/buscar') ?>" class="form-grid"><?= csrf_field() ?>
       <label>Celular (10 digitos)
-        <input name="telefono" inputmode="numeric" maxlength="20" required value="<?= htmlspecialchars($telefono) ?>">
+        <input name="telefono" inputmode="numeric" maxlength="20" required value="<?= htmlspecialchars($telefono) ?>" placeholder="2221234567">
       </label>
       <div class="form-actions">
         <button class="btn" type="submit">Buscar mis datos</button>
         <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Agendar cita</a>
       </div>
-
+      <p class="ayuda col-span">Solo buscamos tu numero; no veras datos de otras personas.</p>
     </form>
     <?php if ($paso === 'elige_clinica' && !empty($coincidencias)): ?>
-      <p>Encontramos tu registro en varias clinicas. Selecciona en cual deseas atenderte:</p>
+      <p class="ayuda">Tu numero esta en mas de una clinica. Elige a donde quieres ir.</p>
       <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
         <label>Clinica
           <select name="id_CLINICA" required>
