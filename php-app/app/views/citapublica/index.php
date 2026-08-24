@@ -329,7 +329,9 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     var s = start instanceof Date ? start : new Date(start);
     var e = end instanceof Date ? end : new Date(end || (s.getTime() + 30 * 60000));
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
-    document.getElementById('form-cita').scrollIntoView({ behavior: 'smooth', block: 'end' });
+    resumen();
+    var box = document.getElementById('resumen-cita');
+    (box || document.getElementById('form-cita')).scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
 
