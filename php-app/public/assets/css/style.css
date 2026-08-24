@@ -271,3 +271,36 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(
 .publica-wrap .col-span { grid-column: 1 / -1; }
 .publica-wrap .chk { display: flex; align-items: center; gap: .45rem; }
 .login-alt { margin-top: .75rem; text-align: center; }
+
+/* --- Ayuda guiada de la pagina publica --- */
+.publica-intro {
+  max-width: 60ch; margin: .25rem auto 1rem; text-align: center;
+  font-size: 1.02rem; line-height: 1.5; color: var(--c5, #0f2f5b);
+}
+.publica-wrap h2 { font-size: 1.25rem; }
+.paso-num {
+  display: inline-block; margin: 0 0 .35rem;
+  padding: .15rem .6rem; border-radius: 999px;
+  background: var(--c5, #0f2f5b); color: #fff;
+  font-size: .8rem; font-weight: 600; letter-spacing: .02em;
+}
+.publica-wrap .ayuda {
+  display: block; margin: .25rem 0 .5rem;
+  font-size: .95rem; line-height: 1.45; color: #475569;
+}
+.publica-wrap label > .ayuda { margin: .2rem 0 0; font-size: .88rem; font-weight: 400; }
+.publica-wrap .form-grid label { font-size: 1rem; }
+.publica-wrap input, .publica-wrap select, .publica-wrap textarea { font-size: 1rem; }
+.resumen-cita {
+  margin: .9rem 0 0; padding: .8rem 1rem; border-radius: .6rem;
+  border: 2px dashed #cbd5e1; background: #f8fafc;
+  font-size: 1.05rem; line-height: 1.45; color: #475569;
+}
+.resumen-cita.ok {
+  border-style: solid; border-color: var(--c3, #2563eb);
+  background: #eff6ff; color: var(--c5, #0f2f5b); font-weight: 600;
+}
+.publica-wrap .btn-primary { font-size: 1.05rem; padding: .7rem 1.4rem; }
+@media (prefers-color-scheme: dark) {
+  .publica-wrap .ayuda { color: #94a3b8; }
+}

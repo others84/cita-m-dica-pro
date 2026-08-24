@@ -50,8 +50,8 @@ class CitapublicaController extends Controller {
         // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
         $genCons = $idClinica ? $this->buscaGenerico($consultorios, 'id_CONSULTORIO') : null;
         $genEsp  = $idClinica ? $this->buscaGenerico($especialidades, 'id_CATALOGO_ESPECIALIDAD') : null;
-        if ($idClinica && !$genCons) $this->flash('error', 'No existe el consultorio GENERICO en la clinica seleccionada. Contacta a la clinica.');
-        if ($idClinica && !$genEsp)  $this->flash('error', 'No existe la especialidad GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        if ($idClinica && !$genCons) $this->flash('error', 'Esta clinica aun no tiene habilitada la cita en linea. Elige otra clinica o llama a la clinica.');
+        if ($idClinica && !$genEsp)  $this->flash('error', 'Esta clinica aun no tiene habilitada la cita en linea. Elige otra clinica o llama a la clinica.');
         $this->set('id_CONSULTORIO', $genCons ? (int)$genCons['id'] : 0);
         $this->set('id_CATALOGO_ESPECIALIDAD', $genEsp ? (int)$genEsp['id'] : 0);
 
@@ -122,6 +122,15 @@ class CitapublicaController extends Controller {
         return $out;
     }
 
+    /** Fecha en palabras: "lunes 24 de agosto de 2026". */
+    private function fechaLarga(string $ymd): string {
+        $t = strtotime($ymd);
+        if (!$t) return $ymd;
+        $dias  = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+        $meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        return $dias[(int)date('w', $t)] . ' ' . (int)date('j', $t) . ' de ' . $meses[(int)date('n', $t) - 1] . ' de ' . date('Y', $t);
+    }
+
     private function fechas(array $c): array {
         $g = function ($v, string $fmt) { return $v instanceof DateTime ? $v->format($fmt) : (string)$v; };
         $f  = substr($g($c['fecha_cita'] ?? '', 'Y-m-d'), 0, 10);
@@ -136,18 +145,18 @@ class CitapublicaController extends Controller {
         $tel = (string)$this->input('telefono', '');
         $dig = PacienteModel::soloDigitos($tel);
         if (strlen($dig) < 10) {
-            $this->flash('error', 'Captura tu numero de celular a 10 digitos.');
+            $this->flash('error', 'El celular debe tener 10 numeros. Ejemplo: 2221234567.');
             $this->redirect('citapublica');
         }
         $this->reset();
         $this->set('telefono', $tel);
         try { $rows = PacienteModel::buscarPorTelefono($tel); }
-        catch (Throwable $e) { $rows = []; $this->flash('error', 'No se pudo consultar: ' . $e->getMessage()); }
+        catch (Throwable $e) { $rows = []; $this->flash('error', 'No pudimos buscar tu numero en este momento. Intenta de nuevo en unos minutos.'); }
 
         if (empty($rows)) {
             $this->set('paso', 'nuevo');
             $this->set('coincidencias', []);
-            $this->flash('info', 'No encontramos tu registro. Selecciona la clinica y captura tus datos.');
+            $this->flash('info', 'No encontramos tu numero. No hay problema: elige tu clinica y llena tus datos abajo.');
             $this->redirect('citapublica');
         }
         $lista = array_map(fn($p) => [
@@ -231,7 +240,7 @@ class CitapublicaController extends Controller {
 
     public function agendar(): void {
         $idClinica = (int)$this->get('id_CLINICA', 0);
-        if ($idClinica <= 0) { $this->flash('error', 'Selecciona una clinica.'); $this->redirect('citapublica'); }
+        if ($idClinica <= 0) { $this->flash('error', 'Falta elegir tu clinica en el paso 2.'); $this->redirect('citapublica'); }
 
         // Usuario GENERICO: obligatorio para poder registrar.
         $gen = null;
@@ -245,7 +254,7 @@ class CitapublicaController extends Controller {
             Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
             $this->ev('CITA', 'CITA',
                 'ERROR CITA PUBLICA usuario=GENERICO id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
-            $this->flash('error', $msg . ' Contacta a la clinica.');
+            $this->flash('error', 'No pudimos agendar tu cita en esta clinica. Por favor llama a la clinica para que te apoyen.');
             $this->redirect('citapublica');
         }
 
@@ -264,7 +273,7 @@ class CitapublicaController extends Controller {
                 : 'No existe la especialidad GENERICO en la clinica seleccionada; no es posible registrar la cita.';
             Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
             $this->ev('CITA', 'CITA', 'ERROR CITA PUBLICA id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
-            $this->flash('error', $msg . ' Contacta a la clinica.');
+            $this->flash('error', 'No pudimos agendar tu cita en esta clinica. Por favor llama a la clinica para que te apoyen.');
             $this->redirect('citapublica');
         }
         $idConsultorio  = (int)$genCons['id'];
@@ -275,21 +284,24 @@ class CitapublicaController extends Controller {
         $this->set('id_CATALOGO_ESPECIALIDAD', $idEspecialidad);
 
         $err = [];
-        if ($idMedico <= 0)       $err[] = 'Selecciona el medico.';
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Captura una fecha valida.';
-        if (!preg_match('/^\d{2}:\d{2}/', $hi) || !preg_match('/^\d{2}:\d{2}/', $hf)) $err[] = 'Captura el horario.';
-        if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora fin debe ser mayor a la de inicio.';
-        if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'No puedes agendar en una fecha/hora pasada.';
+        if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 2.';
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Aun no eliges dia. Toca un espacio en blanco del calendario.';
+        if (!preg_match('/^\d{2}:\d{2}/', $hi) || !preg_match('/^\d{2}:\d{2}/', $hf)) $err[] = 'Aun no eliges horario. Toca un espacio en blanco del calendario.';
+        if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora de termino debe ser despues de la hora de inicio.';
+        if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'Ese dia y hora ya pasaron. Elige un horario proximo en el calendario.';
 
         // Pertenencia a la clinica seleccionada.
+        $medicoNom = '';
         if (!$err) {
-            $en = function (array $rows, string $key, int $id) {
-                foreach ($rows as $r) if ((int)($r[$key] ?? 0) === $id) return true;
-                return false;
-            };
             try {
-                if (!$en(UsuarioModel::listarMedicos($idClinica), 'id_USUARIOS', $idMedico)) $err[] = 'El medico no pertenece a la clinica.';
-            } catch (Throwable $e) { $err[] = 'No se pudo validar la clinica: ' . $e->getMessage(); }
+                $ok = false;
+                foreach (UsuarioModel::listarMedicos($idClinica) as $r) {
+                    if ((int)($r['id_USUARIOS'] ?? 0) === $idMedico) {
+                        $ok = true; $medicoNom = (string)($r['nombre_completo'] ?? ''); break;
+                    }
+                }
+                if (!$ok) $err[] = 'Ese medico no atiende en la clinica que elegiste. Elige otro medico.';
+            } catch (Throwable $e) { $err[] = 'No pudimos comprobar tus datos en este momento. Intenta de nuevo en unos minutos.'; }
         }
 
 
@@ -304,7 +316,7 @@ class CitapublicaController extends Controller {
                     [$f2, $h2i, $h2f] = $this->fechas($c);
                     if ($f2 !== $fecha) continue;
                     if ($ini < strtotime($f2 . ' ' . $h2f) && strtotime($f2 . ' ' . $h2i) < $fin) {
-                        $err[] = 'El medico ya tiene una cita en ese horario. Elige otro.'; break;
+                        $err[] = 'Ese horario ya lo tomo otra persona. Elige otro espacio en blanco del calendario.'; break;
                     }
                 }
             } catch (Throwable $e) { /* si falla la consulta, la BD valida al insertar */ }
@@ -328,15 +340,15 @@ class CitapublicaController extends Controller {
         ];
         $this->set('paciente', $p);
         if ($idPaciente <= 0) {
-            foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre',
-                      'direccion'=>'direccion','telefono'=>'telefono','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
-                if (trim((string)$p[$k]) === '') $err[] = 'Captura el ' . $lbl . ' del paciente.';
+            foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre(s)',
+                      'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
+                if (trim((string)$p[$k]) === '') $err[] = 'Falta tu ' . $lbl . '. Escribelo para continuar.';
             }
-            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Captura un correo valido.';
-            if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Selecciona el genero.';
-            if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Selecciona pais, estado y municipio.';
+            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Falta elegir tu sexo en la lista.';
+            if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Falta tu lugar: elige primero el pais, luego el estado y al final el municipio.';
         }
-        if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
+        if (mb_strlen($p['observaciones']) > 500) $err[] = 'El motivo de tu consulta es muy largo. Escribelo en 500 letras o menos.';
 
         if ($err) {
             foreach (array_unique($err) as $m) $this->flash('error', $m);
@@ -353,7 +365,7 @@ class CitapublicaController extends Controller {
                 }
             }
         } catch (Throwable $e) {}
-        if ($idEstado <= 0) { $this->flash('error', 'No existe el estado "Agendada" en el catalogo.'); $this->redirect('citapublica'); }
+        if ($idEstado <= 0) { $this->flash('error', 'No pudimos agendar en este momento. Intenta mas tarde o llama a la clinica.'); $this->redirect('citapublica'); }
 
         // A partir de aqui, todo se guarda como el usuario GENERICO.
         Model::usarUsuario((int)$gen['id_USUARIOS']);
@@ -393,14 +405,18 @@ class CitapublicaController extends Controller {
                 ' usuario=GENERICO');
             Database::log('CITA PUBLICA alta cita id=' . $idCita . ' clinica=' . $clinicaNom .
                 ' medico=' . $idMedico . ' paciente=' . $idPaciente . ' fecha=' . $fecha . ' ' . substr($hi, 0, 5));
-            $this->flash('ok', 'Tu cita quedo agendada para el ' . date('d/m/Y', strtotime($fecha)) . ' a las ' . substr($hi, 0, 5) . ' hrs.');
+            $this->flash('ok', 'Listo. Tu cita quedo agendada para el ' . $this->fechaLarga($fecha) .
+                ' a las ' . substr($hi, 0, 5) . ' hrs' .
+                ($medicoNom !== '' ? ' con ' . $medicoNom : '') .
+                ($clinicaNom !== '' ? ' en ' . $clinicaNom : '') .
+                '. Llega 10 minutos antes. Si no puedes asistir, avisa a la clinica.');
             // Deja la pantalla como recien abierta para poder generar otra cita.
             $this->reset();
 
         } catch (Throwable $e) {
             Database::log('CITA PUBLICA ERROR alta: ' . $e->getMessage());
             $this->ev('CITA', 'CITA', 'ERROR ALTA CITA PUBLICA clinica=' . $clinicaNom . ' detalle=' . $e->getMessage());
-            $this->flash('error', 'No se pudo agendar la cita: ' . $e->getMessage());
+            $this->flash('error', 'No pudimos guardar tu cita. Revisa tus datos e intenta otra vez; si sigue igual, llama a la clinica.');
         } finally {
             Model::usarUsuario(null);
         }
