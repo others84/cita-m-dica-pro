@@ -144,18 +144,28 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <input type="hidden" name="id_CATALOGO_ESPECIALIDAD" value="<?= $idEspecialidad ?: '' ?>">
 
     <section class="card">
-      <h2>4. Tus datos</h2>
+      <p class="paso-num">Paso 4 de 5</p>
+      <h2>Tus datos</h2>
       <?php if ($soloLectura): ?>
-        <p class="muted">Encontramos tu registro; verifica tus datos. Si algo cambio, avisanos en la clinica.</p>
+        <p class="ayuda">Estos son los datos que tenemos tuyos. Revisalos; si algo cambio, avisanos al llegar a la clinica.</p>
+      <?php else: ?>
+        <p class="ayuda">Llena tus datos para que el medico te identifique el dia de tu cita.</p>
       <?php endif; ?>
       <div class="form-grid">
-        <label>Apellido paterno <input name="ap_paterno" required maxlength="60" value="<?= $v('ap_paterno') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Apellido materno <input name="ap_materno" required maxlength="60" value="<?= $v('ap_materno') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Nombre(s) <input name="nombre" required maxlength="60" value="<?= $v('nombre') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Direccion <input name="direccion" required maxlength="150" value="<?= $v('direccion') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Celular <input name="telefono" required maxlength="20" value="<?= $paciente ? $v('telefono') : htmlspecialchars($telefono) ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Email <input type="email" name="email" required maxlength="120" value="<?= $v('email') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
-        <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= $v('fecha_nacimiento') ?>" <?= $soloLectura ? 'readonly' : '' ?>></label>
+        <label>Apellido paterno <input name="ap_paterno" required maxlength="60" value="<?= $v('ap_paterno') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">El apellido de tu papa.</span></label>
+        <label>Apellido materno <input name="ap_materno" required maxlength="60" value="<?= $v('ap_materno') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">El apellido de tu mama.</span></label>
+        <label>Nombre(s) <input name="nombre" required maxlength="60" value="<?= $v('nombre') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">Como aparece en tu identificacion.</span></label>
+        <label>Direccion <input name="direccion" required maxlength="150" value="<?= $v('direccion') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">Calle, numero y colonia.</span></label>
+        <label>Celular <input name="telefono" required maxlength="20" value="<?= $paciente ? $v('telefono') : htmlspecialchars($telefono) ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">10 numeros, sin espacios. Ejemplo: 2221234567.</span></label>
+        <label>Email <input type="email" name="email" required maxlength="120" value="<?= $v('email') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">Tu correo, como nombre@correo.com. Si no tienes, pide ayuda en la clinica.</span></label>
+        <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= $v('fecha_nacimiento') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">Dia, mes y ano en que naciste.</span></label>
         <label>Genero
           <select name="id_CATALOGO_GENERO" required <?= $soloLectura ? 'disabled' : '' ?>>
             <option value="">--</option>
@@ -165,6 +175,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
               </option>
             <?php endforeach; ?>
           </select>
+          <span class="ayuda">Elige mujer u hombre.</span>
         </label>
         <label>Pais
           <select id="sel_pais" <?= $soloLectura ? 'disabled' : 'required' ?>>
@@ -173,6 +184,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
               <option value="<?= (int)$p['id_CATALOGO_PAIS'] ?>" <?= $selPais === (int)$p['id_CATALOGO_PAIS'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nombre']) ?></option>
             <?php endforeach; ?>
           </select>
+          <span class="ayuda">Elige primero el pais; despues apareceran los estados.</span>
         </label>
         <label>Estado
           <select id="sel_estado" <?= $soloLectura ? 'disabled' : 'required' ?>>
@@ -181,6 +193,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
               <option value="<?= (int)$e['id_CATALOGO_ESTADOS'] ?>" data-pais="<?= (int)($e['id_CATALOGO_PAIS'] ?? 0) ?>" <?= $selEstado === (int)$e['id_CATALOGO_ESTADOS'] ? 'selected' : '' ?>><?= htmlspecialchars($e['nombre']) ?></option>
             <?php endforeach; ?>
           </select>
+          <span class="ayuda">Por ejemplo: Puebla.</span>
         </label>
         <label>Municipio
           <select id="sel_municipio" name="id_CATALOGO_MUNICIPIO" required <?= $soloLectura ? 'disabled' : '' ?>>
@@ -189,26 +202,33 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
               <option value="<?= (int)$mu['id_CATALOGO_MUNICIPIO'] ?>" data-estado="<?= (int)($mu['id_CATALOGO_ESTADOS'] ?? 0) ?>" <?= $selMun === (int)$mu['id_CATALOGO_MUNICIPIO'] ? 'selected' : '' ?>><?= htmlspecialchars($mu['nombre']) ?></option>
             <?php endforeach; ?>
           </select>
+          <span class="ayuda">La ciudad o pueblo donde vives.</span>
         </label>
         <label class="col-span">Observaciones - motivo de la consulta
-          <textarea name="observaciones" rows="3" maxlength="500"><?= $v('observaciones') ?></textarea>
+          <textarea name="observaciones" rows="3" maxlength="500" placeholder="Ejemplo: revision anual"><?= $v('observaciones') ?></textarea>
+          <span class="ayuda">Cuentanos en pocas palabras por que quieres la consulta. Ejemplo: "revision anual" o "dolor desde hace una semana". Lo que escribas solo lo ve tu medico.</span>
         </label>
 
+        <p class="ayuda col-span">Marca como quieres que te recordemos tu cita:</p>
         <label class="chk"><input type="checkbox" name="notifica_wa" value="1" <?= !empty($paciente['notifica_wa']) ? 'checked' : '' ?>> Avisarme por WhatsApp</label>
         <label class="chk"><input type="checkbox" name="notifica_email" value="1" <?= !empty($paciente['notifica_email']) ? 'checked' : '' ?>> Avisarme por correo</label>
       </div>
     </section>
 
     <section class="card">
-      <h2>5. Horario</h2>
+      <p class="paso-num">Paso 5 de 5</p>
+      <h2>Revisa y confirma</h2>
+      <p class="ayuda">Revisa que la fecha y la hora sean las que elegiste en el calendario.</p>
       <div class="form-grid">
         <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>"></label>
         <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" required></label>
         <input type="hidden" id="f_hf" name="hora_fin">
       </div>
 
+      <p class="resumen-cita" id="resumen-cita">Aun no eliges dia y hora. Toca un espacio en blanco del calendario.</p>
+
       <div class="form-actions">
-        <button class="btn btn-primary" type="submit">Agendar</button>
+        <button class="btn btn-primary" type="submit">Confirmar mi cita</button>
       </div>
     </section>
   </form>
