@@ -136,7 +136,7 @@ class CitapublicaController extends Controller {
         $tel = (string)$this->input('telefono', '');
         $dig = PacienteModel::soloDigitos($tel);
         if (strlen($dig) < 10) {
-            $this->flash('error', 'Captura tu numero de celular a 10 digitos.');
+            $this->flash('error', 'El celular debe tener 10 numeros. Ejemplo: 2221234567.');
             $this->redirect('citapublica');
         }
         $this->reset();
