@@ -122,6 +122,15 @@ class CitapublicaController extends Controller {
         return $out;
     }
 
+    /** Fecha en palabras: "lunes 24 de agosto de 2026". */
+    private function fechaLarga(string $ymd): string {
+        $t = strtotime($ymd);
+        if (!$t) return $ymd;
+        $dias  = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+        $meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        return $dias[(int)date('w', $t)] . ' ' . (int)date('j', $t) . ' de ' . $meses[(int)date('n', $t) - 1] . ' de ' . date('Y', $t);
+    }
+
     private function fechas(array $c): array {
         $g = function ($v, string $fmt) { return $v instanceof DateTime ? $v->format($fmt) : (string)$v; };
         $f  = substr($g($c['fecha_cita'] ?? '', 'Y-m-d'), 0, 10);
