@@ -236,8 +236,15 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 </main>
 
 
+<?php
+$medNom = '';
+foreach (($medicos ?? []) as $m) { if ((int)($m['id_USUARIOS'] ?? 0) === (int)$idMedico) { $medNom = (string)($m['nombre_completo'] ?? ''); break; } }
+$cliNom = '';
+foreach (($clinicas ?? []) as $c) { if ((int)($c['id_CLINICA'] ?? 0) === (int)$idClinica) { $cliNom = (string)($c['nombre'] ?? ''); break; } }
+?>
 <script>
 window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script>
 (function () {
