@@ -50,8 +50,8 @@ class CitapublicaController extends Controller {
         // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
         $genCons = $idClinica ? $this->buscaGenerico($consultorios, 'id_CONSULTORIO') : null;
         $genEsp  = $idClinica ? $this->buscaGenerico($especialidades, 'id_CATALOGO_ESPECIALIDAD') : null;
-        if ($idClinica && !$genCons) $this->flash('error', 'No existe el consultorio GENERICO en la clinica seleccionada. Contacta a la clinica.');
-        if ($idClinica && !$genEsp)  $this->flash('error', 'No existe la especialidad GENERICO en la clinica seleccionada. Contacta a la clinica.');
+        if ($idClinica && !$genCons) $this->flash('error', 'Esta clinica aun no tiene habilitada la cita en linea. Elige otra clinica o llama a la clinica.');
+        if ($idClinica && !$genEsp)  $this->flash('error', 'Esta clinica aun no tiene habilitada la cita en linea. Elige otra clinica o llama a la clinica.');
         $this->set('id_CONSULTORIO', $genCons ? (int)$genCons['id'] : 0);
         $this->set('id_CATALOGO_ESPECIALIDAD', $genEsp ? (int)$genEsp['id'] : 0);
 
@@ -151,7 +151,7 @@ class CitapublicaController extends Controller {
         $this->reset();
         $this->set('telefono', $tel);
         try { $rows = PacienteModel::buscarPorTelefono($tel); }
-        catch (Throwable $e) { $rows = []; $this->flash('error', 'No se pudo consultar: ' . $e->getMessage()); }
+        catch (Throwable $e) { $rows = []; $this->flash('error', 'No pudimos buscar tu numero en este momento. Intenta de nuevo en unos minutos.'); }
 
         if (empty($rows)) {
             $this->set('paso', 'nuevo');
@@ -254,7 +254,7 @@ class CitapublicaController extends Controller {
             Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
             $this->ev('CITA', 'CITA',
                 'ERROR CITA PUBLICA usuario=GENERICO id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
-            $this->flash('error', $msg . ' Contacta a la clinica.');
+            $this->flash('error', 'No pudimos agendar tu cita en esta clinica. Por favor llama a la clinica para que te apoyen.');
             $this->redirect('citapublica');
         }
 
@@ -273,7 +273,7 @@ class CitapublicaController extends Controller {
                 : 'No existe la especialidad GENERICO en la clinica seleccionada; no es posible registrar la cita.';
             Database::log('CITA PUBLICA ERROR: ' . $msg . ' id_CLINICA=' . $idClinica);
             $this->ev('CITA', 'CITA', 'ERROR CITA PUBLICA id_CLINICA=' . $idClinica . ' clinica=' . $clinicaNom . ' detalle=' . $msg);
-            $this->flash('error', $msg . ' Contacta a la clinica.');
+            $this->flash('error', 'No pudimos agendar tu cita en esta clinica. Por favor llama a la clinica para que te apoyen.');
             $this->redirect('citapublica');
         }
         $idConsultorio  = (int)$genCons['id'];
@@ -416,7 +416,7 @@ class CitapublicaController extends Controller {
         } catch (Throwable $e) {
             Database::log('CITA PUBLICA ERROR alta: ' . $e->getMessage());
             $this->ev('CITA', 'CITA', 'ERROR ALTA CITA PUBLICA clinica=' . $clinicaNom . ' detalle=' . $e->getMessage());
-            $this->flash('error', 'No se pudo agendar la cita: ' . $e->getMessage());
+            $this->flash('error', 'No pudimos guardar tu cita. Revisa tus datos e intenta otra vez; si sigue igual, llama a la clinica.');
         } finally {
             Model::usarUsuario(null);
         }
