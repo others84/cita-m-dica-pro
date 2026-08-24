@@ -231,7 +231,7 @@ class CitapublicaController extends Controller {
 
     public function agendar(): void {
         $idClinica = (int)$this->get('id_CLINICA', 0);
-        if ($idClinica <= 0) { $this->flash('error', 'Selecciona una clinica.'); $this->redirect('citapublica'); }
+        if ($idClinica <= 0) { $this->flash('error', 'Falta elegir tu clinica en el paso 2.'); $this->redirect('citapublica'); }
 
         // Usuario GENERICO: obligatorio para poder registrar.
         $gen = null;
