@@ -275,11 +275,11 @@ class CitapublicaController extends Controller {
         $this->set('id_CATALOGO_ESPECIALIDAD', $idEspecialidad);
 
         $err = [];
-        if ($idMedico <= 0)       $err[] = 'Selecciona el medico.';
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Captura una fecha valida.';
-        if (!preg_match('/^\d{2}:\d{2}/', $hi) || !preg_match('/^\d{2}:\d{2}/', $hf)) $err[] = 'Captura el horario.';
-        if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora fin debe ser mayor a la de inicio.';
-        if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'No puedes agendar en una fecha/hora pasada.';
+        if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 2.';
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Aun no eliges dia. Toca un espacio en blanco del calendario.';
+        if (!preg_match('/^\d{2}:\d{2}/', $hi) || !preg_match('/^\d{2}:\d{2}/', $hf)) $err[] = 'Aun no eliges horario. Toca un espacio en blanco del calendario.';
+        if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora de termino debe ser despues de la hora de inicio.';
+        if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'Ese dia y hora ya pasaron. Elige un horario proximo en el calendario.';
 
         // Pertenencia a la clinica seleccionada.
         if (!$err) {
