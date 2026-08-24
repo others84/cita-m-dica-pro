@@ -331,15 +331,15 @@ class CitapublicaController extends Controller {
         ];
         $this->set('paciente', $p);
         if ($idPaciente <= 0) {
-            foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre',
-                      'direccion'=>'direccion','telefono'=>'telefono','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
-                if (trim((string)$p[$k]) === '') $err[] = 'Captura el ' . $lbl . ' del paciente.';
+            foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre(s)',
+                      'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
+                if (trim((string)$p[$k]) === '') $err[] = 'Falta tu ' . $lbl . '. Escribelo para continuar.';
             }
-            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Captura un correo valido.';
-            if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Selecciona el genero.';
-            if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Selecciona pais, estado y municipio.';
+            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Falta elegir tu sexo en la lista.';
+            if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Falta tu lugar: elige primero el pais, luego el estado y al final el municipio.';
         }
-        if (mb_strlen($p['observaciones']) > 500) $err[] = 'Las observaciones no pueden exceder 500 caracteres.';
+        if (mb_strlen($p['observaciones']) > 500) $err[] = 'El motivo de tu consulta es muy largo. Escribelo en 500 letras o menos.';
 
         if ($err) {
             foreach (array_unique($err) as $m) $this->flash('error', $m);
