@@ -307,7 +307,7 @@ class CitapublicaController extends Controller {
                     [$f2, $h2i, $h2f] = $this->fechas($c);
                     if ($f2 !== $fecha) continue;
                     if ($ini < strtotime($f2 . ' ' . $h2f) && strtotime($f2 . ' ' . $h2i) < $fin) {
-                        $err[] = 'El medico ya tiene una cita en ese horario. Elige otro.'; break;
+                        $err[] = 'Ese horario ya lo tomo otra persona. Elige otro espacio en blanco del calendario.'; break;
                     }
                 }
             } catch (Throwable $e) { /* si falla la consulta, la BD valida al insertar */ }
