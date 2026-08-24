@@ -147,7 +147,7 @@ class CitapublicaController extends Controller {
         if (empty($rows)) {
             $this->set('paso', 'nuevo');
             $this->set('coincidencias', []);
-            $this->flash('info', 'No encontramos tu registro. Selecciona la clinica y captura tus datos.');
+            $this->flash('info', 'No encontramos tu numero. No hay problema: elige tu clinica y llena tus datos abajo.');
             $this->redirect('citapublica');
         }
         $lista = array_map(fn($p) => [
