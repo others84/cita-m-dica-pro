@@ -42,7 +42,7 @@
 
 <?php $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : ''; ?>
 <div class="table-responsive">
-<table class="data<?= $ordClass ?>">
+<table class="data tabla-citas<?= $ordClass ?>">
   <thead>
     <tr>
       <?php $th('fecha','Fecha'); $th('hora','Hora'); $th('paciente','Paciente'); $th('medico','Medico');
