@@ -67,11 +67,12 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .btn-sec:hover{background:var(--c3)}
 .btn-danger{background:#c0392b}
 .btn-danger:hover{background:#922d22}
-table.data{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
-table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1)}
+table.data{width:100%;min-width:max-content;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
+.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;max-width:100%;border:1px solid var(--c2);border-radius:8px;background:#fff}
+table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1);white-space:nowrap}
 table.data thead{background:transparent;color:var(--c5)}
 table.data tr:last-child td{border-bottom:none}
-table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
+table.data .acts{display:flex;gap:.35rem;flex-wrap:nowrap}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
 .form-grid label{display:flex;flex-direction:column;font-size:.8rem;color:var(--c5);gap:.2rem}
 .form-grid input,.form-grid select,.form-grid textarea{padding:.5rem;border:1px solid var(--c3);border-radius:6px;font-size:.9rem;font-family:inherit}

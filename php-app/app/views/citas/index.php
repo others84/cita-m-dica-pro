@@ -41,6 +41,7 @@
 </div>
 
 <?php $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : ''; ?>
+<div class="table-responsive">
 <table class="data<?= $ordClass ?>">
   <thead>
     <tr>
@@ -121,6 +122,7 @@
     <?php endforeach; endif; ?>
   </tbody>
 </table>
+</div>
 
 <?php $paginas = (int)($paginas ?? 1); $pag = (int)($pag ?? 1); ?>
 <?php if (($totalCitas ?? 0) > 0): ?>
