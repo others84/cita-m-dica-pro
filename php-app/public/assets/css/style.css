@@ -76,7 +76,9 @@ table.data .acts{display:flex;gap:.35rem;flex-wrap:nowrap}
 
 /* Tabla de citas: se ajusta al ancho disponible; el scroll es el ultimo recurso */
 table.tabla-citas{min-width:0;table-layout:auto}
-table.tabla-citas th,table.tabla-citas td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;padding:.5rem .45rem;vertical-align:top}
+table.tabla-citas th,table.tabla-citas td{white-space:normal;overflow-wrap:normal;word-break:normal;word-wrap:normal;hyphens:none;-webkit-hyphens:none;line-height:1.3;padding:.5rem .45rem;vertical-align:top}
+/* Observaciones: solo estas permiten romper un token larguisimo sin espacios */
+table.tabla-citas td:nth-child(9),table.tabla-citas td:nth-child(10){overflow-wrap:break-word;word-wrap:break-word}
 /* Columnas cortas: fecha, hora, estado, precio, notificado */
 table.tabla-citas th:nth-child(1),table.tabla-citas td:nth-child(1),
 table.tabla-citas th:nth-child(2),table.tabla-citas td:nth-child(2),
