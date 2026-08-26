@@ -73,6 +73,22 @@ table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88re
 table.data thead{background:transparent;color:var(--c5)}
 table.data tr:last-child td{border-bottom:none}
 table.data .acts{display:flex;gap:.35rem;flex-wrap:nowrap}
+
+/* Tabla de citas: se ajusta al ancho disponible; el scroll es el ultimo recurso */
+table.tabla-citas{min-width:0;table-layout:auto}
+table.tabla-citas th,table.tabla-citas td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;padding:.5rem .45rem;vertical-align:top}
+/* Columnas cortas: fecha, hora, estado, precio, notificado */
+table.tabla-citas th:nth-child(1),table.tabla-citas td:nth-child(1),
+table.tabla-citas th:nth-child(2),table.tabla-citas td:nth-child(2),
+table.tabla-citas th:nth-child(7),table.tabla-citas td:nth-child(7),
+table.tabla-citas th:nth-child(8),table.tabla-citas td:nth-child(8),
+table.tabla-citas th:nth-child(11),table.tabla-citas td:nth-child(11){white-space:nowrap}
+table.tabla-citas .acts{flex-wrap:wrap;gap:.3rem}
+table.tabla-citas .acts .btn,table.tabla-citas .acts button{white-space:nowrap;padding:.32rem .55rem;font-size:.78rem}
+@media (max-width:1200px){
+  table.tabla-citas th,table.tabla-citas td{padding:.4rem .35rem;font-size:.82rem}
+}
+
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
 .form-grid label{display:flex;flex-direction:column;font-size:.8rem;color:var(--c5);gap:.2rem}
 .form-grid input,.form-grid select,.form-grid textarea{padding:.5rem;border:1px solid var(--c3);border-radius:6px;font-size:.9rem;font-family:inherit}
