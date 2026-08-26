@@ -163,11 +163,10 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){
 /* ===== Responsive (Safari / iOS incluidos) ===== */
 /* Safari no encoge los items flex por defecto: sin min-width:0 el contenido
    ancho (tablas, graficas) desborda y rompe el layout en telefono/tablet. */
-.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars{min-width:0;max-width:100%}
+.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars,.table-responsive{min-width:0;max-width:100%}
 .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
 img,canvas,svg{max-width:100%;height:auto}
 .form-grid input,.form-grid select,.form-grid textarea{max-width:100%;width:100%;font-size:16px} /* evita el zoom automatico de iOS */
-table.data{min-width:640px}
 .rep-pie{max-width:100%}
 
 @media (max-width:900px){
