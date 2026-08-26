@@ -67,11 +67,12 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;bac
 .btn-sec:hover{background:var(--c3)}
 .btn-danger{background:#c0392b}
 .btn-danger:hover{background:#922d22}
-table.data{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
-table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1)}
+table.data{width:100%;min-width:max-content;border-collapse:collapse;background:#fff;border:1px solid var(--c2);border-radius:8px;overflow:hidden}
+.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;max-width:100%;border:1px solid var(--c2);border-radius:8px;background:#fff}
+table.data th,table.data td{padding:.55rem .7rem;text-align:left;font-size:.88rem;border-bottom:1px solid var(--c1);white-space:nowrap}
 table.data thead{background:transparent;color:var(--c5)}
 table.data tr:last-child td{border-bottom:none}
-table.data .acts{display:flex;gap:.35rem;flex-wrap:wrap}
+table.data .acts{display:flex;gap:.35rem;flex-wrap:nowrap}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
 .form-grid label{display:flex;flex-direction:column;font-size:.8rem;color:var(--c5);gap:.2rem}
 .form-grid input,.form-grid select,.form-grid textarea{padding:.5rem;border:1px solid var(--c3);border-radius:6px;font-size:.9rem;font-family:inherit}
@@ -162,11 +163,10 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){
 /* ===== Responsive (Safari / iOS incluidos) ===== */
 /* Safari no encoge los items flex por defecto: sin min-width:0 el contenido
    ancho (tablas, graficas) desborda y rompe el layout en telefono/tablet. */
-.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars{min-width:0;max-width:100%}
+.topbar,.card,.toolbar,.form-grid,.rep-grid2,.chart-bars,.table-responsive{min-width:0;max-width:100%}
 .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
 img,canvas,svg{max-width:100%;height:auto}
 .form-grid input,.form-grid select,.form-grid textarea{max-width:100%;width:100%;font-size:16px} /* evita el zoom automatico de iOS */
-table.data{min-width:640px}
 .rep-pie{max-width:100%}
 
 @media (max-width:900px){
