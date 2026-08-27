@@ -198,10 +198,11 @@ function validaMotivoCancelacion() {
     cnt.textContent = '(' + obs.value.length + '/5000)';
   }
   if (obs) obs.addEventListener('input', updCount);
+  // Solo autocompletar desde el catalogo en citas nuevas; en una cita guardada
+  // se respetan las observaciones del paciente tal como quedaron capturadas.
   if (!em.value && !tel.value) sync();
-  else if (obs) {
+  else {
     var oi = sel.options[sel.selectedIndex];
-    obs.value = oi ? (oi.getAttribute('data-obs') || '') : '';
     if (oi) {
       if (nEm) nEm.checked = oi.getAttribute('data-nemail') === '1';
       if (nWa) nWa.checked = oi.getAttribute('data-nwa') === '1';
