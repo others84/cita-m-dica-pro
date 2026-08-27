@@ -362,7 +362,7 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
       buttonText: { today: 'Hoy', dayGridMonth: 'Mes', timeGridWeek: 'Semana', timeGridDay: 'Dia' },
       events: window.CITAS_EVENTS || [],
       dateClick: function (info) { tomar(info.date); },
-      select: function (info) { tomar(info.start, info.end); }
+      select: function (info) { tomar(info.start); }
     };
   }
   (async function () {
