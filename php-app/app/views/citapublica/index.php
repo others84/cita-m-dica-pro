@@ -267,9 +267,22 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
   if (est)  est.addEventListener('change', function () { if (mun) mun.value = ''; sync(); });
   sync();
 
-  /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  /* Solo horas completas: se recortan los minutos y la cita dura 1 hora. */
   var DIAS = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function enPunto(v) {
+    var p = (v || '').split(':');
+    if (p.length < 2) return '';
+    var h = parseInt(p[0], 10);
+    if (isNaN(h) || h < 0 || h > 23) return '';
+    return ('0' + h).slice(-2) + ':00';
+  }
+  function masUnaHora(v) {
+    var p = (v || '').split(':');
+    if (p.length < 2) return '';
+    var h = (parseInt(p[0], 10) + 1) % 24;
+    return ('0' + h).slice(-2) + ':00';
+  }
   function resumen() {
     var box = document.getElementById('resumen-cita');
     if (!box) return;
@@ -281,8 +294,9 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     }
     var p = f.value.split('-');
     var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    var ini = enPunto(hi.value);
     var txt = 'Tu cita: ' + DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] +
-              ' de ' + d.getFullYear() + ' a las ' + hi.value + ' hrs';
+              ' de ' + d.getFullYear() + ' de ' + ini + ' a ' + masUnaHora(ini) + ' hrs';
     var info = window.CITA_INFO || {};
     if (info.medico) txt += ', con ' + info.medico;
     if (info.clinica) txt += ', en ' + info.clinica;
@@ -294,14 +308,15 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
         fe = document.getElementById('f_fecha'), frm = document.getElementById('form-cita');
     if (!hi || !hf) return;
     function calc() {
-      var p = (hi.value || '').split(':');
-      if (p.length < 2) { hf.value = ''; return; }
-      var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
-      hf.value = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      var ini = enPunto(hi.value);
+      if (!ini) { hf.value = ''; return; }
+      hi.value = ini;
+      hf.value = masUnaHora(ini);
     }
     hi.addEventListener('change', function () { calc(); resumen(); });
     if (fe) fe.addEventListener('change', resumen);
-    if (frm) frm.addEventListener('submit', function () { if (!hf.value) calc(); });
+    if (frm) frm.addEventListener('submit', function () { calc(); });
+    calc();
     resumen();
   })();
 
