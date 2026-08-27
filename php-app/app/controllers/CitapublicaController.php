@@ -74,6 +74,7 @@ class CitapublicaController extends Controller {
             'coincidencias'  => (array)$this->get('coincidencias', []),
             'paciente'       => (array)$this->get('paciente', []),
             'idPaciente'     => (int)$this->get('id_PACIENTE', 0),
+            'obsCita'        => (string)$this->get('obs_cita', ''),
             'generos'        => $this->cat(fn() => GeneroModel::listar()),
             'paises'         => $this->cat(fn() => PaisModel::listar()),
             'estados'        => $this->cat(fn() => EstadoModel::listar()),
@@ -343,11 +344,14 @@ class CitapublicaController extends Controller {
             'fecha_nacimiento' => (string)$this->input('fecha_nacimiento', ''),
             'id_CATALOGO_GENERO'    => (int)$this->input('id_CATALOGO_GENERO', 0),
             'id_CATALOGO_MUNICIPIO' => (int)$this->input('id_CATALOGO_MUNICIPIO', 0),
-            'observaciones'  => (string)$this->input('observaciones', ''),
+            'observaciones'  => (string)($this->get('paciente', [])['observaciones'] ?? ''),
             'notifica_email' => !empty($_POST['notifica_email']) ? 1 : 0,
             'notifica_wa'    => !empty($_POST['notifica_wa']) ? 1 : 0,
         ];
         $this->set('paciente', $p);
+        // Observaciones de la CITA (independientes de las del paciente).
+        $obsCita = (string)$this->input('observaciones_cita', '');
+        $this->set('obs_cita', $obsCita);
         if ($idPaciente <= 0) {
             foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre(s)',
                       'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
@@ -357,7 +361,7 @@ class CitapublicaController extends Controller {
             if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Falta elegir tu sexo en la lista.';
             if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Falta tu lugar: elige primero el pais, luego el estado y al final el municipio.';
         }
-        if (mb_strlen($p['observaciones']) > 500) $err[] = 'El motivo de tu consulta es muy largo. Escribelo en 500 letras o menos.';
+        if (mb_strlen($obsCita) > 500) $err[] = 'El motivo de tu consulta es muy largo. Escribelo en 500 letras o menos.';
 
         if ($err) {
             foreach (array_unique($err) as $m) $this->flash('error', $m);
@@ -400,7 +404,7 @@ class CitapublicaController extends Controller {
                 'id_CATALOGO_ESTADO_CITAS' => $idEstado,
                 // Observaciones de la CITA: texto fijo y, despues, el motivo escrito por el paciente.
                 'observaciones' => 'Cita generada desde la pagina publica'
-                    . (trim($p['observaciones']) !== '' ? "\n" . trim($p['observaciones']) : ''),
+                    . (trim($obsCita) !== '' ? "\n" . trim($obsCita) : ''),
                 'horas_anticipacion_notif' => 24,
                 'precio' => 0,
                 'id_MEDICO' => $idMedico,
