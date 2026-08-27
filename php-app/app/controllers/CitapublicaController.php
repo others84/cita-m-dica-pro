@@ -398,7 +398,9 @@ class CitapublicaController extends Controller {
                 'hora_inicio' => substr($hi, 0, 5) . ':00',
                 'hora_fin'    => substr($hf, 0, 5) . ':00',
                 'id_CATALOGO_ESTADO_CITAS' => $idEstado,
-                'observaciones' => $p['observaciones'],
+                // Observaciones de la CITA: texto fijo y, despues, el motivo escrito por el paciente.
+                'observaciones' => 'Cita generada desde la pagina publica'
+                    . (trim($p['observaciones']) !== '' ? "\n" . trim($p['observaciones']) : ''),
                 'horas_anticipacion_notif' => 24,
                 'precio' => 0,
                 'id_MEDICO' => $idMedico,
