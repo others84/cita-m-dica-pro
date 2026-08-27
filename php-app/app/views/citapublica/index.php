@@ -339,11 +339,12 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function fecha(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function hora(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  function tomar(start, end) {
+  function tomar(start) {
     var f = document.getElementById('f_fecha'), hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf');
     if (!f) return;
     var s = start instanceof Date ? start : new Date(start);
-    var e = end instanceof Date ? end : new Date(end || (s.getTime() + 30 * 60000));
+    s.setMinutes(0, 0, 0);
+    var e = new Date(s.getTime() + 60 * 60000);
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     resumen();
     var box = document.getElementById('resumen-cita');
