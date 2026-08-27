@@ -261,7 +261,15 @@ class CitapublicaController extends Controller {
         $idMedico       = (int)$this->input('id_MEDICO', 0);
         $fecha          = (string)$this->input('fecha_cita', '');
         $hi             = (string)$this->input('hora_inicio', '');
-        $hf             = (string)$this->input('hora_fin', '');
+        // Cita publica: solo horas completas. Se recortan los minutos y la cita dura 1 hora.
+        $hf             = '';
+        if (preg_match('/^(\d{1,2}):\d{2}/', $hi, $mm)) {
+            $h  = (int)$mm[1];
+            if ($h >= 0 && $h <= 23) {
+                $hi = sprintf('%02d:00', $h);
+                $hf = sprintf('%02d:00', $h + 1);
+            } else { $hi = ''; }
+        } else { $hi = ''; }
 
         // Consultorio y especialidad SIEMPRE GENERICO (tomados de la BD).
         $genCons = $genEsp = null;
