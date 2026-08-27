@@ -131,7 +131,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <p class="ayuda">Primero elige un medico arriba para ver sus horarios.</p>
     <?php else: ?>
       <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
-      <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Tu consulta dura 30 minutos.</p>
+      <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
         <div class="calendar-loading">Cargando calendario...</div>
       </div>
@@ -221,7 +221,8 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <p class="ayuda">Revisa que la fecha y la hora sean las que elegiste en el calendario.</p>
       <div class="form-grid">
         <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>"></label>
-        <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" required></label>
+        <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" step="3600" required>
+          <span class="ayuda">Solo horas completas: 11:00, 12:00, etc.</span></label>
         <input type="hidden" id="f_hf" name="hora_fin">
       </div>
 
@@ -266,9 +267,22 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
   if (est)  est.addEventListener('change', function () { if (mun) mun.value = ''; sync(); });
   sync();
 
-  /* Sin campo "hora fin": se calcula 30 minutos despues de la hora de inicio. */
+  /* Solo horas completas: se recortan los minutos y la cita dura 1 hora. */
   var DIAS = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function enPunto(v) {
+    var p = (v || '').split(':');
+    if (p.length < 2) return '';
+    var h = parseInt(p[0], 10);
+    if (isNaN(h) || h < 0 || h > 23) return '';
+    return ('0' + h).slice(-2) + ':00';
+  }
+  function masUnaHora(v) {
+    var p = (v || '').split(':');
+    if (p.length < 2) return '';
+    var h = (parseInt(p[0], 10) + 1) % 24;
+    return ('0' + h).slice(-2) + ':00';
+  }
   function resumen() {
     var box = document.getElementById('resumen-cita');
     if (!box) return;
@@ -280,8 +294,9 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     }
     var p = f.value.split('-');
     var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    var ini = enPunto(hi.value);
     var txt = 'Tu cita: ' + DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] +
-              ' de ' + d.getFullYear() + ' a las ' + hi.value + ' hrs';
+              ' de ' + d.getFullYear() + ' de ' + ini + ' a ' + masUnaHora(ini) + ' hrs';
     var info = window.CITA_INFO || {};
     if (info.medico) txt += ', con ' + info.medico;
     if (info.clinica) txt += ', en ' + info.clinica;
@@ -293,14 +308,15 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
         fe = document.getElementById('f_fecha'), frm = document.getElementById('form-cita');
     if (!hi || !hf) return;
     function calc() {
-      var p = (hi.value || '').split(':');
-      if (p.length < 2) { hf.value = ''; return; }
-      var d = new Date(2000, 0, 1, parseInt(p[0], 10), parseInt(p[1], 10) + 30, 0);
-      hf.value = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      var ini = enPunto(hi.value);
+      if (!ini) { hf.value = ''; return; }
+      hi.value = ini;
+      hf.value = masUnaHora(ini);
     }
     hi.addEventListener('change', function () { calc(); resumen(); });
     if (fe) fe.addEventListener('change', resumen);
-    if (frm) frm.addEventListener('submit', function () { if (!hf.value) calc(); });
+    if (frm) frm.addEventListener('submit', function () { calc(); });
+    calc();
     resumen();
   })();
 
@@ -323,11 +339,12 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function fecha(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function hora(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  function tomar(start, end) {
+  function tomar(start) {
     var f = document.getElementById('f_fecha'), hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf');
     if (!f) return;
     var s = start instanceof Date ? start : new Date(start);
-    var e = end instanceof Date ? end : new Date(end || (s.getTime() + 30 * 60000));
+    s.setMinutes(0, 0, 0);
+    var e = new Date(s.getTime() + 60 * 60000);
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     resumen();
     var box = document.getElementById('resumen-cita');
@@ -340,11 +357,12 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',
       slotMinTime: '07:00:00', slotMaxTime: '21:00:00', selectable: true,
+      slotDuration: '01:00:00', slotLabelInterval: '01:00:00', snapDuration: '01:00:00',
       headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
       buttonText: { today: 'Hoy', dayGridMonth: 'Mes', timeGridWeek: 'Semana', timeGridDay: 'Dia' },
       events: window.CITAS_EVENTS || [],
       dateClick: function (info) { tomar(info.date); },
-      select: function (info) { tomar(info.start, info.end); }
+      select: function (info) { tomar(info.start); }
     };
   }
   (async function () {
