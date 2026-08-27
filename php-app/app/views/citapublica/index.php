@@ -357,6 +357,7 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',
       slotMinTime: '07:00:00', slotMaxTime: '21:00:00', selectable: true,
+      slotDuration: '01:00:00', slotLabelInterval: '01:00:00', snapDuration: '01:00:00',
       headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
       buttonText: { today: 'Hoy', dayGridMonth: 'Mes', timeGridWeek: 'Semana', timeGridDay: 'Dia' },
       events: window.CITAS_EVENTS || [],
