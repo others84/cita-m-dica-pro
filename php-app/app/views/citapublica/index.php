@@ -204,9 +204,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           </select>
           <span class="ayuda">La ciudad o pueblo donde vives.</span>
         </label>
-        <label class="col-span">Observaciones - motivo de la consulta
-          <textarea name="observaciones" rows="3" maxlength="500" placeholder="Ejemplo: revision anual"><?= $v('observaciones') ?></textarea>
-          <span class="ayuda">Cuentanos en pocas palabras por que quieres la consulta. Ejemplo: "revision anual" o "dolor desde hace una semana". Lo que escribas solo lo ve tu medico.</span>
+        <label class="col-span">Observaciones de la cita - motivo de la consulta
+          <textarea name="observaciones_cita" rows="3" maxlength="500" placeholder="Ejemplo: revision anual"><?= htmlspecialchars((string)($obsCita ?? '')) ?></textarea>
+          <span class="ayuda">Cuentanos en pocas palabras por que quieres esta consulta. Ejemplo: "revision anual" o "dolor desde hace una semana". Lo que escribas solo lo ve tu medico.</span>
         </label>
 
         <p class="ayuda col-span">Marca como quieres que te recordemos tu cita:</p>
