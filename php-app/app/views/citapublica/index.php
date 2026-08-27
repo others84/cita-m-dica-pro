@@ -131,7 +131,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <p class="ayuda">Primero elige un medico arriba para ver sus horarios.</p>
     <?php else: ?>
       <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
-      <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Tu consulta dura 30 minutos.</p>
+      <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
         <div class="calendar-loading">Cargando calendario...</div>
       </div>
