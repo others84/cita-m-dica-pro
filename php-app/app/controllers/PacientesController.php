@@ -15,46 +15,11 @@ class PacientesController extends Controller {
         $rows = [];
         $ctx = $this->resolveClinicaContext();
         $rol = $ctx['rol']; $fClinica = $ctx['fClinica']; $clinicasFiltro = $ctx['clinicasFiltro'];
+        $listado = ['rows'=>[],'pag'=>1,'paginas'=>1,'totalPacientes'=>0,'porPagina'=>15,'ord'=>'nombre','dir'=>'asc'];
         try {
             $rows = PacienteModel::listar($fClinica);
             if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
-
-            // --- Ordenamiento por columnas permitidas ---
-            $ord = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
-            $dir = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
-            $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
-            if (!in_array($ord, $permitidas, true)) $ord = 'nombre';
-
-            $val = function ($v, string $f) {
-                if ($v instanceof DateTime) return $v->format($f);
-                return (string)$v;
-            };
-            $key = function (array $p) use ($ord, $val) {
-                switch ($ord) {
-                    case 'fecha_nacimiento':
-                        return substr($val($p['fecha_nacimiento'] ?? '', 'Y-m-d'), 0, 10);
-                    case 'pais':
-                        return mb_strtolower((string)($p['pais'] ?? ''));
-                    case 'nombre':
-                    default:
-                        return mb_strtolower(
-                            trim(($p['ap_paterno'] ?? '') . ' ' . ($p['ap_materno'] ?? '') . ' ' . ($p['nombre'] ?? ''))
-                        );
-                }
-            };
-            usort($rows, function ($a, $b) use ($key, $dir) {
-                $r = strcmp($key($a), $key($b));
-                return $dir === 'desc' ? -$r : $r;
-            });
-
-            // --- Paginacion: 15 elementos por pagina ---
-            $porPagina = 15;
-            $total     = count($rows);
-            $paginas   = max(1, (int)ceil($total / $porPagina));
-            $pag       = (int)($this->stateParam('pag', 1) ?? 1);
-            if ($pag < 1) $pag = 1;
-            if ($pag > $paginas) { $pag = $paginas; $_SESSION['ui']['pacientes']['pag'] = $pag; }
-            $rows = array_slice($rows, ($pag - 1) * $porPagina, $porPagina);
+            $listado = $this->procesarListado($rows);
 
             if (class_exists('Database')) {
                 $idsFiltro = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $clinicasFiltro);
@@ -66,18 +31,18 @@ class PacientesController extends Controller {
                     $_SESSION['f_clinica'] ?? 'NULL',
                     $fClinica ?? 'NULL',
                     implode(',', $idsFiltro),
-                    count($rows),
+                    count($listado['rows']),
                     $editId ?? 'NULL',
                     $editRow ? 'SI' : 'NO',
-                    $pag,
-                    $paginas,
-                    $total
+                    $listado['pag'],
+                    $listado['paginas'],
+                    $listado['totalPacientes']
                 ));
             }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->view('pacientes/index', [
             'title'    => 'Pacientes',
-            'rows'     => $rows,
+            'rows'     => $listado['rows'],
             'editId'   => $editId,
             'editRow'  => $editRow,
             'generos'   => GeneroModel::listar(),
@@ -88,12 +53,86 @@ class PacientesController extends Controller {
             'fClinica'  => $fClinica,
             'rol'       => $rol,
             'clinicasFiltro' => $clinicasFiltro,
-            'pag'        => $pag ?? 1,
-            'paginas'    => $paginas ?? 1,
-            'totalPacientes' => $total ?? 0,
-            'porPagina'  => $porPagina ?? 15,
-            'ord'        => $ord ?? 'nombre',
-            'dir'        => $dir ?? 'asc',
+            'pag'        => $listado['pag'],
+            'paginas'    => $listado['paginas'],
+            'totalPacientes' => $listado['totalPacientes'],
+            'porPagina'  => $listado['porPagina'],
+            'ord'        => $listado['ord'],
+            'dir'        => $listado['dir'],
+        ]);
+    }
+
+    /**
+     * Ordena y pagina el listado de pacientes.
+     * Persiste ord/dir/pag en sesion via stateParam.
+     */
+    private function procesarListado(array $rows): array {
+        $ord = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
+        $dir = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
+        if (!in_array($ord, $permitidas, true)) $ord = 'nombre';
+
+        $val = function ($v, string $f) {
+            if ($v instanceof DateTime) return $v->format($f);
+            return (string)$v;
+        };
+        $key = function (array $p) use ($ord, $val) {
+            switch ($ord) {
+                case 'fecha_nacimiento':
+                    return substr($val($p['fecha_nacimiento'] ?? '', 'Y-m-d'), 0, 10);
+                case 'pais':
+                    return mb_strtolower((string)($p['pais'] ?? ''));
+                case 'nombre':
+                default:
+                    return mb_strtolower(
+                        trim(($p['ap_paterno'] ?? '') . ' ' . ($p['ap_materno'] ?? '') . ' ' . ($p['nombre'] ?? ''))
+                    );
+            }
+        };
+        usort($rows, function ($a, $b) use ($key, $dir) {
+            $r = strcmp($key($a), $key($b));
+            return $dir === 'desc' ? -$r : $r;
+        });
+
+        $porPagina = 15;
+        $total     = count($rows);
+        $paginas   = max(1, (int)ceil($total / $porPagina));
+        $pag       = (int)($this->stateParam('pag', 1) ?? 1);
+        if ($pag < 1) $pag = 1;
+        if ($pag > $paginas) { $pag = $paginas; $_SESSION['ui']['pacientes']['pag'] = $pag; }
+        $rows = array_slice($rows, ($pag - 1) * $porPagina, $porPagina);
+
+        return [
+            'rows' => $rows,
+            'pag' => $pag,
+            'paginas' => $paginas,
+            'totalPacientes' => $total,
+            'porPagina' => $porPagina,
+            'ord' => $ord,
+            'dir' => $dir,
+        ];
+    }
+
+    /** Devuelve solo la tabla de pacientes para actualizaciones AJAX sin refresh. */
+    public function tabla(): void {
+        $this->requireLogin();
+        $ctx = $this->resolveClinicaContext();
+        try {
+            $rows = PacienteModel::listar($ctx['fClinica']);
+            $listado = $this->procesarListado($rows);
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo htmlspecialchars($e->getMessage());
+            return;
+        }
+        $this->partial('pacientes/_tabla', [
+            'rows' => $listado['rows'],
+            'pag' => $listado['pag'],
+            'paginas' => $listado['paginas'],
+            'totalPacientes' => $listado['totalPacientes'],
+            'porPagina' => $listado['porPagina'],
+            'ord' => $listado['ord'],
+            'dir' => $listado['dir'],
         ]);
     }
 
