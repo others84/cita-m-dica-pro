@@ -6,7 +6,11 @@
       $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
       $cls = $ord === $col ? ' class="col-ordenada"' : '';
       echo '<th'.$cls.'>';
-      echo '<button type="button" class="sort-btn" data-ord="'.htmlspecialchars($col).'">' . htmlspecialchars($label) . $flecha . '</button>';
+      echo '<form method="post" action="' . url('pacientes/ordenar') . '" class="sort-form" style="display:inline;margin:0;padding:0">';
+      echo csrf_field();
+      echo '<input type="hidden" name="ord" value="' . htmlspecialchars($col) . '">';
+      echo '<button type="submit" class="sort-btn">' . htmlspecialchars($label) . $flecha . '</button>';
+      echo '</form>';
       echo '</th>';
   };
   $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : '';
@@ -53,18 +57,30 @@
     Pagina <?= $pag ?> de <?= $paginas ?> · <?= (int)$totalPacientes ?> pacientes
   </span>
   <?php if ($pag > 1): ?>
-    <button type="button" class="btn btn-sec page-btn" data-pag="1">«</button>
-    <button type="button" class="btn btn-sec page-btn" data-pag="<?= $pag - 1 ?>">‹</button>
+    <form method="post" action="<?= url('pacientes/pagina') ?>" class="page-form" style="display:inline;margin:0;padding:0">
+      <?= csrf_field() ?><input type="hidden" name="pag" value="1"><button type="submit" class="btn btn-sec page-btn">«</button>
+    </form>
+    <form method="post" action="<?= url('pacientes/pagina') ?>" class="page-form" style="display:inline;margin:0;padding:0">
+      <?= csrf_field() ?><input type="hidden" name="pag" value="<?= $pag - 1 ?>"><button type="submit" class="btn btn-sec page-btn">‹</button>
+    </form>
   <?php endif; ?>
   <?php
     $ini = max(1, $pag - 2); $fin = min($paginas, $ini + 4); $ini = max(1, $fin - 4);
     for ($i = $ini; $i <= $fin; $i++) {
-        echo '<button type="button" class="'.($i === $pag ? 'btn' : 'btn btn-sec').' page-btn" data-pag="'.$i.'">'.$i.'</button>';
+        echo '<form method="post" action="' . url('pacientes/pagina') . '" class="page-form" style="display:inline;margin:0;padding:0">';
+        echo csrf_field();
+        echo '<input type="hidden" name="pag" value="' . $i . '">';
+        echo '<button type="submit" class="' . ($i === $pag ? 'btn' : 'btn btn-sec') . ' page-btn">' . $i . '</button>';
+        echo '</form>';
     }
   ?>
   <?php if ($pag < $paginas): ?>
-    <button type="button" class="btn btn-sec page-btn" data-pag="<?= $pag + 1 ?>">›</button>
-    <button type="button" class="btn btn-sec page-btn" data-pag="<?= $paginas ?>">»</button>
+    <form method="post" action="<?= url('pacientes/pagina') ?>" class="page-form" style="display:inline;margin:0;padding:0">
+      <?= csrf_field() ?><input type="hidden" name="pag" value="<?= $pag + 1 ?>"><button type="submit" class="btn btn-sec page-btn">›</button>
+    </form>
+    <form method="post" action="<?= url('pacientes/pagina') ?>" class="page-form" style="display:inline;margin:0;padding:0">
+      <?= csrf_field() ?><input type="hidden" name="pag" value="<?= $paginas ?>"><button type="submit" class="btn btn-sec page-btn">»</button>
+    </form>
   <?php endif; ?>
 </div>
 <?php endif; ?>
