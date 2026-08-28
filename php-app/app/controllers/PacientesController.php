@@ -19,6 +19,34 @@ class PacientesController extends Controller {
             $rows = PacienteModel::listar($fClinica);
             if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
 
+            // --- Ordenamiento por columnas permitidas ---
+            $ord = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
+            $dir = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+            $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
+            if (!in_array($ord, $permitidas, true)) $ord = 'nombre';
+
+            $val = function ($v, string $f) {
+                if ($v instanceof DateTime) return $v->format($f);
+                return (string)$v;
+            };
+            $key = function (array $p) use ($ord, $val) {
+                switch ($ord) {
+                    case 'fecha_nacimiento':
+                        return substr($val($p['fecha_nacimiento'] ?? '', 'Y-m-d'), 0, 10);
+                    case 'pais':
+                        return mb_strtolower((string)($p['pais'] ?? ''));
+                    case 'nombre':
+                    default:
+                        return mb_strtolower(
+                            trim(($p['ap_paterno'] ?? '') . ' ' . ($p['ap_materno'] ?? '') . ' ' . ($p['nombre'] ?? ''))
+                        );
+                }
+            };
+            usort($rows, function ($a, $b) use ($key, $dir) {
+                $r = strcmp($key($a), $key($b));
+                return $dir === 'desc' ? -$r : $r;
+            });
+
             // --- Paginacion: 15 elementos por pagina ---
             $porPagina = 15;
             $total     = count($rows);
