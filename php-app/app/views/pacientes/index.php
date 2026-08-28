@@ -128,9 +128,22 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 })();
 </script>
 
+<?php
+  $ord = $ord ?? 'nombre';
+  $dir = $dir ?? 'asc';
+  $colIndex = ['nombre'=>1,'fecha_nacimiento'=>5,'pais'=>7];
+  $th = function (string $col, string $label) use ($ord, $dir) {
+      $flecha = $ord === $col ? ($dir === 'asc' ? ' ▲' : ' ▼') : '';
+      $cls = $ord === $col ? ' class="col-ordenada"' : '';
+      echo '<th'.$cls.'>';
+      post_button('pacientes/ordenar', ['ord' => $col], $label . $flecha, 'sort-btn');
+      echo '</th>';
+  };
+  $ordClass = isset($colIndex[$ord]) ? ' ord-col-'.$colIndex[$ord] : '';
+?>
 <div class="table-responsive">
-<table class="data tabla-pacientes">
-  <thead><tr><th>Nombre completo</th><th>Direccion</th><th>Telefono</th><th>Email</th><th>Fecha nacimiento</th><th>Genero</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+<table class="data tabla-pacientes<?= $ordClass ?>">
+  <thead><tr><?php $th('nombre','Nombre completo'); ?><th>Direccion</th><th>Telefono</th><th>Email</th><?php $th('fecha_nacimiento','Fecha nacimiento'); ?><th>Genero</th><?php $th('pais','Pais'); ?><th>Estado</th><th>Municipio</th><th>Observaciones</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php if (empty($rows)): ?>
       <tr><td colspan="11" style="text-align:center;padding:1rem;color:var(--c4)">Sin pacientes</td></tr>
