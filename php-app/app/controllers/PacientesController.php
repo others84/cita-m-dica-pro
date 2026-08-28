@@ -18,10 +18,20 @@ class PacientesController extends Controller {
         try {
             $rows = PacienteModel::listar($fClinica);
             if ($editId) foreach ($rows as $r) if ((int)$r['id_PACIENTE'] === $editId) { $editRow = $r; break; }
+
+            // --- Paginacion: 15 elementos por pagina ---
+            $porPagina = 15;
+            $total     = count($rows);
+            $paginas   = max(1, (int)ceil($total / $porPagina));
+            $pag       = (int)($this->stateParam('pag', 1) ?? 1);
+            if ($pag < 1) $pag = 1;
+            if ($pag > $paginas) { $pag = $paginas; $_SESSION['ui']['pacientes']['pag'] = $pag; }
+            $rows = array_slice($rows, ($pag - 1) * $porPagina, $porPagina);
+
             if (class_exists('Database')) {
                 $idsFiltro = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $clinicasFiltro);
                 Database::log(sprintf(
-                    'PACIENTES.index rol=%s user=%s post_f_clinica=%s session_f_clinica=%s fClinica=%s clinicasFiltro=[%s] rows=%d editId=%s editFound=%s',
+                    'PACIENTES.index rol=%s user=%s post_f_clinica=%s session_f_clinica=%s fClinica=%s clinicasFiltro=[%s] rows=%d editId=%s editFound=%s pag=%d paginas=%d total=%d',
                     $rol,
                     $_SESSION['user']['usuario'] ?? '?',
                     $_POST['f_clinica'] ?? 'NO_POST',
@@ -30,7 +40,10 @@ class PacientesController extends Controller {
                     implode(',', $idsFiltro),
                     count($rows),
                     $editId ?? 'NULL',
-                    $editRow ? 'SI' : 'NO'
+                    $editRow ? 'SI' : 'NO',
+                    $pag,
+                    $paginas,
+                    $total
                 ));
             }
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
@@ -47,7 +60,19 @@ class PacientesController extends Controller {
             'fClinica'  => $fClinica,
             'rol'       => $rol,
             'clinicasFiltro' => $clinicasFiltro,
+            'pag'        => $pag ?? 1,
+            'paginas'    => $paginas ?? 1,
+            'totalPacientes' => $total ?? 0,
+            'porPagina'  => $porPagina ?? 15,
         ]);
+    }
+
+    /** Cambia la pagina de la tabla de pacientes. */
+    public function pagina(): void {
+        $this->requireLogin();
+        $p = (int)$this->input('pag');
+        $_SESSION['ui']['pacientes']['pag'] = $p > 0 ? $p : 1;
+        $this->redirect('pacientes');
     }
 
     public function guardar(): void {
