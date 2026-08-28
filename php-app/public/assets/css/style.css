@@ -168,7 +168,12 @@ table.data.ord-col-2 td:nth-child(2),
 table.data.ord-col-3 td:nth-child(3),
 table.data.ord-col-4 td:nth-child(4),
 table.data.ord-col-5 td:nth-child(5),
-table.data.ord-col-6 td:nth-child(6) { background:var(--c2) !important; }
+table.data.ord-col-6 td:nth-child(6),
+table.data.ord-col-7 td:nth-child(7),
+table.data.ord-col-8 td:nth-child(8),
+table.data.ord-col-9 td:nth-child(9),
+table.data.ord-col-10 td:nth-child(10),
+table.data.ord-col-11 td:nth-child(11) { background:var(--c2) !important; }
 
 /* ===== Reportes: graficos ===== */
 .chart-bars{display:flex;align-items:flex-end;gap:.5rem;height:280px;overflow-x:auto;padding:.5rem .25rem 0;border-bottom:2px solid var(--c2)}
