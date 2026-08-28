@@ -12,6 +12,17 @@ class Controller {
         require __DIR__ . '/../views/layout/footer.php';
     }
 
+    /** Renderiza una vista sin el layout (para actualizaciones parciales vía AJAX). */
+    protected function partial(string $view, array $data = []): void {
+        extract($data);
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+        if (!file_exists($viewFile)) {
+            echo "Vista no encontrada: $view";
+            return;
+        }
+        require $viewFile;
+    }
+
     protected function requireLogin(array $roles = []): void {
         if (empty($_SESSION['user'])) {
             header('Location: ' . url('auth/login'));
