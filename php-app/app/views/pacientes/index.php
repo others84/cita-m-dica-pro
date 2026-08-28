@@ -137,18 +137,13 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
   var container = document.getElementById('pacientes-tabla');
   var endpoint = '<?= url('pacientes/tabla') ?>';
 
-  function csrf() {
-    var input = document.querySelector('input[name="_csrf"]');
-    return input ? input.value : '';
-  }
-
   function attach(root) {
     root = root || document;
-    root.querySelectorAll('.sort-btn').forEach(function(btn){
-      btn.addEventListener('click', onSort);
+    root.querySelectorAll('.sort-form').forEach(function(form){
+      form.addEventListener('submit', onSort);
     });
-    root.querySelectorAll('.page-btn').forEach(function(btn){
-      btn.addEventListener('click', onPage);
+    root.querySelectorAll('.page-form').forEach(function(form){
+      form.addEventListener('submit', onPage);
     });
   }
 
@@ -169,18 +164,16 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
   }
 
   function onSort(e) {
-    var col = e.currentTarget.getAttribute('data-ord');
-    var fd = new FormData();
-    fd.append('_csrf', csrf());
-    fd.append('ord', col);
+    e.preventDefault();
+    var form = e.currentTarget;
+    var fd = new FormData(form);
     reloadTable(fd);
   }
 
   function onPage(e) {
-    var pag = e.currentTarget.getAttribute('data-pag');
-    var fd = new FormData();
-    fd.append('_csrf', csrf());
-    fd.append('pag', pag);
+    e.preventDefault();
+    var form = e.currentTarget;
+    var fd = new FormData(form);
     reloadTable(fd);
   }
 
