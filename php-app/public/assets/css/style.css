@@ -87,8 +87,25 @@ table.tabla-citas th:nth-child(8),table.tabla-citas td:nth-child(8),
 table.tabla-citas th:nth-child(11),table.tabla-citas td:nth-child(11){white-space:nowrap}
 table.tabla-citas .acts{flex-wrap:wrap;gap:.3rem}
 table.tabla-citas .acts .btn,table.tabla-citas .acts button{white-space:nowrap;padding:.32rem .55rem;font-size:.78rem}
+
+/* Tabla de pacientes: mismo comportamiento responsive y acciones apiladas */
+table.tabla-pacientes{min-width:0;table-layout:auto}
+table.tabla-pacientes th,table.tabla-pacientes td{white-space:normal;overflow-wrap:normal;word-break:normal;word-wrap:normal;hyphens:none;-webkit-hyphens:none;line-height:1.3;padding:.5rem .45rem;vertical-align:top}
+/* Observaciones: solo esta columna permite romper un token larguisimo sin espacios */
+table.tabla-pacientes td:nth-child(10){overflow-wrap:break-word;word-wrap:break-word}
+/* Columnas cortas: telefono, fecha nacimiento, genero, pais, estado, municipio */
+table.tabla-pacientes th:nth-child(3),table.tabla-pacientes td:nth-child(3),
+table.tabla-pacientes th:nth-child(5),table.tabla-pacientes td:nth-child(5),
+table.tabla-pacientes th:nth-child(6),table.tabla-pacientes td:nth-child(6),
+table.tabla-pacientes th:nth-child(7),table.tabla-pacientes td:nth-child(7),
+table.tabla-pacientes th:nth-child(8),table.tabla-pacientes td:nth-child(8),
+table.tabla-pacientes th:nth-child(9),table.tabla-pacientes td:nth-child(9){white-space:nowrap}
+table.tabla-pacientes .acts{flex-wrap:wrap;gap:.3rem}
+table.tabla-pacientes .acts form{width:100%;display:block}
+table.tabla-pacientes .acts .btn,table.tabla-pacientes .acts button{white-space:nowrap;padding:.32rem .55rem;font-size:.78rem;width:100%;display:block}
 @media (max-width:1200px){
   table.tabla-citas th,table.tabla-citas td{padding:.4rem .35rem;font-size:.82rem}
+  table.tabla-pacientes th,table.tabla-pacientes td{padding:.4rem .35rem;font-size:.82rem}
 }
 
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}
