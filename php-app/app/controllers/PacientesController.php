@@ -62,6 +62,8 @@ class PacientesController extends Controller {
         ]);
     }
 
+    private const COLUMNAS_ORDEN = ['nombre', 'fecha_nacimiento', 'pais'];
+
     /**
      * Ordena y pagina el listado de pacientes.
      * Persiste ord/dir/pag en sesion via stateParam.
@@ -69,8 +71,7 @@ class PacientesController extends Controller {
     private function procesarListado(array $rows): array {
         $ord = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
         $dir = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc')) === 'desc' ? 'desc' : 'asc';
-        $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
-        if (!in_array($ord, $permitidas, true)) $ord = 'nombre';
+        if (!in_array($ord, self::COLUMNAS_ORDEN, true)) $ord = 'nombre';
 
         $val = function ($v, string $f) {
             if ($v instanceof DateTime) return $v->format($f);
@@ -113,12 +114,27 @@ class PacientesController extends Controller {
         ];
     }
 
+    /** Calcula la direccion resultante al ordenar por una columna. */
+    private function alternarDireccion(string $col): string {
+        $actual = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
+        $dir    = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc'));
+        return ($actual === $col && $dir === 'asc') ? 'desc' : 'asc';
+    }
+
     /** Devuelve solo la tabla de pacientes para actualizaciones AJAX sin refresh. */
     public function tabla(): void {
         $this->requireLogin();
         $ctx = $this->resolveClinicaContext();
         try {
             $rows = PacienteModel::listar($ctx['fClinica']);
+            // Si el encabezado envio una columna, alternamos direccion antes de
+            // procesar el listado, igual que en ordenar() pero sin redirigir.
+            $col = (string)($this->input('ord') ?? '');
+            if ($col !== '' && in_array($col, self::COLUMNAS_ORDEN, true)) {
+                $_SESSION['ui']['pacientes']['ord'] = $col;
+                $_SESSION['ui']['pacientes']['dir'] = $this->alternarDireccion($col);
+                $_SESSION['ui']['pacientes']['pag'] = 1;
+            }
             $listado = $this->procesarListado($rows);
         } catch (Throwable $e) {
             http_response_code(500);
@@ -140,13 +156,9 @@ class PacientesController extends Controller {
     public function ordenar(): void {
         $this->requireLogin();
         $col = (string)($this->input('ord') ?? 'nombre');
-        $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
-        if (!in_array($col, $permitidas, true)) $col = 'nombre';
-        $actual = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
-        $dir    = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc'));
-        $nuevo  = ($actual === $col && $dir === 'asc') ? 'desc' : 'asc';
+        if (!in_array($col, self::COLUMNAS_ORDEN, true)) $col = 'nombre';
         $_SESSION['ui']['pacientes']['ord'] = $col;
-        $_SESSION['ui']['pacientes']['dir'] = $nuevo;
+        $_SESSION['ui']['pacientes']['dir'] = $this->alternarDireccion($col);
         $_SESSION['ui']['pacientes']['pag'] = 1;
         $this->redirect('pacientes');
     }
