@@ -92,7 +92,24 @@ class PacientesController extends Controller {
             'paginas'    => $paginas ?? 1,
             'totalPacientes' => $total ?? 0,
             'porPagina'  => $porPagina ?? 15,
+            'ord'        => $ord ?? 'nombre',
+            'dir'        => $dir ?? 'asc',
         ]);
+    }
+
+    /** Cambia la columna/direccion de ordenamiento de la tabla de pacientes. */
+    public function ordenar(): void {
+        $this->requireLogin();
+        $col = (string)($this->input('ord') ?? 'nombre');
+        $permitidas = ['nombre', 'fecha_nacimiento', 'pais'];
+        if (!in_array($col, $permitidas, true)) $col = 'nombre';
+        $actual = (string)($this->stateParam('ord', 'nombre') ?? 'nombre');
+        $dir    = strtolower((string)($this->stateParam('dir', 'asc') ?? 'asc'));
+        $nuevo  = ($actual === $col && $dir === 'asc') ? 'desc' : 'asc';
+        $_SESSION['ui']['pacientes']['ord'] = $col;
+        $_SESSION['ui']['pacientes']['dir'] = $nuevo;
+        $_SESSION['ui']['pacientes']['pag'] = 1;
+        $this->redirect('pacientes');
     }
 
     /** Cambia la pagina de la tabla de pacientes. */
