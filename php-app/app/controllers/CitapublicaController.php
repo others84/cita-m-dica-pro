@@ -128,6 +128,26 @@ class CitapublicaController extends Controller {
         return $out;
     }
 
+    /** Bloques de comida del medico como espacios no disponibles (lunes a viernes). */
+    private function eventosComida(array $horario): array {
+        $ci = (string)($horario['comida_inicio'] ?? '');
+        $cf = (string)($horario['comida_fin'] ?? '');
+        if ($ci === '' || $cf === '') return [];
+        $out = [];
+        $ini = strtotime('-7 days');
+        for ($i = 0; $i < 128; $i++) {
+            $d = strtotime('+' . $i . ' days', $ini);
+            if ((int)date('N', $d) >= 6) continue; // sabado y domingo no se agendan
+            $f = date('Y-m-d', $d);
+            $out[] = ['id' => 'comida-' . $f, 'title' => 'Comida',
+                      'start' => $f . 'T' . $ci . ':00', 'end' => $f . 'T' . $cf . ':00',
+                      'color' => '#cbd5e1'];
+        }
+        return $out;
+    }
+
+
+
     /** Fecha en palabras: "lunes 24 de agosto de 2026". */
     private function fechaLarga(string $ymd): string {
         $t = strtotime($ymd);
