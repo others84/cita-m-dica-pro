@@ -29,5 +29,5 @@ Los médicos, asistentes y administradores de clínica siguen pudiendo agendar e
 
 - La validación de horario se hace **en el servidor** dentro de `CitapublicaController::agendar()`; el calendario solo es ayuda visual.
 - El bloque de comida se inyecta como evento de fondo por día visible en el calendario público, con el mismo estilo gris de "Ocupado".
-- Los cambios de horario se registran en `LOG` con `LogModel::evento()`, indicando usuario, médico y el nuevo horario.
+- **Registro en LOG:** cada acción de guardado de horario se escribe en la tabla `LOG` de la base de datos (con los campos ya definidos: usuario, clínica, fecha, tipo) y también en `app.log`. El campo `evento` lleva la cadena: `el médico "<nombre del médico>" definió el horario: <horario de comida, inicio o fin>`, generando un registro por cada uno de los tres horarios modificados.
 - Ningún cambio afecta a `CitasController.php` ni a `citas/form.php`: el agendado interno queda sin restricciones.
