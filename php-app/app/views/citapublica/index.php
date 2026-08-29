@@ -353,10 +353,27 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
 
 
 
+  var HOR = window.HORARIO_MEDICO || { hora_inicio: '07:00', hora_fin: '21:00', comida_inicio: '', comida_fin: '' };
+  function min(v) { var p = (v || '0:0').split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1] || '0', 10); }
+  /* Rechaza dias y horas fuera del horario de atencion del medico. */
+  function permitido(s) {
+    var d = s.getDay();
+    if (d === 0 || d === 6) { alert('Solo puedes agendar de lunes a viernes.'); return false; }
+    var ini = s.getHours() * 60, fin = ini + 60;
+    if (ini < min(HOR.hora_inicio) || fin > min(HOR.hora_fin)) {
+      alert('El medico atiende de ' + HOR.hora_inicio + ' a ' + HOR.hora_fin + '.'); return false;
+    }
+    if (HOR.comida_inicio && HOR.comida_fin && ini < min(HOR.comida_fin) && min(HOR.comida_inicio) < fin) {
+      alert('Ese horario es la hora de comida del medico (' + HOR.comida_inicio + ' a ' + HOR.comida_fin + ').'); return false;
+    }
+    return true;
+  }
+
   function options() {
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',
-      slotMinTime: '07:00:00', slotMaxTime: '21:00:00', selectable: true,
+      slotMinTime: HOR.hora_inicio + ':00', slotMaxTime: HOR.hora_fin + ':00', selectable: true,
+      hiddenDays: [0, 6],
       slotDuration: '01:00:00', slotLabelInterval: '01:00:00', snapDuration: '01:00:00',
       headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
       buttonText: { today: 'Hoy', dayGridMonth: 'Mes', timeGridWeek: 'Semana', timeGridDay: 'Dia' },
