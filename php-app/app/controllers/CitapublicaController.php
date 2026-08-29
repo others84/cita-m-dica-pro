@@ -296,7 +296,20 @@ class CitapublicaController extends Controller {
         if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 2.';
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Aun no eliges dia. Toca un espacio en blanco del calendario.';
         if (!preg_match('/^\d{2}:00$/', $hi) || !preg_match('/^\d{2}:00$/', $hf)) $err[] = 'Aun no eliges horario. Toca un espacio en blanco del calendario y elige una hora completa, por ejemplo 11:00.';
-        if (!$err && ((int)substr($hi, 0, 2) < 7 || (int)substr($hi, 0, 2) > 20)) $err[] = 'El horario de atencion es de 07:00 a 21:00. Elige una hora dentro de ese rango.';
+        // Horario de atencion del medico (solo aplica a la cita publica).
+        if (!$err) {
+            $ho = HorarioMedicoModel::porMedico($idMedico);
+            $rango = 'El medico atiende de ' . $ho['hora_inicio'] . ' a ' . $ho['hora_fin']
+                . (($ho['comida_inicio'] !== '' && $ho['comida_fin'] !== '')
+                    ? ' y come de ' . $ho['comida_inicio'] . ' a ' . $ho['comida_fin'] : '') . '.';
+            $dow = (int)date('N', strtotime($fecha)); // 1=lunes ... 7=domingo
+            if ($dow >= 6) $err[] = 'Solo puedes agendar de lunes a viernes. Elige otro dia en el calendario.';
+            elseif (strtotime($hi) < strtotime($ho['hora_inicio']) || strtotime($hf) > strtotime($ho['hora_fin']))
+                $err[] = $rango . ' Elige una hora dentro de ese horario.';
+            elseif ($ho['comida_inicio'] !== '' && $ho['comida_fin'] !== ''
+                    && strtotime($hi) < strtotime($ho['comida_fin']) && strtotime($ho['comida_inicio']) < strtotime($hf))
+                $err[] = 'Ese horario es la hora de comida del medico. ' . $rango;
+        }
         if (!$err && strtotime($fecha . ' ' . $hf) <= strtotime($fecha . ' ' . $hi)) $err[] = 'La hora de termino debe ser despues de la hora de inicio.';
         if (!$err && strtotime($fecha . ' ' . $hi) < time()) $err[] = 'Ese dia y hora ya pasaron. Elige un horario proximo en el calendario.';
 
