@@ -344,6 +344,7 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     if (!f) return;
     var s = start instanceof Date ? start : new Date(start);
     s.setMinutes(0, 0, 0);
+    if (!permitido(s)) return;
     var e = new Date(s.getTime() + 60 * 60000);
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     resumen();
