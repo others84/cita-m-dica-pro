@@ -57,6 +57,9 @@ class CitapublicaController extends Controller {
         $this->set('id_CATALOGO_ESPECIALIDAD', $genEsp ? (int)$genEsp['id'] : 0);
 
         $eventos = $idClinica && $idMedico ? $this->eventosMedico($idMedico, $idClinica) : [];
+        // Horario de atencion del medico (limita solo la cita publica).
+        $horario = $idMedico ? HorarioMedicoModel::porMedico($idMedico) : HorarioMedicoModel::porDefecto();
+        if ($idMedico) $eventos = array_merge($eventos, $this->eventosComida($horario));
 
         $this->render([
             'clinicas'       => $clinicas,
@@ -70,6 +73,7 @@ class CitapublicaController extends Controller {
             'consultorioNom' => $genCons['nombre'] ?? '',
             'especialidadNom'=> $genEsp['nombre'] ?? '',
             'eventos'        => $eventos,
+            'horario'        => $horario,
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
             'coincidencias'  => (array)$this->get('coincidencias', []),
