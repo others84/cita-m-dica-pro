@@ -12,6 +12,7 @@ require_once __DIR__ . '/../models/PaisModel.php';
 require_once __DIR__ . '/../models/EstadoModel.php';
 require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/LogModel.php';
+require_once __DIR__ . '/../models/HorarioMedicoModel.php';
 
 /**
  * Pagina publica (sin sesion) para que un paciente agende su cita.
