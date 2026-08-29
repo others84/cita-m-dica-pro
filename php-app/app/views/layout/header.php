@@ -76,6 +76,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
+        <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
       <?php endif; ?>
 
       <?php if ($rol === 'medico'): ?>
@@ -99,6 +100,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('medicos', 'Médicos', $__cur) ?>
         <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
+        <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
 
         <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
         <?= nav_link('consultorios', 'Consultorios', $__cur) ?>

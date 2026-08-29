@@ -132,6 +132,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <?php else: ?>
       <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
       <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
+      <p class="ayuda">Este medico atiende de lunes a viernes, de <strong><?= htmlspecialchars((string)($horario['hora_inicio'] ?? '')) ?></strong> a <strong><?= htmlspecialchars((string)($horario['hora_fin'] ?? '')) ?></strong><?php if (!empty($horario['comida_inicio']) && !empty($horario['comida_fin'])): ?>, y come de <strong><?= htmlspecialchars($horario['comida_inicio']) ?></strong> a <strong><?= htmlspecialchars($horario['comida_fin']) ?></strong> (en ese rato no hay consultas)<?php endif; ?>.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
         <div class="calendar-loading">Cargando calendario...</div>
       </div>
@@ -246,6 +247,7 @@ foreach (($clinicas ?? []) as $c) { if ((int)($c['id_CLINICA'] ?? 0) === (int)$i
 <script>
 window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+window.HORARIO_MEDICO = <?= json_encode($horario ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script>
 (function () {
@@ -344,6 +346,7 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
     if (!f) return;
     var s = start instanceof Date ? start : new Date(start);
     s.setMinutes(0, 0, 0);
+    if (!permitido(s)) return;
     var e = new Date(s.getTime() + 60 * 60000);
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     resumen();
@@ -353,10 +356,27 @@ window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], 
 
 
 
+  var HOR = window.HORARIO_MEDICO || { hora_inicio: '07:00', hora_fin: '21:00', comida_inicio: '', comida_fin: '' };
+  function min(v) { var p = (v || '0:0').split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1] || '0', 10); }
+  /* Rechaza dias y horas fuera del horario de atencion del medico. */
+  function permitido(s) {
+    var d = s.getDay();
+    if (d === 0 || d === 6) { alert('Solo puedes agendar de lunes a viernes.'); return false; }
+    var ini = s.getHours() * 60, fin = ini + 60;
+    if (ini < min(HOR.hora_inicio) || fin > min(HOR.hora_fin)) {
+      alert('El medico atiende de ' + HOR.hora_inicio + ' a ' + HOR.hora_fin + '.'); return false;
+    }
+    if (HOR.comida_inicio && HOR.comida_fin && ini < min(HOR.comida_fin) && min(HOR.comida_inicio) < fin) {
+      alert('Ese horario es la hora de comida del medico (' + HOR.comida_inicio + ' a ' + HOR.comida_fin + ').'); return false;
+    }
+    return true;
+  }
+
   function options() {
     return {
       view: 'timeGridWeek', locale: 'es', firstDay: 1, height: '100%',
-      slotMinTime: '07:00:00', slotMaxTime: '21:00:00', selectable: true,
+      slotMinTime: HOR.hora_inicio + ':00', slotMaxTime: HOR.hora_fin + ':00', selectable: true,
+      hiddenDays: [0, 6],
       slotDuration: '01:00:00', slotLabelInterval: '01:00:00', snapDuration: '01:00:00',
       headerToolbar: { start: 'prev,next today', center: 'title', end: 'dayGridMonth,timeGridWeek,timeGridDay' },
       buttonText: { today: 'Hoy', dayGridMonth: 'Mes', timeGridWeek: 'Semana', timeGridDay: 'Dia' },

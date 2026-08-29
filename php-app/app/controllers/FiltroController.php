@@ -10,7 +10,7 @@ class FiltroController extends Controller {
     private const DESTINOS = [
         'citas','pacientes','calendario','medicos','especialidades','consultorios',
         'clinicas','asistentes','administradores','usuarios_clinica','reportes',
-        'dashboard','sistema','catalogos',
+        'dashboard','sistema','catalogos','horarios',
     ];
 
     public function clinica(): void {
