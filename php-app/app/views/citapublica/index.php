@@ -132,6 +132,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <?php else: ?>
       <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
       <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
+      <p class="ayuda">Este medico atiende de lunes a viernes, de <strong><?= htmlspecialchars((string)($horario['hora_inicio'] ?? '')) ?></strong> a <strong><?= htmlspecialchars((string)($horario['hora_fin'] ?? '')) ?></strong><?php if (!empty($horario['comida_inicio']) && !empty($horario['comida_fin'])): ?>, y come de <strong><?= htmlspecialchars($horario['comida_inicio']) ?></strong> a <strong><?= htmlspecialchars($horario['comida_fin']) ?></strong> (en ese rato no hay consultas)<?php endif; ?>.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
         <div class="calendar-loading">Cargando calendario...</div>
       </div>
