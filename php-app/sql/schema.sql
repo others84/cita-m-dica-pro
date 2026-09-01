@@ -182,6 +182,10 @@ CREATE TABLE citas.CLINICA (
     telefono                 VARCHAR(20)       NOT NULL,
     id_CATALOGO_MUNICIPIO    INT               NOT NULL,
     activo                   BIT               NOT NULL CONSTRAINT DF_activo_CLINICA DEFAULT (1),
+    esquema                  VARCHAR(20)       NOT NULL CONSTRAINT DF_esquema_CLINICA DEFAULT ('SOLO_CLINICA'),
+    max_asistentes           TINYINT           NOT NULL CONSTRAINT DF_max_asistentes_CLINICA DEFAULT (2),
+    max_medicos              TINYINT           NOT NULL CONSTRAINT DF_max_medicos_CLINICA DEFAULT (5),
+    max_admins               TINYINT           NOT NULL CONSTRAINT DF_max_admins_CLINICA DEFAULT (1),
     id_usuario_creacion      TINYINT           NOT NULL,
     fecha_creacion           SMALLDATETIME     NOT NULL,
     id_usuario_modificacion  TINYINT           NULL,
@@ -189,7 +193,8 @@ CREATE TABLE citas.CLINICA (
     CONSTRAINT PK_id_CLINICA PRIMARY KEY (id_CLINICA),
     CONSTRAINT FK_id_CATALOGO_MUNICIPIO_CATALOGO_MUNICIPIO_id_CATALOGO_MUNICIPIO_CLINICA
         FOREIGN KEY (id_CATALOGO_MUNICIPIO) REFERENCES citas.CATALOGO_MUNICIPIO(id_CATALOGO_MUNICIPIO),
-    CONSTRAINT CHK_email_CLINICA CHECK (email LIKE '%_@_%._%')
+    CONSTRAINT CHK_email_CLINICA CHECK (email LIKE '%_@_%._%'),
+    CONSTRAINT CHK_esquema_CLINICA CHECK (esquema IN ('SOLO_CONSULTORIO','SOLO_CLINICA'))
 );
 GO
 CREATE UNIQUE INDEX IX_nombre_CLINICA ON citas.CLINICA(nombre);
