@@ -55,9 +55,9 @@ BEGIN
         BEGIN TRAN;
             INSERT INTO citas.CLINICA(nombre,direccion,email,telefono,id_CATALOGO_MUNICIPIO,
                                       esquema,max_asistentes,max_medicos,max_admins,
-                                      id_usuario_creacion,fecha_creacion)
+                                      activo,id_usuario_creacion,fecha_creacion)
             VALUES(@nombre,@direccion,@email,@telefono,@id_CATALOGO_MUNICIPIO,
-                   @esquema,@max_asistentes,@max_medicos,@max_admins,@id_usuario,GETDATE());
+                   @esquema,@max_asistentes,@max_medicos,@max_admins,1,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
 
             DECLARE @actor VARCHAR(150);
