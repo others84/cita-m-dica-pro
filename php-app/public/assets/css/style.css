@@ -113,9 +113,10 @@ table.tabla-clinicas th:nth-child(7),table.tabla-clinicas td:nth-child(7),
 table.tabla-clinicas th:nth-child(8),table.tabla-clinicas td:nth-child(8),
 table.tabla-clinicas th:nth-child(9),table.tabla-clinicas td:nth-child(9),
 table.tabla-clinicas th:nth-child(10),table.tabla-clinicas td:nth-child(10){white-space:nowrap}
-table.tabla-clinicas .acts{flex-wrap:wrap;gap:.3rem}
-table.tabla-clinicas .acts form{width:100%;display:block}
-table.tabla-clinicas .acts .btn,table.tabla-clinicas .acts button{white-space:nowrap;padding:.32rem .55rem;font-size:.78rem;width:100%;display:block}
+table.tabla-clinicas th:last-child,table.tabla-clinicas td:last-child{width:1%;min-width:118px}
+table.tabla-clinicas .acts{display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:.3rem}
+table.tabla-clinicas .acts form{width:100%;display:block;margin:0}
+table.tabla-clinicas .acts .btn,table.tabla-clinicas .acts button{white-space:nowrap;padding:.32rem .55rem;font-size:.78rem;width:100%;display:block;text-align:center;box-sizing:border-box}
 @media (max-width:1200px){
   table.tabla-citas th,table.tabla-citas td{padding:.4rem .35rem;font-size:.82rem}
   table.tabla-pacientes th,table.tabla-pacientes td{padding:.4rem .35rem;font-size:.82rem}
