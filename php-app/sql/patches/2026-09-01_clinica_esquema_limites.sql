@@ -29,6 +29,15 @@ IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name='CHK_esquema_CLINI
         CHECK (esquema IN ('SOLO_CONSULTORIO','SOLO_CLINICA'));
 GO
 
+-- Asegura la columna activo y su valor por omision (1 = activa)
+IF COL_LENGTH('citas.CLINICA','activo') IS NULL
+    ALTER TABLE citas.CLINICA ADD activo BIT NOT NULL
+        CONSTRAINT DF_activo_CLINICA DEFAULT (1);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.default_constraints WHERE name='DF_activo_CLINICA')
+    ALTER TABLE citas.CLINICA ADD CONSTRAINT DF_activo_CLINICA DEFAULT (1) FOR activo;
+GO
+
 -- Clinicas existentes: esquema SOLO_CLINICA (2/5/1)
 UPDATE citas.CLINICA
    SET esquema        = 'SOLO_CLINICA',
@@ -55,9 +64,9 @@ BEGIN
         BEGIN TRAN;
             INSERT INTO citas.CLINICA(nombre,direccion,email,telefono,id_CATALOGO_MUNICIPIO,
                                       esquema,max_asistentes,max_medicos,max_admins,
-                                      id_usuario_creacion,fecha_creacion)
+                                      activo,id_usuario_creacion,fecha_creacion)
             VALUES(@nombre,@direccion,@email,@telefono,@id_CATALOGO_MUNICIPIO,
-                   @esquema,@max_asistentes,@max_medicos,@max_admins,@id_usuario,GETDATE());
+                   @esquema,@max_asistentes,@max_medicos,@max_admins,1,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
 
             DECLARE @actor VARCHAR(150);
