@@ -33,12 +33,33 @@
         <option value="">-- seleccione --</option>
       </select>
     </label>
+    <?php $esqSel = (string)($editRow['esquema'] ?? 'SOLO_CLINICA'); ?>
+    <label>Esquema
+      <select id="cl_esquema" name="esquema" required>
+        <?php foreach ($esquemas as $k => $v): ?>
+          <option value="<?= htmlspecialchars($k) ?>" <?= $esqSel===$k?'selected':'' ?>><?= htmlspecialchars($v['label']) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <label>Max. asistentes
+      <input type="number" id="cl_max_asis" name="max_asistentes" min="0" max="50" required
+             value="<?= (int)($editRow['max_asistentes'] ?? $esquemas[$esqSel]['asistentes']) ?>">
+    </label>
+    <label>Max. medicos
+      <input type="number" id="cl_max_med" name="max_medicos" min="0" max="50" required
+             value="<?= (int)($editRow['max_medicos'] ?? $esquemas[$esqSel]['medicos']) ?>">
+    </label>
+    <label>Max. administradores de clinica
+      <input type="number" id="cl_max_adm" name="max_admins" min="0" max="50" required
+             value="<?= (int)($editRow['max_admins'] ?? $esquemas[$esqSel]['admins']) ?>">
+    </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('clinicas') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
+
 <script>
 (function(){
   var ESTADOS = <?= json_encode(array_map(fn($e)=>['id'=>(int)$e['id_CATALOGO_ESTADOS'],'nombre'=>$e['nombre'],'pais'=>(int)$e['id_CATALOGO_PAIS']], $estados), JSON_UNESCAPED_UNICODE) ?>;
