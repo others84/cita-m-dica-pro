@@ -1245,14 +1245,78 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE citas.spValidaCupoUsuarioClinica
+    @id_CLINICA INT,
+    @id_ROLES INT,
+    @id_usuario TINYINT = 0,
+    @id_USUARIOS INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @rol VARCHAR(60), @limite INT = NULL, @actuales INT = 0,
+            @clinica VARCHAR(150), @esquema VARCHAR(20), @actor VARCHAR(150);
+
+    SELECT @rol = nombre FROM citas.ROLES WHERE id_ROLES = @id_ROLES;
+    SELECT @clinica = nombre, @esquema = esquema,
+           @limite = CASE
+                WHEN @rol LIKE 'Asistente%'            THEN max_asistentes
+                WHEN @rol LIKE 'M_dico%' OR @rol LIKE 'Medico%' THEN max_medicos
+                WHEN @rol LIKE 'Administrador de cl%'  THEN max_admins
+                ELSE NULL END
+      FROM citas.CLINICA WHERE id_CLINICA = @id_CLINICA;
+
+    IF @limite IS NULL RETURN;
+
+    SELECT @actuales = COUNT(DISTINCT uc.id_USUARIOS)
+      FROM citas.USUARIOS_CLINICA uc
+      JOIN citas.USUARIOS u ON u.id_USUARIOS = uc.id_USUARIOS
+     WHERE uc.id_CLINICA = @id_CLINICA
+       AND u.activo = 1
+       AND u.id_ROLES = @id_ROLES
+       AND (@id_USUARIOS IS NULL OR uc.id_USUARIOS <> @id_USUARIOS);
+
+    IF @actuales >= @limite
+    BEGIN
+        SELECT @actor = usuario FROM citas.USUARIOS WHERE id_USUARIOS = @id_usuario;
+        DECLARE @msg VARCHAR(2000);
+        SET @msg='LIMITE EXCEDIDO: usuario="'+ISNULL(@actor,CONVERT(VARCHAR(10),@id_usuario))+'"'
+                +' clinica="'+ISNULL(@clinica,'?')+'"'
+                +' esquema='+ISNULL(@esquema,'?')
+                +' rol='+ISNULL(@rol,'?')
+                +' limite='+CONVERT(VARCHAR(10),@limite)
+                +' actuales='+CONVERT(VARCHAR(10),@actuales);
+        INSERT INTO citas.LOG VALUES('CLINICA','spValidaCupoUsuarioClinica','USUARIOS_CLINICA',@msg,GETDATE(),ISNULL(@id_usuario,0));
+
+        DECLARE @errmsg NVARCHAR(400);
+        SET @errmsg = N'La clinica "' + ISNULL(@clinica,'?') + N'" (esquema ' + ISNULL(@esquema,'?')
+                    + N') ya alcanzo el maximo de ' + CONVERT(NVARCHAR(10),@limite) + N' usuario(s) con perfil '
+                    + ISNULL(@rol,'?') + N'. Ajuste los limites desde Administrador de Sistema.';
+        THROW 51010, @errmsg, 1;
+    END
+END
+GO
+
 CREATE OR ALTER PROCEDURE citas.spRegresaClinicas
 AS
 BEGIN
     SET NOCOUNT ON;
     SELECT c.id_CLINICA, c.nombre, c.direccion, c.email, c.telefono, c.activo,
+           c.esquema, c.max_asistentes, c.max_medicos, c.max_admins,
            c.id_CATALOGO_MUNICIPIO, m.nombre AS municipio,
            m.id_CATALOGO_ESTADOS, e.nombre AS estado,
-           e.id_CATALOGO_PAIS, p.nombre AS pais
+           e.id_CATALOGO_PAIS, p.nombre AS pais,
+           (SELECT COUNT(DISTINCT uc.id_USUARIOS) FROM citas.USUARIOS_CLINICA uc
+              JOIN citas.USUARIOS u ON u.id_USUARIOS = uc.id_USUARIOS
+              JOIN citas.ROLES r ON r.id_ROLES = u.id_ROLES
+             WHERE uc.id_CLINICA = c.id_CLINICA AND u.activo = 1 AND r.nombre LIKE 'Asistente%') AS usuarios_asistentes,
+           (SELECT COUNT(DISTINCT uc.id_USUARIOS) FROM citas.USUARIOS_CLINICA uc
+              JOIN citas.USUARIOS u ON u.id_USUARIOS = uc.id_USUARIOS
+              JOIN citas.ROLES r ON r.id_ROLES = u.id_ROLES
+             WHERE uc.id_CLINICA = c.id_CLINICA AND u.activo = 1 AND (r.nombre LIKE 'M_dico%' OR r.nombre LIKE 'Medico%')) AS usuarios_medicos,
+           (SELECT COUNT(DISTINCT uc.id_USUARIOS) FROM citas.USUARIOS_CLINICA uc
+              JOIN citas.USUARIOS u ON u.id_USUARIOS = uc.id_USUARIOS
+              JOIN citas.ROLES r ON r.id_ROLES = u.id_ROLES
+             WHERE uc.id_CLINICA = c.id_CLINICA AND u.activo = 1 AND r.nombre LIKE 'Administrador de cl%') AS usuarios_admins
       FROM citas.CLINICA c
       JOIN citas.CATALOGO_MUNICIPIO m ON m.id_CATALOGO_MUNICIPIO = c.id_CATALOGO_MUNICIPIO
       JOIN citas.CATALOGO_ESTADOS   e ON e.id_CATALOGO_ESTADOS   = m.id_CATALOGO_ESTADOS
