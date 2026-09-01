@@ -41,20 +41,24 @@ En el formulario Nueva/Editar clínica se agregan: combo "Esquema" y tres campos
 
 ## Detalles técnicos
 
+Los tres valores (más el esquema) viven como columnas nuevas dentro de `citas.CLINICA`. No se crea ninguna tabla nueva.
+
 1. `php-app/sql/patches/2026-09-01_clinica_esquema_limites.sql` (nuevo)
-   - `ALTER TABLE citas.CLINICA` agregando `esquema VARCHAR(20) NOT NULL DEFAULT 'SOLO_CLINICA'`, `max_asistentes TINYINT NOT NULL DEFAULT 2`, `max_medicos TINYINT NOT NULL DEFAULT 5`, `max_admins TINYINT NOT NULL DEFAULT 1`, con CHECK de valores válidos de esquema.
+   - `ALTER TABLE citas.CLINICA` agregando `esquema VARCHAR(20) NOT NULL DEFAULT 'SOLO_CLINICA'`, `max_asistentes TINYINT NOT NULL DEFAULT 2`, `max_medicos TINYINT NOT NULL DEFAULT 5`, `max_admins TINYINT NOT NULL DEFAULT 1`, con CHECK de valores válidos de esquema; UPDATE para dejar las clínicas existentes en 2/5/1.
    - `spAltaClinica` y `spCambioClinica`: nuevos parámetros y los INSERT en `citas.LOG` con el formato descrito (en cambio, comparando valores anteriores vs nuevos).
-   - `spRegresaClinicas`: devuelve los nuevos campos.
+   - `spRegresaClinicas` y `spRegresaClinicasResumen`: devuelven las columnas nuevas.
    - Nuevo `spValidaCupoUsuarioClinica @id_CLINICA, @id_ROLES, @id_usuario`: cuenta usuarios activos por rol en esa clínica, y si excede el límite escribe el renglón `LIMITE EXCEDIDO` en `citas.LOG` y hace THROW.
    - `spAltaUsuarioClinica` y `spActivaUsuario` invocan la validación antes de insertar/activar.
-2. `php-app/sql/schema.sql` — mismos cambios en el esquema base.
-3. `php-app/app/models/ClinicaModel.php` — firmas de `alta`/`cambio` con esquema y límites; helper `cupoDisponible(idClinica, rol)` y `conteoUsuarios(idClinica)`.
-4. `php-app/app/controllers/ClinicasController.php` — leer y validar los nuevos campos (números ≥ 0, esquema válido) y registrar en `app.log`.
-5. `php-app/app/views/clinicas/index.php` — combo de esquema, tres campos numéricos con autollenado por JS, y columnas nuevas en la tabla.
-6. `php-app/app/controllers/MedicosController.php`, `AsistentesController.php`, `CatalogosController.php` (alta de usuarios), `UsuariosClinicaController.php` — validar cupo antes de dar de alta/asignar y mostrar el mensaje de error como flash; también bloquear la reactivación sin cupo.
-7. `php-app/app/models/UsuarioClinicaModel.php` / `UsuarioModel.php` — propagar el error del SP sin romper el flujo actual.
+2. `php-app/sql/schema.sql` — mismos cambios en la definición de `citas.CLINICA` y en todos sus SPs.
+3. Revisión de todo lo que depende de `citas.CLINICA` para que siga funcionando con las columnas nuevas (ninguno usa `SELECT *`, pero se verifica uno por uno):
+   - SQL: `spRegresaClinicas`, `spRegresaClinicasResumen`, `spActivaClinica`, `spDesactivaClinica`, `spBajaClinica`, `spValidaClinicaActiva`, `spRegresaUsuarios`, `spRegresaUsuariosClinica`, y los parches previos `2026-07-19_clinicas_activa_resumen.sql` y `2026-08-14_sp_validacion_clinica.sql`.
+   - Modelos: `ClinicaModel.php` (firmas de `alta`/`cambio` con esquema y límites, helpers `limites(idClinica)`, `conteoUsuarios(idClinica)` y `cupoDisponible(idClinica, rol)`), `UsuarioModel.php`, `UsuarioClinicaModel.php`, `MedicoModel.php`.
+   - Controladores: `ClinicasController.php` (leer/validar los campos nuevos y registrar en `app.log`), `MedicosController.php`, `AsistentesController.php`, `CatalogosController.php` (alta de usuarios), `UsuariosClinicaController.php`, `SistemaController.php`.
+   - Vistas: `clinicas/index.php` (combo de esquema, tres campos numéricos con autollenado por JS y columnas nuevas en la tabla), `sistema/bloquear_clinicas.php` (columnas de esquema y ocupación), `medicos/index.php`, `asistentes/index.php`, `catalogos/usuarios.php`, `usuarios_clinica/index.php` (aviso de cupo agotado y ocultar/deshabilitar la acción cuando no hay lugar).
+   - Vistas que solo filtran por clínica (`_partials/filtro_clinica.php`, citas, pacientes, consultorios, especialidades, calendario, reportes, cita pública) se revisan sin cambios funcionales esperados.
 
 ## Notas
 
 - La validación queda tanto en PHP (mensaje amigable) como en el SP (defensa real), para que ninguna ruta la evada.
 - No se desactivan usuarios existentes que ya superen un límite: el límite solo bloquea nuevas altas/asignaciones/reactivaciones.
+
