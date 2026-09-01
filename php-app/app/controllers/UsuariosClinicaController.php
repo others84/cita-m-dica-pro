@@ -100,6 +100,7 @@ class UsuariosClinicaController extends Controller {
                     return;
                 }
             }
+            $this->validaCupoUsuario($idClinica, $idUsuario);
             UsuarioClinicaModel::asigna($idUsuario, $idClinica);
             $usr = $_SESSION['user']['usuario'] ?? '?';
             Database::log("USUARIO_CLINICA ASIGNADA usuario={$idUsuario} clinica={$idClinica} por={$usr}");

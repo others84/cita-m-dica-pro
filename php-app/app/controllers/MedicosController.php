@@ -104,6 +104,7 @@ class MedicosController extends Controller {
                     return;
                 }
             }
+            $this->validaCupoUsuario($idClinica, $idMedico);
             UsuarioClinicaModel::asigna($idMedico, $idClinica);
             $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
             $nomCl = '';
@@ -195,6 +196,7 @@ class MedicosController extends Controller {
                 if ($pass !== '') UsuarioModel::cambioPassword($id, $pass);
                 $this->flash('ok','Actualizado.');
             } else {
+                $this->validaCupoClinica($idClinica, $idRol);
                 UsuarioModel::alta($idRol, $idClinica, $usuario, $pass, $nombre, $email);
                 $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
                 Database::log("MEDICO ALTA usuario='{$usuario}' nombre='{$nombre}' clinica_id={$idClinica} agregado por='{$usr}'");

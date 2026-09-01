@@ -27,6 +27,7 @@ class ClinicasController extends Controller {
             'municipios'=>$municipios,
             'estados'=>EstadoModel::listar(),
             'paises'=>PaisModel::listar(),
+            'esquemas'=>ClinicaModel::ESQUEMAS,
         ]);
     }
     public function guardar(): void {
@@ -36,13 +37,37 @@ class ClinicasController extends Controller {
             $n = $this->input('nombre'); $d = $this->input('direccion');
             $e = (string)$this->input('email'); $t = (string)$this->input('telefono');
             $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
-            if ($id) ClinicaModel::cambio($id, $n, $d, $e, $t, $idMun);
-            else     ClinicaModel::alta($n, $d, $e, $t, $idMun);
+
+            $esquema = (string)$this->input('esquema', 'SOLO_CLINICA');
+            if (!isset(ClinicaModel::ESQUEMAS[$esquema])) $esquema = 'SOLO_CLINICA';
+            $def  = ClinicaModel::ESQUEMAS[$esquema];
+            $maxA = $this->limite($this->input('max_asistentes'), $def['asistentes']);
+            $maxM = $this->limite($this->input('max_medicos'), $def['medicos']);
+            $maxD = $this->limite($this->input('max_admins'), $def['admins']);
+
+            if ($id) ClinicaModel::cambio($id, $n, $d, $e, $t, $idMun, $esquema, $maxA, $maxM, $maxD);
+            else     $id = ClinicaModel::alta($n, $d, $e, $t, $idMun, $esquema, $maxA, $maxM, $maxD);
+
+            $usr = $_SESSION['user']['usuario'] ?? '?';
+            Database::log(sprintf(
+                'CLINICA GUARDADA id=%d nombre="%s" esquema=%s max_asistentes=%d max_medicos=%d max_admins=%d por usuario="%s"',
+                (int)$id, (string)$n, $esquema, $maxA, $maxM, $maxD, $usr
+            ));
             $this->flash('ok','Guardado.');
         } catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
         $this->clearState('edit');
         $this->redirect('clinicas');
     }
+
+    /** Normaliza un limite capturado (0..50); usa el default del esquema si viene vacio. */
+    private function limite($valor, int $default): int {
+        if ($valor === null || $valor === '') return $default;
+        $n = (int)$valor;
+        if ($n < 0) $n = 0;
+        if ($n > 50) $n = 50;
+        return $n;
+    }
+
     public function eliminar(): void {
         $this->requireLogin(['admin_sistema']);
         try { ClinicaModel::baja((int)$this->input('id')); $this->flash('ok','Baja.'); }

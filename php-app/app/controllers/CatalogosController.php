@@ -282,6 +282,7 @@ class CatalogosController extends Controller {
                 UsuarioModel::cambio($id, $idRol, $idCli, $nombre, $email);
                 if (!empty($pass)) UsuarioModel::cambioPassword($id, $pass);
             } else {
+                if ($idCli) $this->validaCupoClinica((int)$idCli, $idRol);
                 UsuarioModel::alta($idRol, $idCli, $usuario, $pass ?? '', $nombre, $email);
             }
             $this->flash('ok','Usuario guardado.');
@@ -291,7 +292,14 @@ class CatalogosController extends Controller {
     }
     public function usuariosActivar(): void {
         $this->guard();
-        try { UsuarioModel::activa((int)$this->input('id')); $this->flash('ok','Activado.'); }
+        try {
+            $idU = (int)$this->input('id');
+            require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+            foreach (UsuarioClinicaModel::listarPorUsuario($idU) as $r) {
+                $this->validaCupoUsuario((int)$r['id_CLINICA'], $idU);
+            }
+            UsuarioModel::activa($idU); $this->flash('ok','Activado.');
+        }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->clearState('edit', 'catalogos.usuarios');
         $this->redirect('catalogos/usuarios');

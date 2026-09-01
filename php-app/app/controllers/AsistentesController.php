@@ -120,6 +120,7 @@ class AsistentesController extends Controller {
                 if ($pass !== '') UsuarioModel::cambioPassword($id, $pass);
                 $this->flash('ok', 'Actualizado.');
             } else {
+                $this->validaCupoClinica($idClinica, $idRol);
                 UsuarioModel::alta($idRol, $idClinica, $usuario, $pass, $nombre, $email);
                 $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
                 Database::log("ASISTENTE ALTA usuario='{$usuario}' nombre='{$nombre}' clinica_id={$idClinica} agregado por='{$usr}'");
@@ -148,6 +149,7 @@ class AsistentesController extends Controller {
                     return;
                 }
             }
+            $this->validaCupoUsuario($idClinica, $idAsistente);
             UsuarioClinicaModel::asigna($idAsistente, $idClinica);
             $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
             $nomCl = '';

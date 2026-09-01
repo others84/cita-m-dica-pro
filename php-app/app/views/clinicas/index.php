@@ -33,12 +33,33 @@
         <option value="">-- seleccione --</option>
       </select>
     </label>
+    <?php $esqSel = (string)($editRow['esquema'] ?? 'SOLO_CLINICA'); ?>
+    <label>Esquema
+      <select id="cl_esquema" name="esquema" required>
+        <?php foreach ($esquemas as $k => $v): ?>
+          <option value="<?= htmlspecialchars($k) ?>" <?= $esqSel===$k?'selected':'' ?>><?= htmlspecialchars($v['label']) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <label>Max. asistentes
+      <input type="number" id="cl_max_asis" name="max_asistentes" min="0" max="50" required
+             value="<?= (int)($editRow['max_asistentes'] ?? $esquemas[$esqSel]['asistentes']) ?>">
+    </label>
+    <label>Max. medicos
+      <input type="number" id="cl_max_med" name="max_medicos" min="0" max="50" required
+             value="<?= (int)($editRow['max_medicos'] ?? $esquemas[$esqSel]['medicos']) ?>">
+    </label>
+    <label>Max. administradores de clinica
+      <input type="number" id="cl_max_adm" name="max_admins" min="0" max="50" required
+             value="<?= (int)($editRow['max_admins'] ?? $esquemas[$esqSel]['admins']) ?>">
+    </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId ? 'Actualizar' : 'Guardar' ?></button>
       <?php if ($editId): ?><button class="btn btn-sec" type="submit" formnovalidate name="edit" value="" formaction="<?= url('clinicas') ?>">Cancelar</button><?php  endif; ?>
     </div>
   </form>
 </div>
+
 <script>
 (function(){
   var ESTADOS = <?= json_encode(array_map(fn($e)=>['id'=>(int)$e['id_CATALOGO_ESTADOS'],'nombre'=>$e['nombre'],'pais'=>(int)$e['id_CATALOGO_PAIS']], $estados), JSON_UNESCAPED_UNICODE) ?>;
@@ -67,10 +88,20 @@
   pais.addEventListener('change', function(){ loadEstados(0); loadMunicipios(0); });
   est.addEventListener('change', function(){ loadMunicipios(0); });
   loadEstados(SEL_EST); loadMunicipios(SEL_MUN);
+
+  // Al cambiar de esquema se precargan los limites (siguen siendo editables).
+  var DEF = <?= json_encode(array_map(fn($v)=>['a'=>$v['asistentes'],'m'=>$v['medicos'],'d'=>$v['admins']], $esquemas), JSON_UNESCAPED_UNICODE) ?>;
+  var esq = document.getElementById('cl_esquema');
+  if (esq) esq.addEventListener('change', function(){
+    var d = DEF[esq.value]; if (!d) return;
+    document.getElementById('cl_max_asis').value = d.a;
+    document.getElementById('cl_max_med').value  = d.m;
+    document.getElementById('cl_max_adm').value  = d.d;
+  });
 })();
 </script>
 <table class="data">
-  <thead><tr><th>Nombre</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Telefono</th><th>Activa</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Telefono</th><th>Esquema</th><th>Asistentes</th><th>Medicos</th><th>Admins</th><th>Activa</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $c): ?>
       <tr>
@@ -79,7 +110,12 @@
         <td><?= htmlspecialchars($c['estado'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['municipio'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['telefono'] ?? '') ?></td>
+        <td><?= htmlspecialchars($esquemas[$c['esquema'] ?? '']['label'] ?? ($c['esquema'] ?? '')) ?></td>
+        <td><?= (int)($c['usuarios_asistentes'] ?? 0) ?>/<?= (int)($c['max_asistentes'] ?? 0) ?></td>
+        <td><?= (int)($c['usuarios_medicos'] ?? 0) ?>/<?= (int)($c['max_medicos'] ?? 0) ?></td>
+        <td><?= (int)($c['usuarios_admins'] ?? 0) ?>/<?= (int)($c['max_admins'] ?? 0) ?></td>
         <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo']) ? 'No' : 'Si' ?></span></td>
+
         <td class="acts">
           <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($c['activo'])): ?>
