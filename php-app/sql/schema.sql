@@ -1168,18 +1168,33 @@ GO
 CREATE OR ALTER PROCEDURE citas.spAltaClinica
     @nombre VARCHAR(150), @direccion VARCHAR(250), @email VARCHAR(120),
     @telefono VARCHAR(20), @id_CATALOGO_MUNICIPIO INT,
-    @id_usuario TINYINT, @id_nuevo INT OUTPUT
+    @id_usuario TINYINT,
+    @esquema VARCHAR(20) = 'SOLO_CLINICA',
+    @max_asistentes TINYINT = 2,
+    @max_medicos TINYINT = 5,
+    @max_admins TINYINT = 1,
+    @id_nuevo INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
             INSERT INTO citas.CLINICA(nombre,direccion,email,telefono,id_CATALOGO_MUNICIPIO,
+                                       esquema,max_asistentes,max_medicos,max_admins,
                                        id_usuario_creacion,fecha_creacion)
-            VALUES(@nombre,@direccion,@email,@telefono,@id_CATALOGO_MUNICIPIO,@id_usuario,GETDATE());
+            VALUES(@nombre,@direccion,@email,@telefono,@id_CATALOGO_MUNICIPIO,
+                   @esquema,@max_asistentes,@max_medicos,@max_admins,@id_usuario,GETDATE());
             SET @id_nuevo=SCOPE_IDENTITY();
+            DECLARE @actor VARCHAR(150);
+            SELECT @actor = u.usuario FROM citas.USUARIOS u WHERE u.id_USUARIOS = @id_usuario;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Alta Clinica id='+CONVERT(VARCHAR(20),@id_nuevo)+' nombre='+@nombre;
+            SET @msg='ALTA CLINICA: usuario="'+ISNULL(@actor,CONVERT(VARCHAR(10),@id_usuario))+'"'
+                    +' clinica="'+@nombre+'"'
+                    +' esquema='+@esquema
+                    +' max_asistentes='+CONVERT(VARCHAR(10),@max_asistentes)
+                    +' max_medicos='+CONVERT(VARCHAR(10),@max_medicos)
+                    +' max_admins='+CONVERT(VARCHAR(10),@max_admins)
+                    +' id_CLINICA='+CONVERT(VARCHAR(20),@id_nuevo);
             INSERT INTO citas.LOG VALUES('CLINICA','spAltaClinica','CLINICA',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
@@ -1196,19 +1211,42 @@ GO
 CREATE OR ALTER PROCEDURE citas.spCambioClinica
     @id_CLINICA INT, @nombre VARCHAR(150), @direccion VARCHAR(250),
     @email VARCHAR(120), @telefono VARCHAR(20),
-    @id_CATALOGO_MUNICIPIO INT, @id_usuario TINYINT
+    @id_CATALOGO_MUNICIPIO INT, @id_usuario TINYINT,
+    @esquema VARCHAR(20) = NULL,
+    @max_asistentes TINYINT = NULL,
+    @max_medicos TINYINT = NULL,
+    @max_admins TINYINT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRAN;
+            DECLARE @oe VARCHAR(20), @oa TINYINT, @om TINYINT, @od TINYINT;
+            SELECT @oe=esquema, @oa=max_asistentes, @om=max_medicos, @od=max_admins
+              FROM citas.CLINICA WHERE id_CLINICA=@id_CLINICA;
+            SET @esquema        = ISNULL(@esquema, @oe);
+            SET @max_asistentes = ISNULL(@max_asistentes, @oa);
+            SET @max_medicos    = ISNULL(@max_medicos, @om);
+            SET @max_admins     = ISNULL(@max_admins, @od);
+
             UPDATE citas.CLINICA
                SET nombre=@nombre, direccion=@direccion, email=@email, telefono=@telefono,
                    id_CATALOGO_MUNICIPIO=@id_CATALOGO_MUNICIPIO,
+                   esquema=@esquema, max_asistentes=@max_asistentes,
+                   max_medicos=@max_medicos, max_admins=@max_admins,
                    id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
              WHERE id_CLINICA=@id_CLINICA;
+
+            DECLARE @actor VARCHAR(150);
+            SELECT @actor = u.usuario FROM citas.USUARIOS u WHERE u.id_USUARIOS = @id_usuario;
             DECLARE @msg VARCHAR(2000);
-            SET @msg='Cambio Clinica id='+CONVERT(VARCHAR(20),@id_CLINICA);
+            SET @msg='CAMBIO LIMITES CLINICA: usuario="'+ISNULL(@actor,CONVERT(VARCHAR(10),@id_usuario))+'"'
+                    +' clinica="'+@nombre+'"'
+                    +' esquema='+ISNULL(@oe,'?')+'->'+@esquema
+                    +' max_asistentes='+CONVERT(VARCHAR(10),ISNULL(@oa,0))+'->'+CONVERT(VARCHAR(10),@max_asistentes)
+                    +' max_medicos='+CONVERT(VARCHAR(10),ISNULL(@om,0))+'->'+CONVERT(VARCHAR(10),@max_medicos)
+                    +' max_admins='+CONVERT(VARCHAR(10),ISNULL(@od,0))+'->'+CONVERT(VARCHAR(10),@max_admins)
+                    +' id_CLINICA='+CONVERT(VARCHAR(20),@id_CLINICA);
             INSERT INTO citas.LOG VALUES('CLINICA','spCambioClinica','CLINICA',@msg,GETDATE(),@id_usuario);
         COMMIT;
     END TRY
