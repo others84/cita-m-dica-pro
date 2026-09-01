@@ -88,10 +88,20 @@
   pais.addEventListener('change', function(){ loadEstados(0); loadMunicipios(0); });
   est.addEventListener('change', function(){ loadMunicipios(0); });
   loadEstados(SEL_EST); loadMunicipios(SEL_MUN);
+
+  // Al cambiar de esquema se precargan los limites (siguen siendo editables).
+  var DEF = <?= json_encode(array_map(fn($v)=>['a'=>$v['asistentes'],'m'=>$v['medicos'],'d'=>$v['admins']], $esquemas), JSON_UNESCAPED_UNICODE) ?>;
+  var esq = document.getElementById('cl_esquema');
+  if (esq) esq.addEventListener('change', function(){
+    var d = DEF[esq.value]; if (!d) return;
+    document.getElementById('cl_max_asis').value = d.a;
+    document.getElementById('cl_max_med').value  = d.m;
+    document.getElementById('cl_max_adm').value  = d.d;
+  });
 })();
 </script>
 <table class="data">
-  <thead><tr><th>Nombre</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Telefono</th><th>Activa</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>Nombre</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Telefono</th><th>Esquema</th><th>Asistentes</th><th>Medicos</th><th>Admins</th><th>Activa</th><th>Acciones</th></tr></thead>
   <tbody>
     <?php foreach ($rows as $c): ?>
       <tr>
@@ -100,7 +110,12 @@
         <td><?= htmlspecialchars($c['estado'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['municipio'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['telefono'] ?? '') ?></td>
+        <td><?= htmlspecialchars($esquemas[$c['esquema'] ?? '']['label'] ?? ($c['esquema'] ?? '')) ?></td>
+        <td><?= (int)($c['usuarios_asistentes'] ?? 0) ?>/<?= (int)($c['max_asistentes'] ?? 0) ?></td>
+        <td><?= (int)($c['usuarios_medicos'] ?? 0) ?>/<?= (int)($c['max_medicos'] ?? 0) ?></td>
+        <td><?= (int)($c['usuarios_admins'] ?? 0) ?>/<?= (int)($c['max_admins'] ?? 0) ?></td>
         <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo']) ? 'No' : 'Si' ?></span></td>
+
         <td class="acts">
           <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
           <?php if (!empty($c['activo'])): ?>
