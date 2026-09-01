@@ -1101,6 +1101,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        DECLARE @id_ROLES_asg INT;
+        SELECT @id_ROLES_asg = id_ROLES FROM citas.USUARIOS WHERE id_USUARIOS = @id_USUARIOS;
+        EXEC citas.spValidaCupoUsuarioClinica @id_CLINICA=@id_CLINICA, @id_ROLES=@id_ROLES_asg,
+             @id_usuario=@id_usuario, @id_USUARIOS=@id_USUARIOS;
         BEGIN TRAN;
             INSERT INTO citas.USUARIOS_CLINICA(id_USUARIOS,id_CLINICA,id_usuario_creacion,fecha_creacion)
             VALUES(@id_USUARIOS,@id_CLINICA,@id_usuario,GETDATE());
