@@ -254,4 +254,31 @@ class Controller {
         $this->flash('error', 'No tiene permiso para operar sobre ese registro.');
         $this->redirect($redirect);
     }
+
+    /**
+     * Valida el cupo de usuarios de la clinica segun su esquema comercial.
+     * Lanza RuntimeException con mensaje amigable cuando no hay lugar.
+     */
+    protected function validaCupoClinica(int $idClinica, int $idRol, ?int $idUsuarioExcluir = null): void {
+        require_once __DIR__ . '/../models/ClinicaModel.php';
+        require_once __DIR__ . '/../models/RolModel.php';
+        $rolNombre = '';
+        foreach (RolModel::listar() as $r) {
+            if ((int)($r['id_ROLES'] ?? 0) === $idRol) { $rolNombre = (string)($r['nombre'] ?? ''); break; }
+        }
+        if ($rolNombre === '' || $idClinica <= 0) return;
+        ClinicaModel::validaCupo($idClinica, $rolNombre, $idUsuarioExcluir);
+    }
+
+    /** Valida el cupo a partir del id del usuario que se pretende asignar/activar. */
+    protected function validaCupoUsuario(int $idClinica, int $idUsuario): void {
+        require_once __DIR__ . '/../models/ClinicaModel.php';
+        require_once __DIR__ . '/../models/UsuarioModel.php';
+        $rolNombre = '';
+        foreach (UsuarioModel::listar() as $u) {
+            if ((int)($u['id_USUARIOS'] ?? 0) === $idUsuario) { $rolNombre = (string)($u['rol'] ?? ''); break; }
+        }
+        if ($rolNombre === '' || $idClinica <= 0) return;
+        ClinicaModel::validaCupo($idClinica, $rolNombre, $idUsuario);
+    }
 }
