@@ -1324,6 +1324,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT c.id_CLINICA, c.nombre, c.activo,
+           c.esquema, c.max_asistentes, c.max_medicos, c.max_admins,
            (SELECT COUNT(DISTINCT uc.id_USUARIOS) FROM citas.USUARIOS_CLINICA uc WHERE uc.id_CLINICA = c.id_CLINICA) AS total_usuarios,
            (SELECT COUNT(*) FROM citas.PACIENTE p WHERE p.id_CLINICA = c.id_CLINICA) AS total_pacientes,
            (SELECT COUNT(*) FROM citas.CITA ci JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE WHERE p.id_CLINICA = c.id_CLINICA) AS total_citas
