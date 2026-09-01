@@ -100,35 +100,41 @@
   });
 })();
 </script>
-<table class="data">
-  <thead><tr><th>Nombre</th><th>Pais</th><th>Estado</th><th>Municipio</th><th>Telefono</th><th>Esquema</th><th>Asistentes</th><th>Medicos</th><th>Admins</th><th>Activa</th><th>Acciones</th></tr></thead>
-  <tbody>
-    <?php foreach ($rows as $c): ?>
-      <tr>
-        <td><?= htmlspecialchars($c['nombre']) ?></td>
-        <td><?= htmlspecialchars($c['pais'] ?? '') ?></td>
-        <td><?= htmlspecialchars($c['estado'] ?? '') ?></td>
-        <td><?= htmlspecialchars($c['municipio'] ?? '') ?></td>
-        <td><?= htmlspecialchars($c['telefono'] ?? '') ?></td>
-        <td><?= htmlspecialchars($esquemas[$c['esquema'] ?? '']['label'] ?? ($c['esquema'] ?? '')) ?></td>
-        <td><?= (int)($c['usuarios_asistentes'] ?? 0) ?>/<?= (int)($c['max_asistentes'] ?? 0) ?></td>
-        <td><?= (int)($c['usuarios_medicos'] ?? 0) ?>/<?= (int)($c['max_medicos'] ?? 0) ?></td>
-        <td><?= (int)($c['usuarios_admins'] ?? 0) ?>/<?= (int)($c['max_admins'] ?? 0) ?></td>
-        <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo']) ? 'No' : 'Si' ?></span></td>
+<div id="clinicas-tabla">
+  <?php require __DIR__ . '/_tabla.php'; ?>
+</div>
 
-        <td class="acts">
-          <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
-          <?php if (!empty($c['activo'])): ?>
-            <form method="post" action="<?= url('clinicas/desactivar') ?>" style="display:inline"><?= csrf_field() ?>
-              <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>"><button class="btn btn-danger">Desactivar</button>
-            </form>
-          <?php else: ?>
-            <form method="post" action="<?= url('clinicas/activar') ?>" style="display:inline"><?= csrf_field() ?>
-              <input type="hidden" name="id" value="<?= (int)$c['id_CLINICA'] ?>"><button class="btn">Activar</button>
-            </form>
-          <?php endif; ?>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-  </tbody>
-</table>
+<script>
+(function(){
+  var container = document.getElementById('clinicas-tabla');
+  var endpoint = '<?= url('clinicas/tabla') ?>';
+
+  function attach(root) {
+    root = root || document;
+    root.querySelectorAll('.sort-form').forEach(function(f){ f.addEventListener('submit', onAjax); });
+    root.querySelectorAll('.page-form').forEach(function(f){ f.addEventListener('submit', onAjax); });
+  }
+
+  async function reloadTable(body) {
+    if (!container) return;
+    container.style.opacity = '0.6';
+    try {
+      var res = await fetch(endpoint, { method: 'POST', body: body });
+      if (!res.ok) throw new Error('Error ' + res.status);
+      container.innerHTML = await res.text();
+      attach(container);
+    } catch (err) {
+      console.error('No se pudo actualizar la tabla:', err);
+    } finally {
+      container.style.opacity = '1';
+    }
+  }
+
+  function onAjax(e) {
+    e.preventDefault();
+    reloadTable(new FormData(e.currentTarget));
+  }
+
+  attach();
+})();
+</script>
