@@ -2268,6 +2268,19 @@ BEGIN
         INSERT INTO citas.HORARIO_MEDICO(id_USUARIOS, hora_inicio, comida_inicio, comida_fin, hora_fin,
                                          id_usuario_creacion, fecha_creacion)
         VALUES(@id_USUARIOS, @hi, @ci, @cf, @hf, @id_usuario, GETDATE());
+
+    /* --------- Bitacora: un renglon por cada horario definido --------- */
+    DECLARE @medico VARCHAR(150) = (SELECT nombre_completo FROM citas.USUARIOS WHERE id_USUARIOS = @id_USUARIOS);
+    DECLARE @pre VARCHAR(2000) = 'el medico "' + ISNULL(@medico, '') + '" definio el horario: ';
+    DECLARE @ev1 VARCHAR(2000) = @pre + 'inicio de consultas ' + CONVERT(VARCHAR(5), @hi, 108);
+    DECLARE @ev2 VARCHAR(2000) = @pre + CASE WHEN @ci IS NULL OR @cf IS NULL THEN 'comida sin definir'
+                                             ELSE 'comida de ' + CONVERT(VARCHAR(5), @ci, 108) + ' a ' + CONVERT(VARCHAR(5), @cf, 108) END;
+    DECLARE @ev3 VARCHAR(2000) = @pre + 'fin de consultas ' + CONVERT(VARCHAR(5), @hf, 108);
+
+    INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
+    VALUES('HORARIO', 'spGuardaHorarioMedico', 'HORARIO_MEDICO', @ev1, GETDATE(), @id_usuario),
+          ('HORARIO', 'spGuardaHorarioMedico', 'HORARIO_MEDICO', @ev2, GETDATE(), @id_usuario),
+          ('HORARIO', 'spGuardaHorarioMedico', 'HORARIO_MEDICO', @ev3, GETDATE(), @id_usuario);
 END
 GO
 
