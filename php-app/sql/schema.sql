@@ -932,6 +932,20 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
+        DECLARE @id_ROLES_act INT, @cli_act INT;
+        SELECT @id_ROLES_act = id_ROLES FROM citas.USUARIOS WHERE id_USUARIOS = @id_USUARIOS;
+        DECLARE cur_cli CURSOR LOCAL FAST_FORWARD FOR
+            SELECT DISTINCT id_CLINICA FROM citas.USUARIOS_CLINICA WHERE id_USUARIOS = @id_USUARIOS;
+        OPEN cur_cli;
+        FETCH NEXT FROM cur_cli INTO @cli_act;
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            EXEC citas.spValidaCupoUsuarioClinica @id_CLINICA=@cli_act, @id_ROLES=@id_ROLES_act,
+                 @id_usuario=@id_usuario, @id_USUARIOS=@id_USUARIOS;
+            FETCH NEXT FROM cur_cli INTO @cli_act;
+        END
+        CLOSE cur_cli; DEALLOCATE cur_cli;
+
         BEGIN TRAN;
             UPDATE citas.USUARIOS
                SET activo=1, id_usuario_modificacion=@id_usuario, fecha_modificacion=GETDATE()
