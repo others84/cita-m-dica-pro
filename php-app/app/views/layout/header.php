@@ -151,10 +151,11 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
           <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
         </details>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia', 'opciones/correo'], $__cur) ?>>
           <summary>Opciones</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
+          <?= nav_link('opciones/correo', 'Configuración de correo', $__cur) ?>
         </details>
         <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
       <?php endif; ?>
