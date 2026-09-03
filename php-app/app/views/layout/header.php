@@ -67,7 +67,19 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <small><?= htmlspecialchars($rol) ?></small>
     </div>
     <nav>
-      <?php if (in_array($rol, ['asistente','medico'], true)): ?>
+      <?php if ($rol === 'asistente'): ?>
+        <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
+        <?= nav_link('citas', $__labelCitas, $__cur) ?>
+        <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'opciones/apariencia'], $__cur) ?>>
+          <summary>Configuración</summary>
+          <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
+          <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
+        </details>
+      <?php endif; ?>
+
+      <?php if ($rol === 'medico'): ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/apariencia'], $__cur) ?>>
@@ -78,6 +90,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
       <?php endif; ?>
+
 
       <?php if ($rol === 'medico'): ?>
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion'], $__cur) ?>>

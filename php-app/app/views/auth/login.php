@@ -26,20 +26,34 @@ $csrf = $_SESSION['csrf_token'];
 </script>
 </head>
 <body class="login-body">
-  <form class="login-card" method="post" action="<?= url('auth/login') ?>">
-    <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES) ?>">
-    <img class="login-logo" src="<?= asset('img/logo.png') ?>" alt="Logo SGCO" width="96" height="96">
-    <h1>Sistema de gestión de citas online (SGCO)</h1>
-    <p class="subtitle">Inicia sesión</p>
-    <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-    <label>Usuario
-      <input type="text" name="usuario" required autofocus>
-    </label>
-    <label>Contraseña
-      <input type="password" name="password" required>
-    </label>
-    <button type="submit">Acceder</button>
-  </form>
-  <p class="login-alt"><a class="btn" href="<?= url('citapublica/reiniciar') ?>">Generar cita</a></p>
+<div class="login-shell">
+  <header class="login-header">
+    <div class="login-header-inner">
+      <img class="login-header-logo" src="<?= asset('img/logo.png') ?>" alt="Logo SGCO" width="40" height="40">
+    </div>
+  </header>
+
+  <main class="login-main">
+    <form class="login-card" method="post" action="<?= url('auth/login') ?>">
+      <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES) ?>">
+      <img class="login-logo" src="<?= asset('img/logo.png') ?>" alt="Logo SGCO" width="96" height="96">
+      <h1>Sistema de gestión de citas online (SGCO)</h1>
+      <p class="subtitle">Inicia sesión</p>
+      <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+      <label>Usuario
+        <input type="text" name="usuario" required autofocus>
+      </label>
+      <label>Contraseña
+        <input type="password" name="password" required>
+      </label>
+      <button type="submit">Acceder</button>
+    </form>
+    <p class="login-alt"><a class="btn" href="<?= url('citapublica/reiniciar') ?>">Generar cita</a></p>
+  </main>
+
+  <footer class="login-footer">
+    <div class="login-footer-inner"><!-- espacio reservado para el pie de página --></div>
+  </footer>
+</div>
 </body>
 </html>
