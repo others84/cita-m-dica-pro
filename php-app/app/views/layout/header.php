@@ -98,21 +98,23 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php endif; ?>
 
       <?php if ($rol === 'administrador'): ?>
-        <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'opciones/passwordUsuarios', 'opciones/apariencia'], $__cur) ?>>
-          <summary>Opciones</summary>
+        <?= nav_link('citas', $__labelCitas, $__cur) ?>
+        <details class="menu-group"<?= nav_group_open(['asistentes', 'pacientes', 'medicos', 'especialidades', 'consultorios'], $__cur) ?>>
+          <summary>Catálogos</summary>
+          <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
+          <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
+          <?= nav_link('medicos', 'Médicos', $__cur) ?>
+          <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
+          <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
+        </details>
+        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
+          <summary>Configuración</summary>
+          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
+          <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/passwordUsuarios', 'Contraseña de usuarios', $__cur) ?>
-          <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
-        <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
-        <?= nav_link('medicos', 'Médicos', $__cur) ?>
-        <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
-        <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
-
-        <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
-        <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
           <summary>Reportes</summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
