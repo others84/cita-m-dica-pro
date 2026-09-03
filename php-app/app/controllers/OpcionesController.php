@@ -26,6 +26,66 @@ class OpcionesController extends Controller {
     }
     public function actualizarDatos(): void { $this->requireLogin(); $this->view('opciones/actualizar_datos', ['title' => 'Actualizar datos']); }
 
+    /** Administrador de sistema: cuenta de correo emisora del sistema. */
+    public function correo(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigCorreoModel.php';
+        $cfg = null;
+        try { $cfg = ConfigCorreoModel::obtener(); }
+        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        if (is_array($cfg)) unset($cfg['password'], $cfg['password_cifrada']);
+        $this->view('opciones/correo', ['title' => 'Configuración de correo', 'cfg' => $cfg]);
+    }
+
+    public function correoGuardar(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigCorreoModel.php';
+        try {
+            $host = trim((string)$this->input('host'));
+            $puerto = (int)$this->input('puerto');
+            $cifrado = strtolower((string)$this->input('cifrado'));
+            $usuario = trim((string)$this->input('usuario'));
+            $password = (string)$this->input('password');
+            $remitente = trim((string)$this->input('remitente'));
+            $remNombre = trim((string)$this->input('remitente_nombre'));
+            $activo = (int)$this->input('activo') === 1;
+
+            if ($host === '') throw new Exception('Indica el servidor SMTP.');
+            if ($puerto < 1 || $puerto > 65535) throw new Exception('El puerto no es válido.');
+            if (!in_array($cifrado, ['ninguno', 'tls', 'ssl'], true)) throw new Exception('El tipo de cifrado no es válido.');
+            if (!filter_var($remitente, FILTER_VALIDATE_EMAIL)) throw new Exception('El correo remitente no es válido.');
+            if ($remNombre === '') throw new Exception('Indica el nombre del remitente.');
+
+            ConfigCorreoModel::guardar($host, $puerto, $cifrado, $usuario, $password, $remitente, $remNombre, $activo);
+            $this->flash('ok', 'Configuración de correo guardada.');
+        } catch (Throwable $e) {
+            $this->flash('error', $e->getMessage());
+        }
+        $this->redirect('opciones/correo');
+    }
+
+    public function correoPrueba(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigCorreoModel.php';
+        require_once __DIR__ . '/../core/Mailer.php';
+        $destino = trim((string)$this->input('destino'));
+        try {
+            if (!filter_var($destino, FILTER_VALIDATE_EMAIL)) throw new Exception('El correo destino no es válido.');
+            $cfg = ConfigCorreoModel::obtener();
+            if (!$cfg) throw new Exception('Primero guarda la configuración de correo.');
+            Mailer::enviar([
+                'host' => (string)$cfg['host'], 'puerto' => (int)$cfg['puerto'], 'cifrado' => (string)$cfg['cifrado'],
+                'usuario' => (string)$cfg['usuario'], 'password' => (string)$cfg['password'],
+                'remitente' => (string)$cfg['remitente'], 'remitente_nombre' => (string)$cfg['remitente_nombre'],
+            ], $destino, 'Prueba de correo - Citas Médicas',
+               '<p>Este es un correo de prueba enviado desde el sistema de citas médicas.</p>');
+            $this->flash('ok', 'Correo de prueba enviado a ' . $destino . '.');
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo enviar: ' . $e->getMessage());
+        }
+        $this->redirect('opciones/correo');
+    }
+
     /** Apariencia: paleta de colores y tipografia (se guarda en el dispositivo). */
     public function apariencia(): void {
         $this->requireLogin();
