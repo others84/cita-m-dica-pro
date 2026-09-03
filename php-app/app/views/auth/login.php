@@ -47,6 +47,7 @@ $csrf = $_SESSION['csrf_token'];
         <input type="password" name="password" required>
       </label>
       <button type="submit">Acceder</button>
+      <p class="login-alt"><a href="<?= url('auth/recuperar') ?>">¿Olvidaste tu contraseña?</a></p>
     </form>
     <p class="login-alt"><a class="btn" href="<?= url('citapublica/reiniciar') ?>">Generar cita</a></p>
   </main>

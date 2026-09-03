@@ -367,3 +367,5 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(
 @media (prefers-color-scheme: dark) {
   .publica-wrap .ayuda { color: #94a3b8; }
 }
+
+.alert-ok{background:#e3f6e8;color:#1d6b3a;padding:.5rem;border-radius:6px;font-size:.85rem}
