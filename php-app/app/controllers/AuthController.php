@@ -75,7 +75,7 @@ class AuthController extends Controller {
                         PasswordResetModel::crear($id, $token, self::RESET_MINUTOS, (string)($_SERVER['REMOTE_ADDR'] ?? ''));
                         $this->enviarCorreoReset($u, $token);
                         LogModel::evento('SEGURIDAD', 'recuperar', 'PASSWORD_RESET',
-                            'ENVIO ENLACE RESTABLECER: usuario=' . $u['usuario'] . ', correo=' . $email, 0);
+                            'ENVIO ENLACE RESTABLECER: usuario=' . $u['usuario'] . ', correo=' . $email);
                     }
                 } else {
                     Database::log('RESET datos no coinciden usuario=' . $usuario);
@@ -121,7 +121,7 @@ class AuthController extends Controller {
                     UsuarioModel::cambioPassword((int)$reg['id_USUARIOS'], $nueva);
                     PasswordResetModel::usar((int)$reg['id_PASSWORD_RESET']);
                     LogModel::evento('SEGURIDAD', 'restablecer', 'USUARIOS',
-                        'PASSWORD RESTABLECIDO POR CORREO: usuario=' . $usuario, 0);
+                        'PASSWORD RESTABLECIDO POR CORREO: usuario=' . $usuario);
                     $_SESSION['flash_error'] = 'Tu contraseña fue actualizada. Inicia sesión con la nueva contraseña.';
                     header('Location: ' . url('auth/login'));
                     exit;
