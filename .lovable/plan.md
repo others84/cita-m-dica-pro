@@ -123,8 +123,8 @@ chown -R citasuser:citasuser /var/lib/citas/tmp
 
 **No se tocan:** `php-app/public/.htaccess` (ya correcto), ni código de la aplicación.
 
-## Pendiente de tu lado
-Para que la adaptación sea línea por línea sobre lo que ya tienes, pégame el contenido de tu
-VirtualHost actual (el archivo en `sites-available/` que apunta al dominio) y de
-`/etc/apache2/ports.conf` si lo modificaste. Con eso entrego el `sgcopuebla.conf` ya adaptado
-a tus rutas y no uno genérico.
+## Requisito previo
+El DNS de `www.sgcopuebla.com.mx` y `sgcopuebla.com.mx` debe apuntar ya a la IP de este
+servidor; si no, Let's Encrypt no podrá emitir el certificado y ese paso se pospone (el sitio
+funcionaría por HTTP mientras tanto).
+
