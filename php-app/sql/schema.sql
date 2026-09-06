@@ -2603,3 +2603,134 @@ GRANT EXECUTE ON OBJECT::citas.spCuentaPasswordReset  TO citasadmin;
 GRANT EXECUTE ON OBJECT::citas.spRegresaConfigCorreo  TO citasadmin;
 GRANT EXECUTE ON OBJECT::citas.spGuardaConfigCorreo   TO citasadmin;
 GO
+
+-- =====================================================================
+-- PROCEDIMIENTOS COMPLEMENTARIOS (consolidados desde patches/)
+-- Se agregan al final para que una instalacion fresca con schema.sql
+-- quede completa sin necesidad de aplicar los parches uno a uno.
+-- =====================================================================
+USE CitasMedicas;
+GO
+
+-- ---------- spRegresaMedicosUsuarios (combo de medicos en Cita) -----
+CREATE OR ALTER PROCEDURE citas.spRegresaMedicosUsuarios
+    @id_CLINICA INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT DISTINCT u.id_USUARIOS, u.usuario, u.nombre_completo, u.email,
+                    uc.id_CLINICA, c.nombre AS clinica
+      FROM citas.USUARIOS u
+      JOIN citas.ROLES r             ON r.id_ROLES     = u.id_ROLES
+      JOIN citas.USUARIOS_CLINICA uc ON uc.id_USUARIOS = u.id_USUARIOS
+      JOIN citas.CLINICA c           ON c.id_CLINICA   = uc.id_CLINICA
+     WHERE u.activo = 1
+       AND LOWER(r.nombre) LIKE '%medico%'
+       AND (@id_CLINICA IS NULL OR uc.id_CLINICA = @id_CLINICA)
+     ORDER BY u.nombre_completo;
+END
+GO
+GRANT EXECUTE ON citas.spRegresaMedicosUsuarios TO citasadmin;
+GO
+
+-- ---------- spNotificaCita (marca notificado + LOG detalle) ---------
+CREATE OR ALTER PROCEDURE citas.spNotificaCita
+    @id_CITA INT, @id_usuario TINYINT, @usuario VARCHAR(40) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+            UPDATE citas.CITA
+               SET notificado = 1,
+                   id_usuario_modificacion = @id_usuario,
+                   fecha_modificacion = GETDATE()
+             WHERE id_CITA = @id_CITA;
+
+            DECLARE @msg VARCHAR(2000);
+            SELECT @msg = 'CITA NOTIFICADA id_CITA=' + CONVERT(VARCHAR(20), ci.id_CITA)
+                        + ' usuario=' + ISNULL(@usuario, ISNULL(us.usuario, '(n/d)'))
+                        + ' id_usuario=' + CONVERT(VARCHAR(10), @id_usuario)
+                        + ' paciente=' + LTRIM(RTRIM(p.ap_paterno + ' ' + p.ap_materno + ' ' + p.nombre))
+                        + ' id_PACIENTE=' + CONVERT(VARCHAR(20), p.id_PACIENTE)
+                        + ' clinica=' + cl.nombre
+                        + ' id_CLINICA=' + CONVERT(VARCHAR(20), cl.id_CLINICA)
+                        + ' consultorio=' + co.nombre
+                        + ' id_CONSULTORIO=' + CONVERT(VARCHAR(20), co.id_CONSULTORIO)
+              FROM citas.CITA ci
+              JOIN citas.PACIENTE     p  ON p.id_PACIENTE     = ci.id_PACIENTE
+              JOIN citas.CLINICA      cl ON cl.id_CLINICA     = p.id_CLINICA
+              JOIN citas.CONSULTORIO  co ON co.id_CONSULTORIO = ci.id_CONSULTORIO
+              LEFT JOIN citas.USUARIOS us ON us.id_USUARIOS   = @id_usuario
+             WHERE ci.id_CITA = @id_CITA;
+
+            IF @msg IS NULL
+                SET @msg = 'CITA NOTIFICADA id_CITA=' + CONVERT(VARCHAR(20), @id_CITA)
+                         + ' usuario=' + ISNULL(@usuario, '(n/d)');
+
+            INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
+            VALUES('CITA','spNotificaCita','CITA',@msg,GETDATE(),@id_usuario);
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT>0 ROLLBACK;
+        DECLARE @err VARCHAR(2000);
+        SET @err='ERROR spNotificaCita: '+ERROR_MESSAGE();
+        INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
+        VALUES('CITA','spNotificaCita','CITA',@err,GETDATE(),ISNULL(@id_usuario,0));
+        ;THROW;
+    END CATCH
+END
+GO
+GRANT EXECUTE ON OBJECT::citas.spNotificaCita TO citasadmin;
+GO
+
+-- ---------- spLogEvento (registro libre en LOG, usado por cita publica) --
+CREATE OR ALTER PROCEDURE citas.spLogEvento
+    @modulo        VARCHAR(30),
+    @procedimiento VARCHAR(300),
+    @tabla         VARCHAR(50),
+    @evento        VARCHAR(2000),
+    @id_usuario    TINYINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
+        VALUES(@modulo, @procedimiento, @tabla, @evento, GETDATE(), @id_usuario);
+    END TRY
+    BEGIN CATCH
+        INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
+        VALUES('SISTEMA', 'spLogEvento', 'LOG',
+               'ERROR spLogEvento: ' + ERROR_MESSAGE(), GETDATE(), ISNULL(@id_usuario, 0));
+    END CATCH
+END
+GO
+GRANT EXECUTE ON OBJECT::citas.spLogEvento TO citasadmin;
+GO
+
+-- ---------- spReporteIngresosPorMedico (reporte ingresos por medico) ----
+CREATE OR ALTER PROCEDURE citas.spReporteIngresosPorMedico
+    @id_CLINICA INT = NULL,
+    @fecha_desde DATE = NULL,
+    @fecha_hasta DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT  CONVERT(CHAR(7), ci.fecha_cita, 126) AS periodo,
+            u.nombre_completo                    AS medico,
+            SUM(ci.precio)                       AS total
+      FROM citas.CITA ci
+      JOIN citas.PACIENTE p ON p.id_PACIENTE = ci.id_PACIENTE
+      JOIN citas.USUARIOS u ON u.id_USUARIOS = ci.id_MEDICO
+      JOIN citas.CATALOGO_ESTADO_CITAS ec ON ec.id_CATALOGO_ESTADO_CITAS = ci.id_CATALOGO_ESTADO_CITAS
+     WHERE ec.nombre LIKE 'Atendid%'
+       AND (@id_CLINICA  IS NULL OR p.id_CLINICA  = @id_CLINICA)
+       AND (@fecha_desde IS NULL OR ci.fecha_cita >= @fecha_desde)
+       AND (@fecha_hasta IS NULL OR ci.fecha_cita <= @fecha_hasta)
+     GROUP BY CONVERT(CHAR(7), ci.fecha_cita, 126), u.nombre_completo
+     ORDER BY periodo DESC, total DESC;
+END
+GO
+GRANT EXECUTE ON OBJECT::citas.spReporteIngresosPorMedico TO citasadmin;
+GO
