@@ -29,37 +29,51 @@ a2enmod proxy proxy_fcgi rewrite headers ssl setenvif
 systemctl restart apache2
 ```
 
-### 3. `/etc/apache2/sites-available/sgcopuebla.conf` (nuevo / reemplazo del VirtualHost)
-Definir el sitio con:
-- `ServerName www.sgcopuebla.com.mx`
-- `ServerAlias sgcopuebla.com.mx`
-- `DocumentRoot /var/www/citas/public`
-- `<Directory /var/www/citas/public>` con `AllowOverride All`, `Require all granted`,
-  `Options -Indexes +FollowSymLinks`
-- Proxy a PHP-FPM:
-  `<FilesMatch \.php$>` → `SetHandler "proxy:unix:/run/php/php8.5-fpm.sock|fcgi://localhost"`
-  y `ProxyTimeout 60`.
-- Bloqueo de archivos sensibles dentro de `<Directory>`:
-  `<FilesMatch "(^\.|\.(env|sql|log|properties|md|sh)$)">` → `Require all denied`
-- Cabeceras de seguridad: `X-Content-Type-Options`, `X-Frame-Options SAMEORIGIN`,
-  `Referrer-Policy`.
-- Logs: `ErrorLog`/`CustomLog` con prefijo `sgcopuebla_`.
+### 3. `/etc/apache2/sites-available/sgcopuebla.conf` (adaptación de tu VirtualHost actual)
+Tu configuración actual es la de XAMPP en Windows:
 
-Se te entregará el archivo completo para pegarlo; si prefieres adaptar el que ya tienes, basta
-con cambiar `DocumentRoot`, `ServerName/ServerAlias`, habilitar el `<FilesMatch>` de PHP-FPM,
-asegurar `AllowOverride All` y añadir el bloqueo de archivos sensibles.
+```text
+<VirtualHost *:80>
+    ServerName citas.local
+    DocumentRoot "D:/xampp/htdocs/citas/public"
+    <Directory "D:/xampp/htdocs/citas/public">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog  "logs/citas-error.log"
+    CustomLog "logs/citas-access.log" common
+</VirtualHost>
+```
+
+Lo bueno: `AllowOverride All` ya está, que es lo que hace funcionar las URLs limpias.
+Cambios necesarios al pasarlo a Linux:
+
+| Actual (XAMPP/Windows) | Nuevo (Ubuntu) | Por qué |
+|---|---|---|
+| `DocumentRoot "D:/xampp/htdocs/citas/public"` | `/var/www/citas/public` | Ruta Linux acordada |
+| `ServerName citas.local` | `www.sgcopuebla.com.mx` + alias `sgcopuebla.com.mx` | Dominio real |
+| `Options Indexes FollowSymLinks` | `Options -Indexes +FollowSymLinks` | `Indexes` expone el listado de carpetas |
+| (sin PHP handler) | `<FilesMatch \.php$>` con `SetHandler proxy:unix:/run/php/php8.5-fpm.sock` | XAMPP usa mod_php; aquí PHP corre en FPM |
+| (sin bloqueo) | `<FilesMatch "(^\.|\.(env|sql|log|properties|md|sh)$)">` → `Require all denied` | Evita servir `.env`, `*.sql`, logs |
+| `logs/citas-*.log` (relativo) | `${APACHE_LOG_DIR}/sgcopuebla_*.log` | Ruta estándar de Ubuntu |
+| solo `*:80` | `*:80` redirige a HTTPS; contenido en `*:443` | Sitio con certificado |
+| (sin cabeceras) | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` | Endurecimiento básico |
+
+Se te entrega el archivo completo ya adaptado, listo para pegar.
 
 ### 4. Redirección HTTPS (puerto 80 → 443)
-En el mismo `sgcopuebla.conf`, el bloque `*:80` solo redirige a `https://www.sgcopuebla.com.mx`
-(301). El contenido se sirve en el bloque `*:443`.
+El bloque `*:80` solo redirige a `https://www.sgcopuebla.com.mx` (301). El contenido se sirve
+en el bloque `*:443`.
 
 ### 5. Certificado Let's Encrypt
 ```
 apt install -y certbot python3-certbot-apache
 certbot --apache -d www.sgcopuebla.com.mx -d sgcopuebla.com.mx
 ```
-Certbot editará el VirtualHost para añadir HTTPS y la redirección automáticamente; si lo
-dejamos, el paso 4 lo gestiona certbot y no hace falta redirección manual.
+Certbot añade el bloque HTTPS y la redirección automáticamente. Requisito previo: que el DNS de
+`www.sgcopuebla.com.mx` y `sgcopuebla.com.mx` ya apunte a la IP de este servidor.
+
 
 ## Archivos de la aplicación (configuración, no código)
 
@@ -109,8 +123,8 @@ chown -R citasuser:citasuser /var/lib/citas/tmp
 
 **No se tocan:** `php-app/public/.htaccess` (ya correcto), ni código de la aplicación.
 
-## Pendiente de tu lado
-Para que la adaptación sea línea por línea sobre lo que ya tienes, pégame el contenido de tu
-VirtualHost actual (el archivo en `sites-available/` que apunta al dominio) y de
-`/etc/apache2/ports.conf` si lo modificaste. Con eso entrego el `sgcopuebla.conf` ya adaptado
-a tus rutas y no uno genérico.
+## Requisito previo
+El DNS de `www.sgcopuebla.com.mx` y `sgcopuebla.com.mx` debe apuntar ya a la IP de este
+servidor; si no, Let's Encrypt no podrá emitir el certificado y ese paso se pospone (el sitio
+funcionaría por HTTP mientras tanto).
+
