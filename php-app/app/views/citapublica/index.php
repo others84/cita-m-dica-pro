@@ -61,6 +61,48 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       </div>
       <p class="ayuda col-span">Solo buscamos tu numero; no veras datos de otras personas.</p>
     </form>
+
+    <?php if ($paso === 'verificar'): ?>
+      <div class="otp-panel">
+        <h3>Confirma que eres tu</h3>
+        <p class="ayuda">Encontramos tu numero. Para cuidar tus datos, antes de mostrarlos te enviamos un codigo de 4 numeros. Elige como quieres recibirlo.</p>
+        <?php if (empty($canales)): ?>
+          <p class="ayuda">No tenemos un medio para enviarte el codigo. Por favor llama a tu clinica y con gusto te agendan la cita.</p>
+        <?php else: ?>
+          <form method="post" action="<?= url('citapublica/enviarCodigo') ?>" class="otp-canales"><?= csrf_field() ?>
+            <?php foreach ($canales as $ch): ?>
+              <label class="otp-canal">
+                <input type="radio" name="canal" value="<?= htmlspecialchars($ch) ?>" <?= ($otpCanal === $ch || (count($canales) === 1)) ? 'checked' : '' ?> required>
+                <?php if ($ch === 'correo'): ?>
+                  <span>Por correo a <strong><?= htmlspecialchars($contactoMask['email']) ?></strong></span>
+                <?php else: ?>
+                  <span>Por WhatsApp al <strong><?= htmlspecialchars($contactoMask['telefono']) ?></strong></span>
+                <?php endif; ?>
+              </label>
+            <?php endforeach; ?>
+            <div class="form-actions">
+              <button class="btn" type="submit"><?= $otpEnviado ? 'Enviar otro codigo' : 'Enviarme el codigo' ?></button>
+            </div>
+          </form>
+
+          <?php if ($otpEnviado): ?>
+            <form method="post" action="<?= url('citapublica/verificarCodigo') ?>" class="form-grid"><?= csrf_field() ?>
+              <label>Escribe el codigo de 4 numeros
+                <input class="otp-input" name="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="4" required autocomplete="one-time-code" placeholder="0000">
+              </label>
+              <div class="form-actions">
+                <button class="btn" type="submit">Continuar</button>
+              </div>
+              <p class="ayuda col-span">El codigo dura 10 minutos. Si no te llega, revisa tu bandeja de correo no deseado o pide otro codigo.</p>
+            </form>
+          <?php endif; ?>
+        <?php endif; ?>
+        <div class="form-actions">
+          <a class="btn btn-sec" href="<?= url('citapublica/nuevo') ?>">Soy paciente nuevo</a>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <?php if ($paso === 'elige_clinica' && !empty($coincidencias)): ?>
       <p class="ayuda">Tu numero esta en mas de una clinica. Elige a donde quieres ir.</p>
       <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
