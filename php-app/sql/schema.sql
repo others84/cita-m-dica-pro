@@ -2887,7 +2887,8 @@ CREATE OR ALTER PROCEDURE citas.spRegresaOtpCitaPublica
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT TOP 1 id_OTP_CITA_PUBLICA, telefono, codigo_hash, canal, intentos, usado, fecha_expira
+    SELECT TOP 1 id_OTP_CITA_PUBLICA, telefono, codigo_hash, canal, intentos, usado, fecha_expira,
+                 DATEDIFF(SECOND, GETDATE(), fecha_expira) AS segundos_restantes
       FROM citas.OTP_CITA_PUBLICA
      WHERE telefono = @telefono AND usado = 0
      ORDER BY id_OTP_CITA_PUBLICA DESC;
