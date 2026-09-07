@@ -369,3 +369,21 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(
 }
 
 .alert-ok{background:#e3f6e8;color:#1d6b3a;padding:.5rem;border-radius:6px;font-size:.85rem}
+
+/* ---- Cita publica: panel de verificacion por codigo (OTP) ---- */
+.publica-wrap .otp-panel {
+  margin-top: 1rem; padding: 1rem;
+  border: 1px solid var(--c2, #cbd5e1); border-radius: 10px;
+  background: rgba(148, 163, 184, .08);
+}
+.publica-wrap .otp-panel h3 { margin: 0 0 .35rem; color: var(--c5, #0f2f5b); font-size: 1.05rem; }
+.publica-wrap .otp-canales { display: flex; flex-direction: column; gap: .5rem; margin: .5rem 0 0; }
+.publica-wrap .otp-canal {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .6rem .75rem; border: 1px solid var(--c2, #cbd5e1);
+  border-radius: 8px; background: #fff; cursor: pointer; font-size: 1rem;
+}
+.publica-wrap .otp-canal input { width: 1.1rem; height: 1.1rem; }
+.publica-wrap .otp-input {
+  font-size: 1.6rem; letter-spacing: .6rem; text-align: center; max-width: 9rem;
+}

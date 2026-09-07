@@ -71,4 +71,45 @@ class PacienteModel extends Model {
         }
         return $out;
     }
+
+    /**
+     * Version segura de buscarPorTelefono para la pagina publica: NO expone
+     * datos personales, solo el identificador, la clinica y los destinos de
+     * contacto enmascarados para pedir el codigo de verificacion.
+     * @return array<int,array{id_PACIENTE:int,id_CLINICA:int,clinica:string,email:string,email_mask:string,telefono:string,telefono_mask:string}>
+     */
+    public static function resumenPorTelefono(string $telefono): array {
+        $out = [];
+        foreach (self::buscarPorTelefono($telefono) as $p) {
+            $email = trim((string)($p['email'] ?? ''));
+            $tel   = trim((string)($p['telefono'] ?? ''));
+            $out[] = [
+                'id_PACIENTE'   => (int)$p['id_PACIENTE'],
+                'id_CLINICA'    => (int)$p['id_CLINICA'],
+                'clinica'       => (string)($p['clinica'] ?? ''),
+                'email'         => $email,
+                'email_mask'    => self::mascaraEmail($email),
+                'telefono'      => $tel,
+                'telefono_mask' => self::mascaraTelefono($tel),
+            ];
+        }
+        return $out;
+    }
+
+    /** ana.lopez@gmail.com -> a******z@gmail.com */
+    public static function mascaraEmail(string $email): string {
+        $at = strpos($email, '@');
+        if ($at === false || $at < 1) return '';
+        $usr = substr($email, 0, $at);
+        $dom = substr($email, $at);
+        if (strlen($usr) <= 2) return substr($usr, 0, 1) . '***' . $dom;
+        return substr($usr, 0, 1) . str_repeat('*', max(3, strlen($usr) - 2)) . substr($usr, -1) . $dom;
+    }
+
+    /** 2221234567 -> ••••••4567 */
+    public static function mascaraTelefono(string $tel): string {
+        $d = self::soloDigitos($tel);
+        if (strlen($d) < 4) return '';
+        return str_repeat('•', max(2, strlen($d) - 4)) . substr($d, -4);
+    }
 }

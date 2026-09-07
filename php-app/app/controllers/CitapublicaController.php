@@ -77,6 +77,14 @@ class CitapublicaController extends Controller {
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
             'coincidencias'  => (array)$this->get('coincidencias', []),
+            'canales'        => (array)$this->get('canales', []),
+            'otpCanal'       => (string)$this->get('otp_canal', ''),
+            'otpEnviado'     => (bool)$this->get('otp_enviado', false),
+            'contactoMask'   => [
+                'email'    => (string)(((array)$this->get('contacto', []))['email_mask'] ?? ''),
+                'telefono' => (string)(((array)$this->get('contacto', []))['telefono_mask'] ?? ''),
+            ],
+            'verificado'     => (bool)$this->get('verificado', false),
             'paciente'       => (array)$this->get('paciente', []),
             'idPaciente'     => (int)$this->get('id_PACIENTE', 0),
             'obsCita'        => (string)$this->get('obs_cita', ''),
@@ -176,7 +184,7 @@ class CitapublicaController extends Controller {
         }
         $this->reset();
         $this->set('telefono', $tel);
-        try { $rows = PacienteModel::buscarPorTelefono($tel); }
+        try { $rows = PacienteModel::resumenPorTelefono($tel); }
         catch (Throwable $e) { $rows = []; $this->flash('error', 'No pudimos buscar tu numero en este momento. Intenta de nuevo en unos minutos.'); }
 
         if (empty($rows)) {
@@ -185,12 +193,150 @@ class CitapublicaController extends Controller {
             $this->flash('info', 'No encontramos tu numero. No hay problema: elige tu clinica y llena tus datos abajo.');
             $this->redirect('citapublica');
         }
+        // Paciente existente: no se muestra ningun dato hasta verificar el codigo.
         $lista = array_map(fn($p) => [
             'id_PACIENTE' => (int)$p['id_PACIENTE'],
             'id_CLINICA'  => (int)$p['id_CLINICA'],
             'clinica'     => (string)($p['clinica'] ?? ''),
         ], $rows);
         $this->set('coincidencias', $lista);
+        $this->set('verificado', false);
+        $this->set('contacto', [
+            'email'         => (string)$rows[0]['email'],
+            'email_mask'    => (string)$rows[0]['email_mask'],
+            'telefono'      => (string)$rows[0]['telefono'],
+            'telefono_mask' => (string)$rows[0]['telefono_mask'],
+        ]);
+        $canales = $this->canalesDisponibles();
+        $this->set('canales', $canales);
+        $this->set('paso', 'verificar');
+        if (empty($canales)) {
+            $this->flash('error', 'Por tu seguridad necesitamos enviarte un codigo, pero no tenemos un medio para hacerlo. Llama a tu clinica para que te apoyen.');
+        }
+        $this->redirect('citapublica');
+    }
+
+    /** Canales por los que se puede mandar el codigo a este paciente. */
+    private function canalesDisponibles(): array {
+        $out = [];
+        $con = (array)$this->get('contacto', []);
+        if (trim((string)($con['email'] ?? '')) !== '') {
+            try {
+                require_once __DIR__ . '/../models/ConfigCorreoModel.php';
+                $cfg = ConfigCorreoModel::obtener();
+                if ($cfg && (int)($cfg['activo'] ?? 0) === 1) $out[] = 'correo';
+            } catch (Throwable $e) { /* correo no disponible */ }
+        }
+        if (trim((string)($con['telefono'] ?? '')) !== '') {
+            try {
+                require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+                if (ConfigWhatsappModel::disponible()) $out[] = 'whatsapp';
+            } catch (Throwable $e) { /* whatsapp no disponible */ }
+        }
+        return $out;
+    }
+
+    /** Envia el codigo de 4 digitos por el canal que eligio el paciente. */
+    public function enviarCodigo(): void {
+        require_once __DIR__ . '/../models/OtpCitaPublicaModel.php';
+        $tel = (string)$this->get('telefono', '');
+        $canal = (string)$this->input('canal', (string)$this->get('otp_canal', ''));
+        $canales = (array)$this->get('canales', []);
+        if ($tel === '' || empty($this->get('coincidencias', []))) { $this->redirect('citapublica'); }
+        if (!in_array($canal, $canales, true)) {
+            $this->flash('error', 'Elige como quieres recibir tu codigo.');
+            $this->redirect('citapublica');
+        }
+        try {
+            if (OtpCitaPublicaModel::enviosRecientes($tel) >= OtpCitaPublicaModel::MAX_ENVIOS_HORA) {
+                $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
+                          'OTP LIMITE DE ENVIOS: telefono=' . PacienteModel::mascaraTelefono($tel));
+                throw new Exception('Ya pediste varios codigos. Espera una hora e intentalo de nuevo, o llama a tu clinica.');
+            }
+            $codigo = OtpCitaPublicaModel::generar($tel, $canal, $_SERVER['REMOTE_ADDR'] ?? null);
+            $this->mandaCodigo($canal, $codigo);
+            $this->set('otp_canal', $canal);
+            $this->set('otp_enviado', true);
+            $this->set('paso', 'verificar');
+            $con = (array)$this->get('contacto', []);
+            $destino = $canal === 'correo' ? (string)$con['email_mask'] : (string)$con['telefono_mask'];
+            $this->flash('ok', 'Te enviamos un codigo de 4 numeros a ' . $destino . '. Llega en menos de un minuto y dura 10 minutos.');
+            $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
+                      'OTP ENVIADO: canal=' . $canal . ' telefono=' . PacienteModel::mascaraTelefono($tel));
+        } catch (Throwable $e) {
+            Database::log('OTP envio ERR canal=' . $canal . ' : ' . $e->getMessage());
+            $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
+                      'OTP ERROR DE ENVIO: canal=' . $canal . ' telefono=' . PacienteModel::mascaraTelefono($tel)
+                      . ' detalle=' . $e->getMessage());
+            $alterno = $canal === 'whatsapp' && in_array('correo', $canales, true)
+                ? ' Puedes intentar recibirlo por correo.' : '';
+            $this->flash('error', 'No pudimos enviarte el codigo en este momento.' . $alterno);
+        }
+        $this->redirect('citapublica');
+    }
+
+    /** Reenvia el codigo por el mismo canal que ya se habia elegido. */
+    public function reenviarCodigo(): void {
+        $_POST['canal'] = (string)$this->get('otp_canal', '');
+        $this->enviarCodigo();
+    }
+
+    private function mandaCodigo(string $canal, string $codigo): void {
+        $con = (array)$this->get('contacto', []);
+        if ($canal === 'correo') {
+            require_once __DIR__ . '/../models/ConfigCorreoModel.php';
+            require_once __DIR__ . '/../core/Mailer.php';
+            $cfg = ConfigCorreoModel::obtener();
+            if (!$cfg) throw new Exception('No hay configuracion de correo.');
+            $html = '<p>Tu codigo para agendar tu cita es:</p>'
+                  . '<p style="font-size:28px;font-weight:bold;letter-spacing:6px">' . $codigo . '</p>'
+                  . '<p>Este codigo dura 10 minutos. Si no lo pediste, ignora este mensaje.</p>';
+            Mailer::enviar([
+                'host' => (string)$cfg['host'], 'puerto' => (int)$cfg['puerto'], 'cifrado' => (string)$cfg['cifrado'],
+                'usuario' => (string)$cfg['usuario'], 'password' => (string)$cfg['password'],
+                'remitente' => (string)$cfg['remitente'], 'remitente_nombre' => (string)$cfg['remitente_nombre'],
+            ], (string)$con['email'], 'Tu codigo para agendar tu cita', $html);
+            return;
+        }
+        require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+        require_once __DIR__ . '/../core/Whatsapp.php';
+        $cfg = ConfigWhatsappModel::obtener();
+        if (!$cfg) throw new Exception('No hay configuracion de WhatsApp.');
+        Whatsapp::enviarCodigo($cfg, (string)$con['telefono'], $codigo);
+    }
+
+    /** Valida el codigo capturado y recien entonces carga los datos. */
+    public function verificarCodigo(): void {
+        require_once __DIR__ . '/../models/OtpCitaPublicaModel.php';
+        $tel = (string)$this->get('telefono', '');
+        $lista = (array)$this->get('coincidencias', []);
+        if ($tel === '' || empty($lista)) { $this->redirect('citapublica'); }
+
+        $codigo = preg_replace('/\D+/', '', (string)$this->input('codigo', '')) ?? '';
+        $res = ['ok' => false, 'motivo' => 'sin_codigo'];
+        try { $res = OtpCitaPublicaModel::validar($tel, $codigo); }
+        catch (Throwable $e) { Database::log('OTP validar ERR: ' . $e->getMessage()); }
+
+        $telMask = PacienteModel::mascaraTelefono($tel);
+        if (!$res['ok']) {
+            $msg = [
+                'sin_codigo' => 'Primero pide tu codigo con el boton de arriba.',
+                'expirado'   => 'Tu codigo ya vencio. Pide uno nuevo.',
+                'intentos'   => 'Escribiste el codigo incorrecto varias veces. Pide un codigo nuevo.',
+                'incorrecto' => 'El codigo no coincide. Revisalo e intentalo otra vez.',
+            ][$res['motivo']] ?? 'No pudimos validar tu codigo.';
+            if (in_array($res['motivo'], ['expirado', 'intentos'], true)) $this->set('otp_enviado', false);
+            $this->flash('error', $msg);
+            $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
+                      'OTP FALLIDO: motivo=' . $res['motivo'] . ' telefono=' . $telMask);
+            $this->redirect('citapublica');
+        }
+
+        $this->set('verificado', true);
+        $this->set('otp_enviado', false);
+        $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
+                  'OTP VALIDADO: canal=' . (string)$this->get('otp_canal', '') . ' telefono=' . $telMask);
+
         if (count($lista) === 1) {
             $this->cargarPaciente((int)$lista[0]['id_PACIENTE'], (int)$lista[0]['id_CLINICA']);
             $this->redirect('citapublica');
@@ -216,11 +362,17 @@ class CitapublicaController extends Controller {
         $this->set('id_MEDICO', 0);
         $this->set('id_CONSULTORIO', 0);
         $this->set('id_CATALOGO_ESPECIALIDAD', 0);
-        foreach ((array)$this->get('coincidencias', []) as $c) {
-            if ((int)$c['id_CLINICA'] === $id) {
-                $this->cargarPaciente((int)$c['id_PACIENTE'], $id);
-                $this->redirect('citapublica');
+        if ((bool)$this->get('verificado', false)) {
+            foreach ((array)$this->get('coincidencias', []) as $c) {
+                if ((int)$c['id_CLINICA'] === $id) {
+                    $this->cargarPaciente((int)$c['id_PACIENTE'], $id);
+                    $this->redirect('citapublica');
+                }
             }
+        } elseif (!empty($this->get('coincidencias', []))) {
+            // Hay coincidencias pero aun no se valida el codigo: no se muestran datos.
+            $this->set('paso', 'verificar');
+            $this->redirect('citapublica');
         }
         $this->set('paso', 'nuevo');
         $this->set('id_PACIENTE', 0);
@@ -229,6 +381,8 @@ class CitapublicaController extends Controller {
     }
 
     private function cargarPaciente(int $idPaciente, int $idClinica): void {
+        // Nunca se cargan datos personales sin haber validado el codigo.
+        if (!(bool)$this->get('verificado', false)) { $this->set('paso', 'verificar'); return; }
         $row = null;
         try { $row = PacienteModel::obtener($idPaciente); } catch (Throwable $e) { $row = null; }
         if (!$row) { $this->set('paso', 'nuevo'); return; }
