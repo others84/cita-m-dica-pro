@@ -86,6 +86,68 @@ class OpcionesController extends Controller {
         $this->redirect('opciones/correo');
     }
 
+    /** Administrador de sistema: credenciales de WhatsApp Cloud API. */
+    public function whatsapp(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+        $cfg = null;
+        try { $cfg = ConfigWhatsappModel::obtener(); }
+        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        if (is_array($cfg)) unset($cfg['token'], $cfg['token_cifrado']);
+        $this->view('opciones/whatsapp', ['title' => 'Configuración de WhatsApp', 'cfg' => $cfg]);
+    }
+
+    public function whatsappGuardar(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+        try {
+            $phoneId = trim((string)$this->input('phone_number_id'));
+            $waba    = trim((string)$this->input('waba_id'));
+            $token   = trim((string)$this->input('token'));
+            $ver     = trim((string)$this->input('api_version')) ?: 'v21.0';
+            $plant   = trim((string)$this->input('plantilla'));
+            $idioma  = trim((string)$this->input('plantilla_idioma')) ?: 'es_MX';
+            $lada    = preg_replace('/\D+/', '', (string)$this->input('lada_default')) ?: '52';
+            $activo  = (int)$this->input('activo') === 1;
+
+            if (!preg_match('/^\d{5,30}$/', $phoneId)) throw new Exception('El Phone Number ID debe ser numérico.');
+            if ($waba !== '' && !preg_match('/^\d{5,30}$/', $waba)) throw new Exception('El WABA ID debe ser numérico.');
+            if (!preg_match('/^v\d+\.\d+$/', $ver)) throw new Exception('La versión de la API debe tener el formato v21.0.');
+            if ($plant === '') throw new Exception('Indica el nombre de la plantilla del código.');
+
+            $actual = null;
+            try { $actual = ConfigWhatsappModel::obtener(); } catch (Throwable $e) { $actual = null; }
+            if ($token === '' && ($actual === null || trim((string)$actual['token']) === '')) {
+                throw new Exception('Captura el token de acceso permanente de Meta.');
+            }
+
+            ConfigWhatsappModel::guardar($phoneId, $waba, $token, $ver, $plant, $idioma, $lada, $activo);
+            $this->flash('ok', 'Configuración de WhatsApp guardada.');
+        } catch (Throwable $e) {
+            $this->flash('error', $e->getMessage());
+        }
+        $this->redirect('opciones/whatsapp');
+    }
+
+    public function whatsappPrueba(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+        require_once __DIR__ . '/../core/Whatsapp.php';
+        $destino = trim((string)$this->input('destino'));
+        try {
+            if (strlen(preg_replace('/\D+/', '', $destino) ?? '') < 10) {
+                throw new Exception('El número debe tener al menos 10 dígitos.');
+            }
+            $cfg = ConfigWhatsappModel::obtener();
+            if (!$cfg) throw new Exception('Primero guarda la configuración de WhatsApp.');
+            Whatsapp::enviarCodigo($cfg, $destino, str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT));
+            $this->flash('ok', 'Mensaje de prueba enviado a ' . $destino . '.');
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo enviar: ' . $e->getMessage());
+        }
+        $this->redirect('opciones/whatsapp');
+    }
+
     /** Apariencia: paleta de colores y tipografia (se guarda en el dispositivo). */
     public function apariencia(): void {
         $this->requireLogin();
