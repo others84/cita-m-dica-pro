@@ -373,6 +373,8 @@ class CitapublicaController extends Controller {
     }
 
     private function cargarPaciente(int $idPaciente, int $idClinica): void {
+        // Nunca se cargan datos personales sin haber validado el codigo.
+        if (!(bool)$this->get('verificado', false)) { $this->set('paso', 'verificar'); return; }
         $row = null;
         try { $row = PacienteModel::obtener($idPaciente); } catch (Throwable $e) { $row = null; }
         if (!$row) { $this->set('paso', 'nuevo'); return; }
