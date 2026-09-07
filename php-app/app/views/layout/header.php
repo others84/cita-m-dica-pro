@@ -147,11 +147,12 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
           <?= nav_link('catalogos/respaldo', 'Respaldo de base de datos', $__cur) ?>
         </details>
-        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo', 'opciones/whatsapp'], $__cur) ?>>
           <summary>Configuración</summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/correo', 'Configuración de correo', $__cur) ?>
+          <?= nav_link('opciones/whatsapp', 'Configuración de WhatsApp', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['clinicas', 'usuariosClinica', 'sistema/bloquearClinicas'], $__cur) ?>>
           <summary>Clínicas</summary>
