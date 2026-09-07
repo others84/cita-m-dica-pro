@@ -50,9 +50,17 @@ class OtpCitaPublicaModel extends Model {
         $row = $rows[0] ?? null;
         if (!$row) return ['ok' => false, 'motivo' => 'sin_codigo'];
 
-        $exp = $row['fecha_expira'] ?? null;
-        $expTs = $exp instanceof DateTime ? $exp->getTimestamp() : strtotime((string)$exp);
-        if ($expTs !== false && $expTs < time()) {
+        // La vigencia la calcula SQL Server (segundos_restantes) para evitar
+        // diferencias de zona horaria entre PHP y la base de datos.
+        $vencido = null;
+        if (array_key_exists('segundos_restantes', $row) && $row['segundos_restantes'] !== null) {
+            $vencido = ((int)$row['segundos_restantes'] <= 0);
+        } else {
+            $exp = $row['fecha_expira'] ?? null;
+            $expTs = $exp instanceof DateTime ? $exp->getTimestamp() : strtotime((string)$exp);
+            if ($expTs !== false && $expTs !== null) $vencido = ($expTs < time());
+        }
+        if ($vencido === true) {
             self::consumir((int)$row['id_OTP_CITA_PUBLICA']);
             return ['ok' => false, 'motivo' => 'expirado'];
         }
