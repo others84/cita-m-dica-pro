@@ -23,6 +23,12 @@ class CalendarioController extends Controller {
                 $ids = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
                 if (!in_array($fMedico, $ids, true)) { $fMedico = null; $this->clearState('f_medico'); }
             }
+            // Si solo existe un medico en la clinica seleccionada, se selecciona
+            // automaticamente y se elimina la opcion "-- todos --" para que la
+            // asistente no pueda elegir a otro medico.
+            if (count($medicos) === 1) {
+                $fMedico = (int)($medicos[0]['id_USUARIOS'] ?? 0);
+            }
             if ($fMedico !== null) $idMedico = $fMedico;
         }
 

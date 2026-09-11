@@ -7,7 +7,9 @@
   <form method="post" action="<?= url('calendario/filtrar') ?>" class="form-grid"><?= csrf_field() ?>
     <label>Medico
       <select name="f_medico" onchange="this.form.submit()">
-        <option value="">-- todos --</option>
+        <?php if (count($medicos) > 1): ?>
+          <option value="">-- todos --</option>
+        <?php endif; ?>
         <?php foreach ($medicos as $m): ?>
           <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= (int)($fMedico ?? 0) === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
             <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
