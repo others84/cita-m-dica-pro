@@ -321,8 +321,16 @@ class CitasController extends Controller {
             'horas_anticipacion_notif' => (int)($this->input('horas_anticipacion_notif') ?? 24),
             'precio'                   => (float)($this->input('precio') ?? 0),
         ];
+        // Validar que el paciente pertenezca a una clinica autorizada (IDOR).
+        $pac = $data['id_PACIENTE'] > 0 ? PacienteModel::obtener((int)$data['id_PACIENTE']) : null;
+        if (!$pac || !$this->clinicaPermitida((int)($pac['id_CLINICA'] ?? 0))) {
+            $this->clearState('id');
+            $this->denegarRecurso('PACIENTE', $data['id_PACIENTE'], $pac ? (int)($pac['id_CLINICA'] ?? 0) : null, 'citas');
+            return;
+        }
         // Las preferencias de notificacion viven unicamente en el PACIENTE.
         try {
+
             if ($id) {
                 $prev = CitaModel::obtener($id);
                 if (!$prev || !$this->citaPermitida($prev)) {
