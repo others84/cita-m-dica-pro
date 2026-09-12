@@ -202,20 +202,25 @@ class OpcionesController extends Controller {
     }
 
     /**
-     * Usuarios pertenecientes a las clinicas del admin, mas los
-     * administradores de sistema (que no estan ligados a una clinica).
+     * Usuarios pertenecientes a las clinicas del administrador de clinica
+     * (incluido el mismo admin). Los administradores de sistema y los
+     * usuarios de clinicas ajenas NO se muestran.
      */
     private function usuariosDeClinicas(array $ctx): array {
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro'] ?? []);
-        $yo = (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
+        if (empty($idsAdmin)) return [];
         $out = [];
+        $vistos = [];
         foreach (UsuarioModel::listar() as $u) {
-            $rol = strtolower((string)($u['rol'] ?? ''));
-            if ((int)$u['id_USUARIOS'] === $yo) continue;
-            if (strpos($rol, 'sistema') !== false) { $out[] = $u; continue; }
-            $ids = array_map(fn($r) => (int)$r['id_CLINICA'], UsuarioClinicaModel::listarPorUsuario((int)$u['id_USUARIOS']));
+            $id = (int)($u['id_USUARIOS'] ?? 0);
+            if ($id <= 0 || isset($vistos[$id])) continue;
+            $vistos[$id] = true;
+            // Clinicas del usuario: las asignadas via USUARIOS_CLINICA y, si
+            // trae id_CLINICA en su registro, tambien esa.
+            $ids = array_map(fn($r) => (int)$r['id_CLINICA'], UsuarioClinicaModel::listarPorUsuario($id));
             if (!empty($u['id_CLINICA'])) $ids[] = (int)$u['id_CLINICA'];
-            if (array_intersect($ids, $idsAdmin)) $out[] = $u;
+            if (!array_intersect($ids, $idsAdmin)) continue; // no pertenece a sus clinicas
+            $out[] = $u;
         }
         return $out;
     }
