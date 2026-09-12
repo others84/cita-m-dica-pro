@@ -312,7 +312,7 @@ class CatalogosController extends Controller {
         }
         $this->view('catalogos/usuarios', [
             'title'=>'Usuarios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'roles'=>RolModel::listar(), 'clinicas'=>$clinicas,
+            'roles'=>$this->rolesPermitidos(), 'clinicas'=>$clinicas,
             'fRol'=>$fRol, 'fClinica'=>$fClinica,
         ]);
     }
