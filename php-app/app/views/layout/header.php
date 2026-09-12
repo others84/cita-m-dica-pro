@@ -100,18 +100,13 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if ($rol === 'administrador'): ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'catalogos/paises', 'catalogos/estados', 'catalogos/municipios', 'catalogos/generos', 'catalogos/estadosCita', 'catalogos/usuarios'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'catalogos/usuarios'], $__cur) ?>>
           <summary>Catálogos</summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
           <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
           <?= nav_link('medicos', 'Médicos', $__cur) ?>
           <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
           <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
-          <?= nav_link('catalogos/paises', 'Países', $__cur) ?>
-          <?= nav_link('catalogos/estados', 'Estados', $__cur) ?>
-          <?= nav_link('catalogos/municipios', 'Municipios', $__cur) ?>
-          <?= nav_link('catalogos/generos', 'Géneros', $__cur) ?>
-          <?= nav_link('catalogos/estadosCita', 'Edo de citas', $__cur) ?>
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>

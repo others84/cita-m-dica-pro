@@ -11,6 +11,19 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class CatalogosController extends Controller {
     private function guard(): void { $this->requireLogin(['administrador','admin_sistema']); }
+    /** Catalogos globales (paises, estados, municipios, generos, estados de cita): solo admin de sistema. */
+    private function guardSistema(): void { $this->requireLogin(['admin_sistema']); }
+
+    /** Clinica a la que pertenece un usuario del sistema (null si no existe). */
+    private function clinicaDeUsuario(int $idUsuario): ?int {
+        foreach (UsuarioModel::listar() as $u) {
+            if ((int)($u['id_USUARIOS'] ?? 0) === $idUsuario) {
+                $c = (int)($u['id_CLINICA'] ?? 0);
+                return $c > 0 ? $c : null;
+            }
+        }
+        return null;
+    }
 
     /**
      * Busca la fila a editar dentro del listado, tolerando diferencias de tipo
@@ -31,7 +44,7 @@ class CatalogosController extends Controller {
 
     /* ---- Paises ---- */
     public function paises(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.paises');
         $rows = PaisModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_PAIS', $editId);
@@ -44,7 +57,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function paisesGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         Database::log("CatalogosController::paisesGuardar POST id=" . var_export($id, true) . " nombre=" . var_export($n, true));
         try {
@@ -59,7 +72,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/paises');
     }
     public function paisesEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { PaisModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.paises');
@@ -68,7 +81,7 @@ class CatalogosController extends Controller {
 
     /* ---- Generos ---- */
     public function generos(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.generos');
         $rows = GeneroModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_GENERO', $editId);
@@ -78,7 +91,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function generosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         try { if ($id) GeneroModel::cambio($id,$n); else GeneroModel::alta($n); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
@@ -86,7 +99,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/generos');
     }
     public function generosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { GeneroModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.generos');
@@ -95,7 +108,7 @@ class CatalogosController extends Controller {
 
     /* ---- Estados de cita ---- */
     public function estadosCita(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.estadosCita');
         $rows = EstadoCitaModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_ESTADO_CITAS', $editId);
@@ -105,7 +118,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function estadosCitaGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         try { if ($id) EstadoCitaModel::cambio($id,$n); else EstadoCitaModel::alta($n); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
@@ -113,7 +126,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/estadosCita');
     }
     public function estadosCitaEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { EstadoCitaModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.estadosCita');
@@ -122,7 +135,7 @@ class CatalogosController extends Controller {
 
     /* ---- Estados (con pais) ---- */
     public function estados(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.estados');
         $fPais  = $this->stateInt('f_pais', 'catalogos.estados');
         // Al presionar "Editar", el filtro se ajusta al pais del estado.
@@ -143,7 +156,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function estadosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $n = $this->input('nombre');
         $p = (int)($this->intOrNull($_POST['id_CATALOGO_PAIS'] ?? null)
@@ -158,7 +171,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/estados');
     }
     public function estadosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { EstadoModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.estados');
@@ -167,7 +180,7 @@ class CatalogosController extends Controller {
 
     /* ---- Municipios (con estado) ---- */
     public function municipios(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId  = $this->stateInt('edit', 'catalogos.municipios');
         $fPais   = $this->stateInt('f_pais', 'catalogos.municipios');
         $fEstado = $this->stateInt('f_estado', 'catalogos.municipios');
@@ -206,7 +219,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function municipiosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $n = $this->input('nombre');
         // El estado se toma del filtro (ya no hay combo en el formulario).
@@ -222,7 +235,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/municipios');
     }
     public function municipiosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { MunicipioModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.municipios');
@@ -237,7 +250,15 @@ class CatalogosController extends Controller {
         $fRol     = $this->stateInt('f_rol', $ns);
         $fClinica = $this->stateInt('f_clinica', $ns);
 
-        $rows = UsuarioModel::listar();
+        $permitidas = $this->clinicasPermitidas();   // null = admin_sistema
+        $todos = UsuarioModel::listar();
+        if ($permitidas !== null) {
+            $todos = array_values(array_filter(
+                $todos,
+                fn($u) => in_array((int)($u['id_CLINICA'] ?? 0), $permitidas, true)
+            ));
+        }
+        $rows = $todos;
 
         // Filtro por rol.
         if ($fRol !== null) {
@@ -256,15 +277,23 @@ class CatalogosController extends Controller {
 
         $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
-        // Si no se encontro en el filtro actual, buscarlo en el listado completo.
+        // Si no se encontro en el filtro actual, buscarlo en el listado permitido.
         if ($editId && !$editRow) {
-            foreach (UsuarioModel::listar() as $r) {
+            foreach ($todos as $r) {
                 if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
             }
         }
+        // Solo las clinicas que el usuario tiene permitidas.
+        $clinicas = ClinicaModel::listar();
+        if ($permitidas !== null) {
+            $clinicas = array_values(array_filter(
+                $clinicas,
+                fn($c) => in_array((int)($c['id_CLINICA'] ?? 0), $permitidas, true)
+            ));
+        }
         $this->view('catalogos/usuarios', [
             'title'=>'Usuarios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'roles'=>RolModel::listar(), 'clinicas'=>ClinicaModel::listar(),
+            'roles'=>RolModel::listar(), 'clinicas'=>$clinicas,
             'fRol'=>$fRol, 'fClinica'=>$fClinica,
         ]);
     }
@@ -277,6 +306,15 @@ class CatalogosController extends Controller {
         $nombre  = $this->input('nombre_completo');
         $email   = $this->input('email');
         $pass    = $this->input('password');
+        // El administrador de clinica solo opera sobre sus propias clinicas.
+        if (!$this->clinicaPermitida($idCli === null ? null : (int)$idCli)) {
+            $this->denegarRecurso('usuario', $id ?? 'nuevo', $idCli, 'catalogos/usuarios');
+            return;
+        }
+        if ($id && !$this->clinicaPermitida($this->clinicaDeUsuario((int)$id))) {
+            $this->denegarRecurso('usuario', $id, null, 'catalogos/usuarios');
+            return;
+        }
         try {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idCli, $nombre, $email);
@@ -292,8 +330,12 @@ class CatalogosController extends Controller {
     }
     public function usuariosActivar(): void {
         $this->guard();
+        $idU = (int)$this->input('id');
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($idU))) {
+            $this->denegarRecurso('usuario', $idU, null, 'catalogos/usuarios');
+            return;
+        }
         try {
-            $idU = (int)$this->input('id');
             require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
             foreach (UsuarioClinicaModel::listarPorUsuario($idU) as $r) {
                 $this->validaCupoUsuario((int)$r['id_CLINICA'], $idU);
@@ -306,7 +348,12 @@ class CatalogosController extends Controller {
     }
     public function usuariosDesactivar(): void {
         $this->guard();
-        try { UsuarioModel::desactiva((int)$this->input('id')); $this->flash('ok','Desactivado.'); }
+        $idU = (int)$this->input('id');
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($idU))) {
+            $this->denegarRecurso('usuario', $idU, null, 'catalogos/usuarios');
+            return;
+        }
+        try { UsuarioModel::desactiva($idU); $this->flash('ok','Desactivado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->clearState('edit', 'catalogos.usuarios');
         $this->redirect('catalogos/usuarios');
@@ -317,6 +364,10 @@ class CatalogosController extends Controller {
         $id    = (int)$this->input('id');
         $quien = $_SESSION['user']['usuario'] ?? 'anonimo';
         Database::log("USUARIOS accion=ELIMINAR intento id_USUARIOS={$id} solicitado_por='{$quien}'");
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($id))) {
+            $this->denegarRecurso('usuario', $id, null, 'catalogos/usuarios');
+            return;
+        }
         try {
             UsuarioModel::baja($id);
             Database::log("USUARIOS accion=ELIMINAR resultado=OK id_USUARIOS={$id} solicitado_por='{$quien}'");
