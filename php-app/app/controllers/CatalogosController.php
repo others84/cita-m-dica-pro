@@ -242,6 +242,24 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/municipios');
     }
 
+    /** True si el rol indicado es asistente o medico (unicos permitidos al admin de clinica). */
+    private function rolOperativo(string $nombre): bool {
+        $n = strtolower($nombre);
+        return strpos($n, 'asistente') !== false
+            || strpos($n, 'medic') !== false
+            || strpos($n, 'médic') !== false;
+    }
+
+    /** Roles que el usuario actual puede asignar. */
+    private function rolesPermitidos(): array {
+        $roles = RolModel::listar();
+        if ($this->clinicasPermitidas() === null) return $roles;  // admin_sistema
+        return array_values(array_filter(
+            $roles,
+            fn($r) => $this->rolOperativo((string)($r['nombre'] ?? ''))
+        ));
+    }
+
     /* ---- Usuarios de clinica ---- */
     public function usuarios(): void {
         $this->guard();
