@@ -31,7 +31,7 @@ class CatalogosController extends Controller {
 
     /* ---- Paises ---- */
     public function paises(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.paises');
         $rows = PaisModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_PAIS', $editId);
@@ -44,7 +44,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function paisesGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         Database::log("CatalogosController::paisesGuardar POST id=" . var_export($id, true) . " nombre=" . var_export($n, true));
         try {
@@ -59,7 +59,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/paises');
     }
     public function paisesEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { PaisModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.paises');
@@ -68,7 +68,7 @@ class CatalogosController extends Controller {
 
     /* ---- Generos ---- */
     public function generos(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.generos');
         $rows = GeneroModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_GENERO', $editId);
@@ -78,7 +78,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function generosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         try { if ($id) GeneroModel::cambio($id,$n); else GeneroModel::alta($n); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
@@ -86,7 +86,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/generos');
     }
     public function generosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { GeneroModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.generos');
@@ -95,7 +95,7 @@ class CatalogosController extends Controller {
 
     /* ---- Estados de cita ---- */
     public function estadosCita(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.estadosCita');
         $rows = EstadoCitaModel::listar();
         $editRow = $this->pickRow($rows, 'id_CATALOGO_ESTADO_CITAS', $editId);
@@ -105,7 +105,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function estadosCitaGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null); $n = $this->input('nombre');
         try { if ($id) EstadoCitaModel::cambio($id,$n); else EstadoCitaModel::alta($n); $this->flash('ok','Guardado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
@@ -113,7 +113,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/estadosCita');
     }
     public function estadosCitaEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { EstadoCitaModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.estadosCita');
@@ -122,7 +122,7 @@ class CatalogosController extends Controller {
 
     /* ---- Estados (con pais) ---- */
     public function estados(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId = $this->stateInt('edit', 'catalogos.estados');
         $fPais  = $this->stateInt('f_pais', 'catalogos.estados');
         // Al presionar "Editar", el filtro se ajusta al pais del estado.
@@ -143,7 +143,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function estadosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $n = $this->input('nombre');
         $p = (int)($this->intOrNull($_POST['id_CATALOGO_PAIS'] ?? null)
@@ -158,7 +158,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/estados');
     }
     public function estadosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { EstadoModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.estados');
@@ -167,7 +167,7 @@ class CatalogosController extends Controller {
 
     /* ---- Municipios (con estado) ---- */
     public function municipios(): void {
-        $this->guard();
+        $this->guardSistema();
         $editId  = $this->stateInt('edit', 'catalogos.municipios');
         $fPais   = $this->stateInt('f_pais', 'catalogos.municipios');
         $fEstado = $this->stateInt('f_estado', 'catalogos.municipios');
@@ -206,7 +206,7 @@ class CatalogosController extends Controller {
         ]);
     }
     public function municipiosGuardar(): void {
-        $this->guard();
+        $this->guardSistema();
         $id = $this->intOrNull($_POST['id'] ?? null);
         $n = $this->input('nombre');
         // El estado se toma del filtro (ya no hay combo en el formulario).
@@ -222,7 +222,7 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/municipios');
     }
     public function municipiosEliminar(): void {
-        $this->guard();
+        $this->guardSistema();
         try { MunicipioModel::baja((int)$this->input('id')); $this->flash('ok','Registro eliminado.'); }
         catch (Throwable $e) { $this->flash('error','No se pudo eliminar: ' . $e->getMessage()); }
         $this->clearState('edit', 'catalogos.municipios');
