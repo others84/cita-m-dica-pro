@@ -274,6 +274,7 @@ class CatalogosController extends Controller {
             $todos = array_values(array_filter(
                 $todos,
                 fn($u) => in_array((int)($u['id_CLINICA'] ?? 0), $permitidas, true)
+                    && $this->rolOperativo((string)($u['rol'] ?? ''))
             ));
         }
         $rows = $todos;
