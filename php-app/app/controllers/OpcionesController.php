@@ -209,7 +209,6 @@ class OpcionesController extends Controller {
     private function usuariosDeClinicas(array $ctx): array {
         $idsAdmin = array_map(fn($c) => (int)$c['id_CLINICA'], $ctx['clinicasFiltro'] ?? []);
         if (empty($idsAdmin)) return [];
-        $yo = (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
         $out = [];
         $vistos = [];
         foreach (UsuarioModel::listar() as $u) {
