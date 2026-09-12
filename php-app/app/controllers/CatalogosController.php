@@ -325,6 +325,12 @@ class CatalogosController extends Controller {
         $nombre  = $this->input('nombre_completo');
         $email   = $this->input('email');
         $pass    = $this->input('password');
+        // El administrador de clinica solo puede asignar roles asistente o medico.
+        $rolesOk = array_map(fn($r) => (int)$r['id_ROLES'], $this->rolesPermitidos());
+        if (!in_array($idRol, $rolesOk, true)) {
+            $this->denegarRecurso('rol', $idRol, $idCli, 'catalogos/usuarios');
+            return;
+        }
         // El administrador de clinica solo opera sobre sus propias clinicas.
         if (!$this->clinicaPermitida($idCli === null ? null : (int)$idCli)) {
             $this->denegarRecurso('usuario', $id ?? 'nuevo', $idCli, 'catalogos/usuarios');
