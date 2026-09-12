@@ -242,6 +242,24 @@ class CatalogosController extends Controller {
         $this->redirect('catalogos/municipios');
     }
 
+    /** True si el rol indicado es asistente o medico (unicos permitidos al admin de clinica). */
+    private function rolOperativo(string $nombre): bool {
+        $n = strtolower($nombre);
+        return strpos($n, 'asistente') !== false
+            || strpos($n, 'medic') !== false
+            || strpos($n, 'médic') !== false;
+    }
+
+    /** Roles que el usuario actual puede asignar. */
+    private function rolesPermitidos(): array {
+        $roles = RolModel::listar();
+        if ($this->clinicasPermitidas() === null) return $roles;  // admin_sistema
+        return array_values(array_filter(
+            $roles,
+            fn($r) => $this->rolOperativo((string)($r['nombre'] ?? ''))
+        ));
+    }
+
     /* ---- Usuarios de clinica ---- */
     public function usuarios(): void {
         $this->guard();
@@ -256,6 +274,7 @@ class CatalogosController extends Controller {
             $todos = array_values(array_filter(
                 $todos,
                 fn($u) => in_array((int)($u['id_CLINICA'] ?? 0), $permitidas, true)
+                    && $this->rolOperativo((string)($u['rol'] ?? ''))
             ));
         }
         $rows = $todos;
@@ -293,7 +312,7 @@ class CatalogosController extends Controller {
         }
         $this->view('catalogos/usuarios', [
             'title'=>'Usuarios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'roles'=>RolModel::listar(), 'clinicas'=>$clinicas,
+            'roles'=>$this->rolesPermitidos(), 'clinicas'=>$clinicas,
             'fRol'=>$fRol, 'fClinica'=>$fClinica,
         ]);
     }
@@ -306,6 +325,12 @@ class CatalogosController extends Controller {
         $nombre  = $this->input('nombre_completo');
         $email   = $this->input('email');
         $pass    = $this->input('password');
+        // El administrador de clinica solo puede asignar roles asistente o medico.
+        $rolesOk = array_map(fn($r) => (int)$r['id_ROLES'], $this->rolesPermitidos());
+        if (!in_array($idRol, $rolesOk, true)) {
+            $this->denegarRecurso('rol', $idRol, $idCli, 'catalogos/usuarios');
+            return;
+        }
         // El administrador de clinica solo opera sobre sus propias clinicas.
         if (!$this->clinicaPermitida($idCli === null ? null : (int)$idCli)) {
             $this->denegarRecurso('usuario', $id ?? 'nuevo', $idCli, 'catalogos/usuarios');
