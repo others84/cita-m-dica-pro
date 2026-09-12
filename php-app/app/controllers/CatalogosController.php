@@ -11,6 +11,19 @@ require_once __DIR__ . '/../models/ClinicaModel.php';
 
 class CatalogosController extends Controller {
     private function guard(): void { $this->requireLogin(['administrador','admin_sistema']); }
+    /** Catalogos globales (paises, estados, municipios, generos, estados de cita): solo admin de sistema. */
+    private function guardSistema(): void { $this->requireLogin(['admin_sistema']); }
+
+    /** Clinica a la que pertenece un usuario del sistema (null si no existe). */
+    private function clinicaDeUsuario(int $idUsuario): ?int {
+        foreach (UsuarioModel::listar() as $u) {
+            if ((int)($u['id_USUARIOS'] ?? 0) === $idUsuario) {
+                $c = (int)($u['id_CLINICA'] ?? 0);
+                return $c > 0 ? $c : null;
+            }
+        }
+        return null;
+    }
 
     /**
      * Busca la fila a editar dentro del listado, tolerando diferencias de tipo
