@@ -101,8 +101,19 @@ class AuthController extends Controller {
         $valido = false; $error = null; $usuario = '';
 
         $reg = $token === '' ? null : PasswordResetModel::obtener($token);
-        if ($reg && (int)$reg['usado'] === 0 && (int)($reg['activo'] ?? 1) === 1
-            && strtotime((string)(is_object($reg['fecha_expira']) ? $reg['fecha_expira']->format('Y-m-d H:i:s') : $reg['fecha_expira'])) >= time()) {
+        // La vigencia la calcula SQL Server (segundos_restantes) para evitar
+        // falsos vencimientos cuando el reloj de PHP y el de la base difieren.
+        $vigente = false;
+        if ($reg) {
+            if (array_key_exists('segundos_restantes', $reg) && $reg['segundos_restantes'] !== null) {
+                $vigente = (int)$reg['segundos_restantes'] > 0;
+            } else {
+                $exp = $reg['fecha_expira'];
+                $exp = is_object($exp) ? $exp->format('Y-m-d H:i:s') : (string)$exp;
+                $vigente = strtotime($exp) >= time();
+            }
+        }
+        if ($reg && (int)$reg['usado'] === 0 && (int)($reg['activo'] ?? 1) === 1 && $vigente) {
             $valido = true;
             $usuario = (string)$reg['usuario'];
         } else {
