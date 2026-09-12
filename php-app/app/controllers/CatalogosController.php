@@ -250,7 +250,15 @@ class CatalogosController extends Controller {
         $fRol     = $this->stateInt('f_rol', $ns);
         $fClinica = $this->stateInt('f_clinica', $ns);
 
-        $rows = UsuarioModel::listar();
+        $permitidas = $this->clinicasPermitidas();   // null = admin_sistema
+        $todos = UsuarioModel::listar();
+        if ($permitidas !== null) {
+            $todos = array_values(array_filter(
+                $todos,
+                fn($u) => in_array((int)($u['id_CLINICA'] ?? 0), $permitidas, true)
+            ));
+        }
+        $rows = $todos;
 
         // Filtro por rol.
         if ($fRol !== null) {
@@ -269,15 +277,23 @@ class CatalogosController extends Controller {
 
         $editRow=null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
-        // Si no se encontro en el filtro actual, buscarlo en el listado completo.
+        // Si no se encontro en el filtro actual, buscarlo en el listado permitido.
         if ($editId && !$editRow) {
-            foreach (UsuarioModel::listar() as $r) {
+            foreach ($todos as $r) {
                 if ((int)$r['id_USUARIOS']===$editId) { $editRow=$r; break; }
             }
         }
+        // Solo las clinicas que el usuario tiene permitidas.
+        $clinicas = ClinicaModel::listar();
+        if ($permitidas !== null) {
+            $clinicas = array_values(array_filter(
+                $clinicas,
+                fn($c) => in_array((int)($c['id_CLINICA'] ?? 0), $permitidas, true)
+            ));
+        }
         $this->view('catalogos/usuarios', [
             'title'=>'Usuarios','rows'=>$rows,'editId'=>$editId,'editRow'=>$editRow,
-            'roles'=>RolModel::listar(), 'clinicas'=>ClinicaModel::listar(),
+            'roles'=>RolModel::listar(), 'clinicas'=>$clinicas,
             'fRol'=>$fRol, 'fClinica'=>$fClinica,
         ]);
     }
@@ -290,6 +306,15 @@ class CatalogosController extends Controller {
         $nombre  = $this->input('nombre_completo');
         $email   = $this->input('email');
         $pass    = $this->input('password');
+        // El administrador de clinica solo opera sobre sus propias clinicas.
+        if (!$this->clinicaPermitida($idCli === null ? null : (int)$idCli)) {
+            $this->denegarRecurso('usuario', $id ?? 'nuevo', $idCli, 'catalogos/usuarios');
+            return;
+        }
+        if ($id && !$this->clinicaPermitida($this->clinicaDeUsuario((int)$id))) {
+            $this->denegarRecurso('usuario', $id, null, 'catalogos/usuarios');
+            return;
+        }
         try {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idCli, $nombre, $email);
@@ -305,8 +330,12 @@ class CatalogosController extends Controller {
     }
     public function usuariosActivar(): void {
         $this->guard();
+        $idU = (int)$this->input('id');
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($idU))) {
+            $this->denegarRecurso('usuario', $idU, null, 'catalogos/usuarios');
+            return;
+        }
         try {
-            $idU = (int)$this->input('id');
             require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
             foreach (UsuarioClinicaModel::listarPorUsuario($idU) as $r) {
                 $this->validaCupoUsuario((int)$r['id_CLINICA'], $idU);
@@ -319,7 +348,12 @@ class CatalogosController extends Controller {
     }
     public function usuariosDesactivar(): void {
         $this->guard();
-        try { UsuarioModel::desactiva((int)$this->input('id')); $this->flash('ok','Desactivado.'); }
+        $idU = (int)$this->input('id');
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($idU))) {
+            $this->denegarRecurso('usuario', $idU, null, 'catalogos/usuarios');
+            return;
+        }
+        try { UsuarioModel::desactiva($idU); $this->flash('ok','Desactivado.'); }
         catch (Throwable $e) { $this->flash('error',$e->getMessage()); }
         $this->clearState('edit', 'catalogos.usuarios');
         $this->redirect('catalogos/usuarios');
@@ -330,6 +364,10 @@ class CatalogosController extends Controller {
         $id    = (int)$this->input('id');
         $quien = $_SESSION['user']['usuario'] ?? 'anonimo';
         Database::log("USUARIOS accion=ELIMINAR intento id_USUARIOS={$id} solicitado_por='{$quien}'");
+        if (!$this->clinicaPermitida($this->clinicaDeUsuario($id))) {
+            $this->denegarRecurso('usuario', $id, null, 'catalogos/usuarios');
+            return;
+        }
         try {
             UsuarioModel::baja($id);
             Database::log("USUARIOS accion=ELIMINAR resultado=OK id_USUARIOS={$id} solicitado_por='{$quien}'");
