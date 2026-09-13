@@ -83,6 +83,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if ($rol === 'medico'): ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
+        <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'opciones/apariencia'], $__cur) ?>>
           <summary>Configuración</summary>
