@@ -60,13 +60,13 @@ if (!isset($editRow)) {
     <label>Nombre(s) <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
     <label>Telefono <input name="telefono" required value="<?= htmlspecialchars($editRow['telefono'] ?? '') ?>"></label>
-    <label>Email <input type="email" name="email" required value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
+    <label>Email (opcional) <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
     <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= htmlspecialchars($fn) ?>"></label>
     <label>Genero
       <select name="id_CATALOGO_GENERO" required>
         <option value="">--</option>
         <?php foreach ($generos as $g): ?>
-          <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_GENERO']??0)===(int)$g['id_CATALOGO_GENERO']?'selected':'' ?>>
+          <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= $selGenero===(int)$g['id_CATALOGO_GENERO']?'selected':'' ?>>
             <?= htmlspecialchars($g['nombre']) ?>
           </option>
         <?php endforeach; ?>
