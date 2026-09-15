@@ -14,6 +14,25 @@ foreach ($municipios as $mu) {
 $selMun    = isset($editRow) ? (int)($editRow['id_CATALOGO_MUNICIPIO'] ?? 0) : 0;
 $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
+
+// Comparacion de nombres sin acentos ni mayusculas (para valores por defecto).
+$normaliza = function ($t) {
+  $t = strtr((string)$t, [
+    'Á'=>'A','É'=>'E','Í'=>'I','Ó'=>'O','Ú'=>'U','Ü'=>'U','Ñ'=>'N',
+    'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n',
+  ]);
+  return strtolower(trim($t));
+};
+// Paciente nuevo: Genero "Femenino" y Pais "Mexico" preseleccionados.
+$selGenero = isset($editRow) ? (int)($editRow['id_CATALOGO_GENERO'] ?? 0) : 0;
+if (!isset($editRow)) {
+  foreach ($generos as $g) {
+    if ($normaliza($g['nombre'] ?? '') === 'femenino') { $selGenero = (int)$g['id_CATALOGO_GENERO']; break; }
+  }
+  foreach ($paises as $p) {
+    if ($normaliza($p['nombre'] ?? '') === 'mexico') { $selPais = (int)$p['id_CATALOGO_PAIS']; break; }
+  }
+}
 ?>
 <?php $controller='pacientes'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <?php if (class_exists('Database')) {

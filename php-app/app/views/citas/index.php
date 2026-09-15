@@ -33,7 +33,6 @@
     <?php post_button('citas/filtrar', ['f_fecha' => '', 'f_estado' => ''], 'Limpiar filtros', 'btn btn-sec'); ?>
   </div>
 </div>
-<?php endif; ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)">Citas registradas</h2>
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>
