@@ -12,7 +12,6 @@
       echo '</th>';
   };
 ?>
-<?php if ($rol !== 'medico'): ?>
 <div class="card" style="margin-bottom:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Filtros de citas</h3>
   <form method="post" action="<?= url('citas/filtrar') ?>" class="form-grid"><?= csrf_field() ?>
@@ -34,7 +33,6 @@
     <?php post_button('citas/filtrar', ['f_fecha' => '', 'f_estado' => ''], 'Limpiar filtros', 'btn btn-sec'); ?>
   </div>
 </div>
-<?php endif; ?>
 <div class="toolbar">
   <h2 style="margin:0;color:var(--c5)">Citas registradas</h2>
   <a class="btn" href="<?= url('citas/nueva') ?>">+ Agendar cita</a>

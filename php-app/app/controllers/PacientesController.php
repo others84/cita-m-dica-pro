@@ -219,7 +219,9 @@ class PacientesController extends Controller {
         if ($fnac === '') $faltantes[] = 'fecha de nacimiento';
         if ($idGen <= 0) $faltantes[] = 'genero';
         if ($idMun <= 0) $faltantes[] = 'municipio';
-        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) $faltantes[] = 'email valido';
+        // El email es opcional: solo se valida el formato cuando viene capturado.
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $faltantes[] = 'email valido';
+        if ($email === '') $notifEmail = 0; // sin correo no hay a donde notificar
         if ($faltantes) {
             $msg = 'Faltan datos obligatorios: ' . implode(', ', $faltantes) . '.';
             if (class_exists('Database')) Database::log('PACIENTES.guardar VALIDACION user=' . ($_SESSION['user']['usuario'] ?? '?') . ' ' . $msg);

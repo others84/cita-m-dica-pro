@@ -14,6 +14,25 @@ foreach ($municipios as $mu) {
 $selMun    = isset($editRow) ? (int)($editRow['id_CATALOGO_MUNICIPIO'] ?? 0) : 0;
 $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
+
+// Comparacion de nombres sin acentos ni mayusculas (para valores por defecto).
+$normaliza = function ($t) {
+  $t = strtr((string)$t, [
+    'Á'=>'A','É'=>'E','Í'=>'I','Ó'=>'O','Ú'=>'U','Ü'=>'U','Ñ'=>'N',
+    'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n',
+  ]);
+  return strtolower(trim($t));
+};
+// Paciente nuevo: Genero "Femenino" y Pais "Mexico" preseleccionados.
+$selGenero = isset($editRow) ? (int)($editRow['id_CATALOGO_GENERO'] ?? 0) : 0;
+if (!isset($editRow)) {
+  foreach ($generos as $g) {
+    if ($normaliza($g['nombre'] ?? '') === 'femenino') { $selGenero = (int)$g['id_CATALOGO_GENERO']; break; }
+  }
+  foreach ($paises as $p) {
+    if ($normaliza($p['nombre'] ?? '') === 'mexico') { $selPais = (int)$p['id_CATALOGO_PAIS']; break; }
+  }
+}
 ?>
 <?php $controller='pacientes'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <?php if (class_exists('Database')) {
@@ -41,13 +60,13 @@ $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
     <label>Nombre(s) <input name="nombre" required value="<?= htmlspecialchars($editRow['nombre'] ?? '') ?>"></label>
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
     <label>Telefono <input name="telefono" required value="<?= htmlspecialchars($editRow['telefono'] ?? '') ?>"></label>
-    <label>Email <input type="email" name="email" required value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
+    <label>Email (opcional) <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
     <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= htmlspecialchars($fn) ?>"></label>
     <label>Genero
       <select name="id_CATALOGO_GENERO" required>
         <option value="">--</option>
         <?php foreach ($generos as $g): ?>
-          <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= isset($editRow)&&(int)($editRow['id_CATALOGO_GENERO']??0)===(int)$g['id_CATALOGO_GENERO']?'selected':'' ?>>
+          <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= $selGenero===(int)$g['id_CATALOGO_GENERO']?'selected':'' ?>>
             <?= htmlspecialchars($g['nombre']) ?>
           </option>
         <?php endforeach; ?>
