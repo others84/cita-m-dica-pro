@@ -368,6 +368,9 @@ window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JS
     if (frm) frm.addEventListener('submit', function () { calc(); });
     calc();
     resumen();
+    /* Si ya hay fecha y hora (ej. tras un error de validacion), muestra los pasos 4 y 5. */
+    var fe2 = document.getElementById('f_fecha'), hi2 = document.getElementById('f_hi');
+    if (fe2 && hi2 && fe2.value && hi2.value) mostrarPasosRestantes();
   })();
 
   /* Calendario del medico */
