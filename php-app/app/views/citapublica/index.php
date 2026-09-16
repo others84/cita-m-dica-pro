@@ -172,7 +172,10 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <?php if (!$idMedico): ?>
       <p class="ayuda">Primero elige un medico arriba para ver sus horarios.</p>
     <?php else: ?>
-      <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
+      <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados o no hay consulta.</p>
+      <?php if (!empty($diasBloqueados)): ?>
+        <p class="ayuda">Dias en los que este medico <strong>no da consulta</strong>: <?= htmlspecialchars(implode(', ', array_map(fn($f) => date('d/m/Y', strtotime($f)), array_slice($diasBloqueados, 0, 20)))) ?><?= count($diasBloqueados) > 20 ? ', ...' : '' ?>.</p>
+      <?php endif; ?>
       <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
       <p class="ayuda">Este medico atiende de lunes a viernes, de <strong><?= htmlspecialchars((string)($horario['hora_inicio'] ?? '')) ?></strong> a <strong><?= htmlspecialchars((string)($horario['hora_fin'] ?? '')) ?></strong><?php if (!empty($horario['comida_inicio']) && !empty($horario['comida_fin'])): ?>, y come de <strong><?= htmlspecialchars($horario['comida_inicio']) ?></strong> a <strong><?= htmlspecialchars($horario['comida_fin']) ?></strong> (en ese rato no hay consultas)<?php endif; ?>.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
