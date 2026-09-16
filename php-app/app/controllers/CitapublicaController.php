@@ -13,6 +13,7 @@ require_once __DIR__ . '/../models/EstadoModel.php';
 require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/LogModel.php';
 require_once __DIR__ . '/../models/HorarioMedicoModel.php';
+require_once __DIR__ . '/../models/DiaBloqueadoModel.php';
 
 /**
  * Pagina publica (sin sesion) para que un paciente agende su cita.
@@ -59,7 +60,13 @@ class CitapublicaController extends Controller {
         $eventos = $idClinica && $idMedico ? $this->eventosMedico($idMedico, $idClinica) : [];
         // Horario de atencion del medico (limita solo la cita publica).
         $horario = $idMedico ? HorarioMedicoModel::porMedico($idMedico) : HorarioMedicoModel::porDefecto();
-        if ($idMedico) $eventos = array_merge($eventos, $this->eventosComida($horario));
+        // Dias en los que el medico no da consulta (solo limitan la cita publica).
+        $diasBloqueados = $idMedico ? DiaBloqueadoModel::fechasFuturas($idMedico) : [];
+        if ($idMedico) {
+            $eventos = array_merge($eventos, $this->eventosComida($horario),
+                                   $this->eventosBloqueados($diasBloqueados, $horario));
+        }
+
 
         $this->render([
             'clinicas'       => $clinicas,
