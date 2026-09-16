@@ -405,6 +405,10 @@ window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JS
   function permitido(s) {
     var d = s.getDay();
     if (d === 0 || d === 6) { alert('Solo puedes agendar de lunes a viernes.'); return false; }
+    var BLOQ = window.DIAS_BLOQUEADOS || [];
+    if (BLOQ.indexOf(fecha(s)) !== -1) {
+      alert('El medico no da consulta ese dia. Elige otro dia en el calendario.'); return false;
+    }
     var ini = s.getHours() * 60, fin = ini + 60;
     if (ini < min(HOR.hora_inicio) || fin > min(HOR.hora_fin)) {
       alert('El medico atiende de ' + HOR.hora_inicio + ' a ' + HOR.hora_fin + '.'); return false;
