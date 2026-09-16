@@ -85,22 +85,22 @@ if (!function_exists('wa_numero')) {
 }
 
 if (!function_exists('wa_mensaje')) {
-    /** Construye el texto del recordatorio de cita para WhatsApp. */
+    /**
+     * Construye el texto del recordatorio de cita para WhatsApp usando la
+     * plantilla del medico de la cita (variables con prefijo @@).
+     */
     function wa_mensaje(array $c): string {
-        $f = $c['fecha_cita'] instanceof DateTime
-            ? $c['fecha_cita']->format('d/m/Y')
-            : date('d/m/Y', strtotime(substr((string)$c['fecha_cita'], 0, 10)));
-        $hi = $c['hora_inicio'] instanceof DateTime
-            ? $c['hora_inicio']->format('H:i')
-            : substr((string)$c['hora_inicio'], 0, 5);
-        return 'Estimado usuario, su cita en la clinica ' . trim((string)($c['clinica'] ?? ''))
-            . ' con el medico ' . trim((string)($c['medico'] ?? ''))
-            . ' con la especialidad ' . trim((string)($c['especialidad'] ?? ''))
-            . ' el dia ' . $f
-            . ' a la hora ' . $hi
-            . '. Favor de confirmar por este medio';
+        require_once __DIR__ . '/../models/MensajeMedicoModel.php';
+        static $cache = [];
+        $idMedico = (int)($c['id_MEDICO'] ?? 0);
+        if (!array_key_exists($idMedico, $cache)) {
+            try { $cache[$idMedico] = MensajeMedicoModel::porMedico($idMedico); }
+            catch (Throwable $e) { $cache[$idMedico] = MensajeMedicoModel::porDefecto(); }
+        }
+        return MensajeMedicoModel::aplicar($cache[$idMedico], $c);
     }
 }
+
 
 if (!function_exists('wa_link')) {
     /** Devuelve el enlace wa.me con el mensaje de la cita, o '' si no hay telefono. */
