@@ -32,6 +32,9 @@ El texto personalizado del médico de la cita se usa en el botón WhatsApp de **
 
 ## Detalles técnicos
 
+- Validación de pertenencia: el médico al que se le edita el texto SIEMPRE debe pertenecer a una clínica permitida para el usuario. La lista se arma con `UsuarioModel::listarMedicos()` sobre las clínicas del contexto; si el médico no aparece ahí (sin clínica o de otra clínica), no se muestra, no se puede guardar y el intento se registra en la bitácora. Si el rol es `medico`, además debe ser él mismo.
+
+
 - Nuevo parche `php-app/sql/patches/2026-09-16_mensaje_whatsapp_medico.sql`: tabla `citas.MENSAJE_MEDICO` (`id_MENSAJE_MEDICO`, `id_USUARIOS` único, `plantilla VARCHAR(1000)`, auditoría), SP `spRegresaMensajeMedico` (uno o todos) y `spGuardaMensajeMedico` (upsert + renglón en `citas.LOG`), con `GRANT EXECUTE` a `citasadmin`. Mismo patrón que `HORARIO_MEDICO`. Se refleja también en `php-app/sql/schema.sql`.
 - Nuevo `php-app/app/models/MensajeMedicoModel.php`: `todos()`, `porMedico($id)`, `guardar()`, `porDefecto()`.
 - Nuevo `php-app/app/controllers/MensajesController.php` (`index`, `guardar`), roles `medico`, `asistente`, `administrador`; reutiliza `resolveClinicaContext()` y `UsuarioModel::listarMedicos()`, filtra al médico autenticado cuando el rol es `medico` y valida que el médico editado esté en la lista visible (igual que `HorariosController`). Límite 1000 caracteres y CSRF.
