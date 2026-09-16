@@ -81,6 +81,7 @@ class CitapublicaController extends Controller {
             'especialidadNom'=> $genEsp['nombre'] ?? '',
             'eventos'        => $eventos,
             'horario'        => $horario,
+            'diasBloqueados' => $diasBloqueados,
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
             'coincidencias'  => (array)$this->get('coincidencias', []),
@@ -160,6 +161,22 @@ class CitapublicaController extends Controller {
         }
         return $out;
     }
+
+    /** Dias completos en los que el medico no da consulta. */
+    private function eventosBloqueados(array $fechas, array $horario): array {
+        $hi = (string)($horario['hora_inicio'] ?? '07:00');
+        $hf = (string)($horario['hora_fin'] ?? '21:00');
+        $out = [];
+        foreach ($fechas as $f) {
+            $f = substr((string)$f, 0, 10);
+            if ($f === '') continue;
+            $out[] = ['id' => 'bloqueado-' . $f, 'title' => 'No hay consulta',
+                      'start' => $f . 'T' . $hi . ':00', 'end' => $f . 'T' . $hf . ':00',
+                      'color' => '#cbd5e1'];
+        }
+        return $out;
+    }
+
 
 
 
