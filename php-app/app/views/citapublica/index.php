@@ -7,6 +7,15 @@ foreach ($municipios as $mu) { $estadoPorMun[(int)$mu['id_CATALOGO_MUNICIPIO']] 
 $selMun    = (int)($paciente['id_CATALOGO_MUNICIPIO'] ?? 0);
 $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
+// Valores por defecto para paciente nuevo: Genero Femenino, Pais Mexico.
+$selGenero = (int)($paciente['id_CATALOGO_GENERO'] ?? 0);
+$norm = fn($s) => strtolower(strtr(trim((string)$s), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ñ'=>'n']));
+if ($selGenero === 0) {
+    foreach ($generos as $g) { if ($norm($g['nombre'] ?? '') === 'femenino') { $selGenero = (int)$g['id_CATALOGO_GENERO']; break; } }
+}
+if ($selPais === 0) {
+    foreach ($paises as $p) { if ($norm($p['nombre'] ?? '') === 'mexico') { $selPais = (int)$p['id_CATALOGO_PAIS']; break; } }
+}
 $v = fn($k) => htmlspecialchars((string)($paciente[$k] ?? ''));
 $soloLectura = $idPaciente > 0;
 ?>
@@ -145,7 +154,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
         <label>Medico
           <select name="id_MEDICO" required onchange="this.form.submit()">
+            <?php if (count($medicos) !== 1): ?>
             <option value="">-- seleccione --</option>
+            <?php endif; ?>
             <?php foreach ($medicos as $m): ?>
               <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= $idMedico === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
@@ -217,7 +228,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           <select name="id_CATALOGO_GENERO" required <?= $soloLectura ? 'disabled' : '' ?>>
             <option value="">--</option>
             <?php foreach ($generos as $g): ?>
-              <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= (int)($paciente['id_CATALOGO_GENERO'] ?? 0) === (int)$g['id_CATALOGO_GENERO'] ? 'selected' : '' ?>>
+              <option value="<?= (int)$g['id_CATALOGO_GENERO'] ?>" <?= $selGenero === (int)$g['id_CATALOGO_GENERO'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($g['nombre']) ?>
               </option>
             <?php endforeach; ?>
