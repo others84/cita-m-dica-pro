@@ -48,6 +48,11 @@ class CitapublicaController extends Controller {
             $ids = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
             if (!in_array($idMedico, $ids, true)) { $idMedico = null; $this->set('id_MEDICO', 0); }
         }
+        // Si la clinica seleccionada tiene un solo medico, se selecciona directamente.
+        if (!empty($medicos) && count($medicos) === 1 && empty($idMedico)) {
+            $idMedico = (int)$medicos[0]['id_USUARIOS'];
+            $this->set('id_MEDICO', $idMedico);
+        }
 
         // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
         $genCons = $idClinica ? $this->buscaGenerico($consultorios, 'id_CONSULTORIO') : null;
