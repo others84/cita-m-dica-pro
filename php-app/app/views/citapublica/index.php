@@ -209,8 +209,8 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           <span class="ayuda">Calle, numero y colonia.</span></label>
         <label>Celular <input name="telefono" required maxlength="20" value="<?= $paciente ? $v('telefono') : htmlspecialchars($telefono) ?>" <?= $soloLectura ? 'readonly' : '' ?>>
           <span class="ayuda">10 numeros, sin espacios. Ejemplo: 2221234567.</span></label>
-        <label>Email <input type="email" name="email" required maxlength="120" value="<?= $v('email') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
-          <span class="ayuda">Tu correo, como nombre@correo.com. Si no tienes, pide ayuda en la clinica.</span></label>
+        <label>Email (opcional) <input type="email" name="email" maxlength="120" value="<?= $v('email') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
+          <span class="ayuda">Tu correo, como nombre@correo.com. Si no tienes, puedes dejarlo en blanco.</span></label>
         <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= $v('fecha_nacimiento') ?>" <?= $soloLectura ? 'readonly' : '' ?>>
           <span class="ayuda">Dia, mes y ano en que naciste.</span></label>
         <label>Genero
