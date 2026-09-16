@@ -2945,25 +2945,12 @@ GRANT EXECUTE ON OBJECT::citas.spCuentaOtpCitaPublica TO citasadmin;
 GO
 GO
 
-IF OBJECT_ID('citas.MENSAJE_MEDICO', 'U') IS NULL
-BEGIN
-    CREATE TABLE citas.MENSAJE_MEDICO (
-        id_MENSAJE_MEDICO        INT IDENTITY(1,1) NOT NULL,
-        id_USUARIOS              INT               NOT NULL,
-        plantilla                VARCHAR(1000)     NOT NULL,
-        id_usuario_creacion      TINYINT           NOT NULL,
-        fecha_creacion           SMALLDATETIME     NOT NULL,
-        id_usuario_modificacion  TINYINT           NULL,
-        fecha_modificacion       SMALLDATETIME     NULL,
-        CONSTRAINT PK_id_MENSAJE_MEDICO PRIMARY KEY (id_MENSAJE_MEDICO),
-        CONSTRAINT CHK_plantilla_MENSAJE_MEDICO CHECK (LEN(LTRIM(RTRIM(plantilla))) > 0),
-        CONSTRAINT FK_id_USUARIOS_USUARIOS_id_USUARIOS_MENSAJE_MEDICO
-            FOREIGN KEY (id_USUARIOS) REFERENCES citas.USUARIOS(id_USUARIOS)
-    );
-
-    CREATE UNIQUE INDEX IX_id_USUARIOS_MENSAJE_MEDICO
-        ON citas.MENSAJE_MEDICO(id_USUARIOS);
-END
+/* ---------- Texto de notificacion de WhatsApp por medico ----------
+   Se guarda en la propia tabla USUARIOS (un texto por usuario medico).
+   Variables con prefijo @@ (@@CLINICA, @@MEDICO, @@PACIENTE,
+   @@ESPECIALIDAD, @@CONSULTORIO, @@FECHA, @@HORA).                  */
+IF COL_LENGTH('citas.USUARIOS', 'mensaje_whatsapp') IS NULL
+    ALTER TABLE citas.USUARIOS ADD mensaje_whatsapp VARCHAR(1000) NULL;
 GO
 
 /* Regresa el texto de un medico o de todos (cuando @id_USUARIOS es NULL). */
@@ -2972,17 +2959,16 @@ CREATE OR ALTER PROCEDURE citas.spRegresaMensajeMedico
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT  m.id_MENSAJE_MEDICO,
-            m.id_USUARIOS,
-            m.plantilla,
+    SELECT  u.id_USUARIOS,
+            u.mensaje_whatsapp AS plantilla,
             u.nombre_completo
-    FROM citas.MENSAJE_MEDICO m
-    INNER JOIN citas.USUARIOS u ON u.id_USUARIOS = m.id_USUARIOS
-    WHERE (@id_USUARIOS IS NULL OR m.id_USUARIOS = @id_USUARIOS);
+    FROM citas.USUARIOS u
+    WHERE LEN(LTRIM(RTRIM(ISNULL(u.mensaje_whatsapp, '')))) > 0
+      AND (@id_USUARIOS IS NULL OR u.id_USUARIOS = @id_USUARIOS);
 END
 GO
 
-/* Alta o cambio del texto del medico (un solo renglon por medico). */
+/* Guarda el texto del medico en su propio renglon de USUARIOS. */
 CREATE OR ALTER PROCEDURE citas.spGuardaMensajeMedico
     @id_USUARIOS INT,
     @plantilla   VARCHAR(1000),
@@ -3011,15 +2997,9 @@ BEGIN
         RETURN;
     END
 
-    IF EXISTS (SELECT 1 FROM citas.MENSAJE_MEDICO WHERE id_USUARIOS = @id_USUARIOS)
-        UPDATE citas.MENSAJE_MEDICO
-           SET plantilla = @plantilla,
-               id_usuario_modificacion = @id_usuario,
-               fecha_modificacion = GETDATE()
-         WHERE id_USUARIOS = @id_USUARIOS;
-    ELSE
-        INSERT INTO citas.MENSAJE_MEDICO(id_USUARIOS, plantilla, id_usuario_creacion, fecha_creacion)
-        VALUES(@id_USUARIOS, @plantilla, @id_usuario, GETDATE());
+    UPDATE citas.USUARIOS
+       SET mensaje_whatsapp = @plantilla
+     WHERE id_USUARIOS = @id_USUARIOS;
 
     /* --------- Bitacora --------- */
     DECLARE @medico VARCHAR(150) = (SELECT nombre_completo FROM citas.USUARIOS WHERE id_USUARIOS = @id_USUARIOS);
@@ -3027,7 +3007,7 @@ BEGIN
                               + '": ' + LEFT(@plantilla, 500);
 
     INSERT INTO citas.LOG(modulo, procedimiento, tabla, evento, fecha, id_usuario)
-    VALUES('MENSAJE', 'spGuardaMensajeMedico', 'MENSAJE_MEDICO', @ev, GETDATE(), @id_usuario);
+    VALUES('MENSAJE', 'spGuardaMensajeMedico', 'USUARIOS', @ev, GETDATE(), @id_usuario);
 END
 GO
 
