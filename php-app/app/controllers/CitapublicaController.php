@@ -96,6 +96,8 @@ class CitapublicaController extends Controller {
             'paciente'       => (array)$this->get('paciente', []),
             'idPaciente'     => (int)$this->get('id_PACIENTE', 0),
             'obsCita'        => (string)$this->get('obs_cita', ''),
+            'fechaCita'      => (string)$this->get('fecha_cita', ''),
+            'horaInicio'     => (string)$this->get('hora_inicio', ''),
             'generos'        => $this->cat(fn() => GeneroModel::listar()),
             'paises'         => $this->cat(fn() => PaisModel::listar()),
             'estados'        => $this->cat(fn() => EstadoModel::listar()),
@@ -474,6 +476,10 @@ class CitapublicaController extends Controller {
                 $hf = sprintf('%02d:00', $h + 1);
             } else { $hi = ''; }
         } else { $hi = ''; }
+
+        // Conserva la fecha/hora elegidas para no perderlas tras un error de validacion.
+        $this->set('fecha_cita', $fecha);
+        $this->set('hora_inicio', $hi);
 
         // Consultorio y especialidad SIEMPRE GENERICO (tomados de la BD).
         $genCons = $genEsp = null;
