@@ -72,12 +72,14 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'opciones/apariencia'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
           <summary>Configuración</summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
+          <?= nav_link('mensajes', 'Texto de notificación', $__cur) ?>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
         </details>
+
       <?php endif; ?>
 
       <?php if ($rol === 'medico'): ?>
@@ -85,12 +87,14 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'opciones/apariencia'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
           <summary>Configuración</summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
+          <?= nav_link('mensajes', 'Texto de notificación', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
         </details>
+
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion'], $__cur) ?>>
           <summary>Reportes</summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
@@ -111,13 +115,15 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
         </details>
-        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'mensajes', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
           <summary>Configuración</summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
+          <?= nav_link('mensajes', 'Texto de notificación', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/passwordUsuarios', 'Contraseña de usuarios', $__cur) ?>
         </details>
+
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
           <summary>Reportes</summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
