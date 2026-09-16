@@ -583,7 +583,12 @@ class CitapublicaController extends Controller {
                       'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
                 if (trim((string)$p[$k]) === '') $err[] = 'Falta tu ' . $lbl . '. Escribelo para continuar.';
             }
-            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            if (trim($p['email']) !== '' && !filter_var($p['email'], FILTER_VALIDATE_EMAIL)) {
+                $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            }
+            if (trim($p['email']) === '') {
+                $p['notifica_email'] = 0; // sin correo no se puede notificar
+            }
             if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Falta elegir tu sexo en la lista.';
             if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Falta tu lugar: elige primero el pais, luego el estado y al final el municipio.';
         }
