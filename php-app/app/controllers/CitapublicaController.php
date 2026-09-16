@@ -13,6 +13,7 @@ require_once __DIR__ . '/../models/EstadoModel.php';
 require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/LogModel.php';
 require_once __DIR__ . '/../models/HorarioMedicoModel.php';
+require_once __DIR__ . '/../models/DiaBloqueadoModel.php';
 
 /**
  * Pagina publica (sin sesion) para que un paciente agende su cita.
@@ -59,7 +60,13 @@ class CitapublicaController extends Controller {
         $eventos = $idClinica && $idMedico ? $this->eventosMedico($idMedico, $idClinica) : [];
         // Horario de atencion del medico (limita solo la cita publica).
         $horario = $idMedico ? HorarioMedicoModel::porMedico($idMedico) : HorarioMedicoModel::porDefecto();
-        if ($idMedico) $eventos = array_merge($eventos, $this->eventosComida($horario));
+        // Dias en los que el medico no da consulta (solo limitan la cita publica).
+        $diasBloqueados = $idMedico ? DiaBloqueadoModel::fechasFuturas($idMedico) : [];
+        if ($idMedico) {
+            $eventos = array_merge($eventos, $this->eventosComida($horario),
+                                   $this->eventosBloqueados($diasBloqueados, $horario));
+        }
+
 
         $this->render([
             'clinicas'       => $clinicas,
@@ -74,6 +81,7 @@ class CitapublicaController extends Controller {
             'especialidadNom'=> $genEsp['nombre'] ?? '',
             'eventos'        => $eventos,
             'horario'        => $horario,
+            'diasBloqueados' => $diasBloqueados,
             'paso'           => (string)$this->get('paso', 'buscar'),
             'telefono'       => (string)$this->get('telefono', ''),
             'coincidencias'  => (array)$this->get('coincidencias', []),
@@ -153,6 +161,22 @@ class CitapublicaController extends Controller {
         }
         return $out;
     }
+
+    /** Dias completos en los que el medico no da consulta. */
+    private function eventosBloqueados(array $fechas, array $horario): array {
+        $hi = (string)($horario['hora_inicio'] ?? '07:00');
+        $hf = (string)($horario['hora_fin'] ?? '21:00');
+        $out = [];
+        foreach ($fechas as $f) {
+            $f = substr((string)$f, 0, 10);
+            if ($f === '') continue;
+            $out[] = ['id' => 'bloqueado-' . $f, 'title' => 'No hay consulta',
+                      'start' => $f . 'T' . $hi . ':00', 'end' => $f . 'T' . $hf . ':00',
+                      'color' => '#cbd5e1'];
+        }
+        return $out;
+    }
+
 
 
 
@@ -475,6 +499,10 @@ class CitapublicaController extends Controller {
         if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 2.';
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Aun no eliges dia. Toca un espacio en blanco del calendario.';
         if (!preg_match('/^\d{2}:00$/', $hi) || !preg_match('/^\d{2}:00$/', $hf)) $err[] = 'Aun no eliges horario. Toca un espacio en blanco del calendario y elige una hora completa, por ejemplo 11:00.';
+        // Dias bloqueados del medico (solo aplica a la cita publica).
+        if (!$err && DiaBloqueadoModel::bloqueado($idMedico, $fecha)) {
+            $err[] = 'El medico no da consulta el ' . date('d/m/Y', strtotime($fecha)) . '. Elige otro dia en el calendario.';
+        }
         // Horario de atencion del medico (solo aplica a la cita publica).
         if (!$err) {
             $ho = HorarioMedicoModel::porMedico($idMedico);

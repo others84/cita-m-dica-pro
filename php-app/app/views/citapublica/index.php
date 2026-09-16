@@ -172,7 +172,10 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <?php if (!$idMedico): ?>
       <p class="ayuda">Primero elige un medico arriba para ver sus horarios.</p>
     <?php else: ?>
-      <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados por otra persona.</p>
+      <p class="ayuda">Aqui ves los horarios del medico. Los espacios en gris ya estan ocupados o no hay consulta.</p>
+      <?php if (!empty($diasBloqueados)): ?>
+        <p class="ayuda">Dias en los que este medico <strong>no da consulta</strong>: <?= htmlspecialchars(implode(', ', array_map(fn($f) => date('d/m/Y', strtotime($f)), array_slice($diasBloqueados, 0, 20)))) ?><?= count($diasBloqueados) > 20 ? ', ...' : '' ?>.</p>
+      <?php endif; ?>
       <p class="ayuda">Toca un espacio en blanco del dia que quieras. La fecha y la hora se escribiran solas mas abajo. Solo puedes elegir horas completas (por ejemplo 11:00) y tu consulta dura 1 hora.</p>
       <p class="ayuda">Este medico atiende de lunes a viernes, de <strong><?= htmlspecialchars((string)($horario['hora_inicio'] ?? '')) ?></strong> a <strong><?= htmlspecialchars((string)($horario['hora_fin'] ?? '')) ?></strong><?php if (!empty($horario['comida_inicio']) && !empty($horario['comida_fin'])): ?>, y come de <strong><?= htmlspecialchars($horario['comida_inicio']) ?></strong> a <strong><?= htmlspecialchars($horario['comida_fin']) ?></strong> (en ese rato no hay consultas)<?php endif; ?>.</p>
       <div id="ec" class="calendar-box" style="height:640px;min-height:640px;width:100%;background:#fff">
@@ -290,6 +293,7 @@ foreach (($clinicas ?? []) as $c) { if ((int)($c['id_CLINICA'] ?? 0) === (int)$i
 window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 window.CITA_INFO = <?= json_encode(['medico' => $medNom, 'clinica' => $cliNom], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 window.HORARIO_MEDICO = <?= json_encode($horario ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script>
 (function () {
@@ -404,6 +408,10 @@ window.HORARIO_MEDICO = <?= json_encode($horario ?? [], JSON_HEX_TAG | JSON_HEX_
   function permitido(s) {
     var d = s.getDay();
     if (d === 0 || d === 6) { alert('Solo puedes agendar de lunes a viernes.'); return false; }
+    var BLOQ = window.DIAS_BLOQUEADOS || [];
+    if (BLOQ.indexOf(fecha(s)) !== -1) {
+      alert('El medico no da consulta ese dia. Elige otro dia en el calendario.'); return false;
+    }
     var ini = s.getHours() * 60, fin = ini + 60;
     if (ini < min(HOR.hora_inicio) || fin > min(HOR.hora_fin)) {
       alert('El medico atiende de ' + HOR.hora_inicio + ' a ' + HOR.hora_fin + '.'); return false;
