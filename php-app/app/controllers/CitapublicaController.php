@@ -96,6 +96,8 @@ class CitapublicaController extends Controller {
             'paciente'       => (array)$this->get('paciente', []),
             'idPaciente'     => (int)$this->get('id_PACIENTE', 0),
             'obsCita'        => (string)$this->get('obs_cita', ''),
+            'fechaCita'      => (string)$this->get('fecha_cita', ''),
+            'horaInicio'     => (string)$this->get('hora_inicio', ''),
             'generos'        => $this->cat(fn() => GeneroModel::listar()),
             'paises'         => $this->cat(fn() => PaisModel::listar()),
             'estados'        => $this->cat(fn() => EstadoModel::listar()),
@@ -475,6 +477,10 @@ class CitapublicaController extends Controller {
             } else { $hi = ''; }
         } else { $hi = ''; }
 
+        // Conserva la fecha/hora elegidas para no perderlas tras un error de validacion.
+        $this->set('fecha_cita', $fecha);
+        $this->set('hora_inicio', $hi);
+
         // Consultorio y especialidad SIEMPRE GENERICO (tomados de la BD).
         $genCons = $genEsp = null;
         try { $genCons = $this->buscaGenerico(ConsultorioModel::listar($idClinica), 'id_CONSULTORIO'); } catch (Throwable $e) {}
@@ -577,7 +583,12 @@ class CitapublicaController extends Controller {
                       'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
                 if (trim((string)$p[$k]) === '') $err[] = 'Falta tu ' . $lbl . '. Escribelo para continuar.';
             }
-            if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            if (trim($p['email']) !== '' && !filter_var($p['email'], FILTER_VALIDATE_EMAIL)) {
+                $err[] = 'Revisa tu correo. Debe ser como: nombre@correo.com';
+            }
+            if (trim($p['email']) === '') {
+                $p['notifica_email'] = 0; // sin correo no se puede notificar
+            }
             if ($p['id_CATALOGO_GENERO'] <= 0)    $err[] = 'Falta elegir tu sexo en la lista.';
             if ($p['id_CATALOGO_MUNICIPIO'] <= 0) $err[] = 'Falta tu lugar: elige primero el pais, luego el estado y al final el municipio.';
         }
