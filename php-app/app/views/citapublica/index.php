@@ -189,6 +189,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <input type="hidden" name="id_CONSULTORIO" value="<?= $idConsultorio ?: '' ?>">
     <input type="hidden" name="id_CATALOGO_ESPECIALIDAD" value="<?= $idEspecialidad ?: '' ?>">
 
+  <div id="pasos-restantes" hidden>
     <section class="card">
       <p class="paso-num">Paso 4 de 5</p>
       <h2>Tus datos</h2>
