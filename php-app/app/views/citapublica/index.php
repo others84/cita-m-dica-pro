@@ -9,7 +9,10 @@ $selEstado = $selMun ? ($estadoPorMun[$selMun] ?? 0) : 0;
 $selPais   = $selEstado ? ($paisPorEstado[$selEstado] ?? 0) : 0;
 // Valores por defecto para paciente nuevo: Genero Femenino, Pais Mexico.
 $selGenero = (int)($paciente['id_CATALOGO_GENERO'] ?? 0);
-$norm = fn($s) => strtolower(strtr(trim((string)$s), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ñ'=>'n']));
+$norm = fn($s) => strtolower(strtr(trim((string)$s), [
+  'Á'=>'A','É'=>'E','Í'=>'I','Ó'=>'O','Ú'=>'U','Ü'=>'U','Ñ'=>'N',
+  'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n',
+]));
 if ($selGenero === 0) {
     foreach ($generos as $g) { if ($norm($g['nombre'] ?? '') === 'femenino') { $selGenero = (int)$g['id_CATALOGO_GENERO']; break; } }
 }
