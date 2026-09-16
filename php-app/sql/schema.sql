@@ -2989,8 +2989,7 @@ BEGIN
         SELECT 1
         FROM citas.USUARIOS u
         WHERE u.id_USUARIOS = @id_USUARIOS
-          AND (u.id_CLINICA IS NOT NULL
-               OR EXISTS (SELECT 1 FROM citas.USUARIOS_CLINICA uc WHERE uc.id_USUARIOS = u.id_USUARIOS))
+          AND EXISTS (SELECT 1 FROM citas.USUARIOS_CLINICA uc WHERE uc.id_USUARIOS = u.id_USUARIOS)
     )
     BEGIN
         RAISERROR('El medico no existe o no pertenece a ninguna clinica.', 16, 1);
