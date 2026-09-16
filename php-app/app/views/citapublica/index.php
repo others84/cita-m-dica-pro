@@ -267,8 +267,8 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
       <h2>Revisa y confirma</h2>
       <p class="ayuda">Revisa que la fecha y la hora sean las que elegiste en el calendario.</p>
       <div class="form-grid">
-        <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>"></label>
-        <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" step="3600" required>
+        <label>Fecha <input type="date" id="f_fecha" name="fecha_cita" required min="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($fechaCita ?? '') ?>"></label>
+        <label>Hora inicio <input type="time" id="f_hi" name="hora_inicio" step="3600" required value="<?= htmlspecialchars($horaInicio ?? '') ?>">
           <span class="ayuda">Solo horas completas: 11:00, 12:00, etc.</span></label>
         <input type="hidden" id="f_hf" name="hora_fin">
       </div>
