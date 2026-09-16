@@ -1,37 +1,40 @@
-# Guardar el mensaje como campo, sin tabla nueva
+# Mensaje en USUARIOS y retiro del catálogo MEDICO
 
-## Respuesta corta
+## Qué se verificó
 
-Sí se puede, pero **no en la tabla `MEDICO`**: esa tabla ya no es la que identifica al médico de una cita. Desde el cambio en que las citas se asignan a *usuarios con perfil Médico*, la cita apunta a `USUARIOS`. El campo debe vivir en `USUARIOS`.
+- `citas.CITA.id_MEDICO` apunta a `citas.USUARIOS`, no a `citas.MEDICO`.
+- La pantalla "Médicos" ya trabaja **solo con usuarios de perfil médico** (`MedicosController` usa `UsuarioModel` y `UsuarioClinicaModel`).
+- `MedicoModel.php` (el único archivo que consulta `citas.MEDICO`) **no lo carga ningún controlador ni vista**: es código muerto.
+- `MEDICO_ESPECIALIDAD` no se lee en ninguna parte de la aplicación; las especialidades de citas vienen de `CATALOGO_ESPECIALIDAD`.
+- Horarios y textos de notificación ya se guardan por usuario (`HORARIO_MEDICO.id_USUARIOS`, `MENSAJE_MEDICO.id_USUARIOS`).
 
-## Situación actual (verificada)
+Conclusión: la tabla `MEDICO` (y su tabla de especialidades) quedó sin uso; mantenerla solo genera confusión.
 
-- `citas.CITA.id_MEDICO` tiene llave foránea hacia `citas.USUARIOS(id_USUARIOS)`, no hacia `citas.MEDICO`.
-- El texto de notificación se guarda hoy en la tabla `citas.MENSAJE_MEDICO`, una fila por usuario médico (índice único por `id_USUARIOS`).
-- Toda la aplicación lee y escribe ese texto únicamente a través de dos procedimientos: `spRegresaMensajeMedico` y `spGuardaMensajeMedico`. Ningún otro archivo consulta la tabla directamente.
+## Parte 1 — Mover el texto de notificación a USUARIOS
 
-Por eso el cambio se puede hacer **sin tocar código PHP**: basta con cambiar dónde guardan esos dos procedimientos.
+1. Agregar `mensaje_whatsapp VARCHAR(1000) NULL` a `citas.USUARIOS`.
+2. Reescribir `spRegresaMensajeMedico` y `spGuardaMensajeMedico` para leer/escribir esa columna, devolviendo las mismas columnas de hoy.
+3. Copiar los textos existentes de `MENSAJE_MEDICO` a la columna nueva y eliminar esa tabla.
+4. No se toca PHP: `MensajeMedicoModel`, `MensajesController` y las vistas siguen igual.
 
-## Propuesta
+## Parte 2 — Retirar el catálogo MEDICO
 
-1. Agregar a `citas.USUARIOS` la columna `mensaje_whatsapp VARCHAR(1000) NULL` (nula para quien no sea médico o no haya definido texto).
-2. Reescribir `spRegresaMensajeMedico` para que lea esa columna (devolviendo las mismas columnas `id_USUARIOS`, `plantilla`, para no alterar la aplicación).
-3. Reescribir `spGuardaMensajeMedico` como un `UPDATE` sobre `USUARIOS`, conservando la validación de texto no vacío y el registro en `LOG`.
-4. Migrar los textos ya capturados de `MENSAJE_MEDICO` a la nueva columna y eliminar la tabla.
-5. Actualizar `schema.sql` para que una instalación nueva ya nazca con la columna.
+1. Migrar (informativo) los nombres que aún existan en `citas.MEDICO` al `LOG`, como respaldo del retiro.
+2. Eliminar `citas.MEDICO_ESPECIALIDAD` y luego `citas.MEDICO`, junto con sus procedimientos: `spAltaMedico`, `spCambioMedico`, `spBajaMedico`, `spActivaMedico`, `spDesactivaMedico`, `spRegresaMedicos`, `spAltaMedicoEspecialidad`, `spBajaMedicoEspecialidad`, `spRegresaMedicoEspecialidades`.
+3. Borrar `php-app/app/models/MedicoModel.php` (código muerto).
+4. Quitar todo eso de `schema.sql` para que una instalación nueva ya no las cree.
 
-## Ventajas y costos
+La opción de menú "Médicos" **no cambia**: seguirá funcionando igual, porque se apoya en usuarios.
 
-- Ventaja: una tabla menos y una consulta menos; el texto viaja junto con el usuario.
-- Costo: la columna queda vacía para asistentes y administradores, y `USUARIOS` es una tabla consultada en cada inicio de sesión; un texto largo la hace un poco más pesada. Es un costo menor con estos volúmenes.
-- Se conserva la forma normal: el texto depende directamente del usuario, que es la llave.
+## Riesgo y reversa
+
+El script incluirá una verificación previa: si `citas.MEDICO` tiene filas con datos que no estén representados en usuarios médicos, el script se detiene y avisa, en lugar de borrar. Así no se pierde información capturada por error en la tabla vieja.
 
 ## Archivos a modificar, por prioridad
 
-1. `php-app/sql/patches/2026-09-16_mensaje_whatsapp_medico.sql` — se reemplaza por la versión con columna en `USUARIOS` (si ya lo ejecutaste, se incluye la migración de los textos y el borrado de la tabla).
-2. `php-app/sql/schema.sql` — columna nueva en `USUARIOS`, procedimientos actualizados, se retira `MENSAJE_MEDICO`.
-3. Sin cambios en PHP: `MensajeMedicoModel.php`, `MensajesController.php` y las vistas siguen funcionando igual.
+1. `php-app/sql/patches/2026-09-16_mensaje_whatsapp_medico.sql` — se reemplaza por la versión con columna en `USUARIOS` + migración desde `MENSAJE_MEDICO`.
+2. `php-app/sql/patches/2026-09-16_retiro_catalogo_medico.sql` (nuevo) — verificación y eliminación de `MEDICO`, `MEDICO_ESPECIALIDAD` y sus procedimientos.
+3. `php-app/sql/schema.sql` — columna nueva en `USUARIOS`; se retiran `MENSAJE_MEDICO`, `MEDICO`, `MEDICO_ESPECIALIDAD` y sus procedimientos.
+4. `php-app/app/models/MedicoModel.php` — se elimina.
 
-## Alternativa
-
-Si prefieres no tocar `USUARIOS`, dejar la tabla actual también es correcto y ya está funcionando; no hay ningún problema técnico con ella.
+Ambos scripts los ejecutas tú en el servidor; sugiero respaldo de la base antes del segundo.
