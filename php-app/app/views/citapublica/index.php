@@ -389,6 +389,10 @@ window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JS
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function fecha(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function hora(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function mostrarPasosRestantes() {
+    var r = document.getElementById('pasos-restantes');
+    if (r) r.hidden = false;
+  }
   function tomar(start) {
     var f = document.getElementById('f_fecha'), hi = document.getElementById('f_hi'), hf = document.getElementById('f_hf');
     if (!f) return;
@@ -397,6 +401,7 @@ window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JS
     if (!permitido(s)) return;
     var e = new Date(s.getTime() + 60 * 60000);
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
+    mostrarPasosRestantes();
     resumen();
     var box = document.getElementById('resumen-cita');
     (box || document.getElementById('form-cita')).scrollIntoView({ behavior: 'smooth', block: 'center' });
