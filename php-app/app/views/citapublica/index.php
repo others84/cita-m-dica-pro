@@ -279,6 +279,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
         <button class="btn btn-primary" type="submit">Confirmar mi cita</button>
       </div>
     </section>
+  </div>
   </form>
 <?php endif; ?>
 </main>
