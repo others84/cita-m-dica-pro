@@ -34,24 +34,48 @@ class CitapublicaController extends Controller {
         $idClinica = (int)$this->get('id_CLINICA', 0) ?: null;
         $idMedico  = (int)$this->get('id_MEDICO', 0) ?: null;
 
-        $clinicas = [];
-        try { $clinicas = array_values(array_filter(ClinicaModel::listar(), fn($c) => (int)($c['activo'] ?? 1) === 1)); }
+        $clinicasActivas = [];
+        try { $clinicasActivas = array_values(array_filter(ClinicaModel::listar(), fn($c) => (int)($c['activo'] ?? 1) === 1)); }
         catch (Throwable $e) { $this->flash('error', 'No se pudieron cargar las clinicas: ' . $e->getMessage()); }
 
-        $medicos = $consultorios = $especialidades = [];
-        if ($idClinica) {
-            try { $medicos        = UsuarioModel::listarMedicos($idClinica); } catch (Throwable $e) { $medicos = []; }
+        $medicos = [];
+        try { $medicos = UsuarioModel::listarMedicos(); } catch (Throwable $e) { $medicos = []; }
+        // Solo se publican medicos que pertenecen por lo menos a una clinica activa.
+        $clinicasPorMedico = [];
+        foreach ($clinicasActivas as $c) $clinicasPorMedico[(int)$c['id_CLINICA']] = $c;
+        $asignaciones = [];
+        try {
+            foreach (UsuarioModel::listar() as $u) {
+                $idU = (int)($u['id_USUARIOS'] ?? 0);
+                $idC = (int)($u['id_CLINICA'] ?? 0);
+                if ($idU > 0 && isset($clinicasPorMedico[$idC])) $asignaciones[$idU][$idC] = $clinicasPorMedico[$idC];
+            }
+        } catch (Throwable $e) { $asignaciones = []; }
+        $medicos = array_values(array_filter($medicos, fn($m) => !empty($asignaciones[(int)($m['id_USUARIOS'] ?? 0)])));
+
+        $idsMedicos = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
+        if ($idMedico && !in_array($idMedico, $idsMedicos, true)) {
+            $idMedico = null;
+            $idClinica = null;
+            $this->set('id_MEDICO', 0);
+            $this->set('id_CLINICA', 0);
+        }
+        $clinicas = $idMedico ? array_values($asignaciones[$idMedico] ?? []) : [];
+        usort($clinicas, fn($a, $b) => strcasecmp((string)($a['nombre'] ?? ''), (string)($b['nombre'] ?? '')));
+        $idsClinicas = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $clinicas);
+        if ($idClinica && !in_array($idClinica, $idsClinicas, true)) {
+            $idClinica = null;
+            $this->set('id_CLINICA', 0);
+        }
+        if ($idMedico && count($clinicas) === 1 && !$idClinica) {
+            $idClinica = (int)$clinicas[0]['id_CLINICA'];
+            $this->set('id_CLINICA', $idClinica);
+        }
+
+        $consultorios = $especialidades = [];
+        if ($idClinica && $idMedico) {
             try { $consultorios   = ConsultorioModel::listar($idClinica); }    catch (Throwable $e) { $consultorios = []; }
             try { $especialidades = EspecialidadModel::listar($idClinica); }   catch (Throwable $e) { $especialidades = []; }
-        }
-        if ($idMedico) {
-            $ids = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
-            if (!in_array($idMedico, $ids, true)) { $idMedico = null; $this->set('id_MEDICO', 0); }
-        }
-        // Si la clinica seleccionada tiene un solo medico, se selecciona directamente.
-        if (!empty($medicos) && count($medicos) === 1 && empty($idMedico)) {
-            $idMedico = (int)$medicos[0]['id_USUARIOS'];
-            $this->set('id_MEDICO', $idMedico);
         }
 
         // Consultorio y especialidad GENERICO de la clinica (obligatorios en la cita publica).
@@ -204,9 +228,15 @@ class CitapublicaController extends Controller {
         return [$f, $hi, $hf];
     }
 
-    /* ---------------- paso 1: paciente existente / nuevo ---------------- */
+    /* ---------------- paso 2: paciente existente / nuevo ---------------- */
 
     public function buscar(): void {
+        $idMedico = (int)$this->get('id_MEDICO', 0);
+        $idClinica = (int)$this->get('id_CLINICA', 0);
+        if ($idMedico <= 0 || $idClinica <= 0) {
+            $this->flash('error', 'Primero elige al medico y la clinica en el paso 1.');
+            $this->redirect('citapublica');
+        }
         $tel = (string)$this->input('telefono', '');
         $dig = PacienteModel::soloDigitos($tel);
         if (strlen($dig) < 10) {
@@ -214,14 +244,17 @@ class CitapublicaController extends Controller {
             $this->redirect('citapublica');
         }
         $this->reset();
+        $this->set('id_MEDICO', $idMedico);
+        $this->set('id_CLINICA', $idClinica);
         $this->set('telefono', $tel);
         try { $rows = PacienteModel::resumenPorTelefono($tel); }
         catch (Throwable $e) { $rows = []; $this->flash('error', 'No pudimos buscar tu numero en este momento. Intenta de nuevo en unos minutos.'); }
+        $rows = array_values(array_filter($rows, fn($p) => (int)($p['id_CLINICA'] ?? 0) === $idClinica));
 
         if (empty($rows)) {
             $this->set('paso', 'nuevo');
             $this->set('coincidencias', []);
-            $this->flash('info', 'No encontramos tu numero. No hay problema: elige tu clinica y llena tus datos abajo.');
+            $this->flash('info', 'No encontramos tu numero en esta clinica. No hay problema: llena tus datos para continuar.');
             $this->redirect('citapublica');
         }
         // Paciente existente: no se muestra ningun dato hasta verificar el codigo.
@@ -368,47 +401,60 @@ class CitapublicaController extends Controller {
         $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
                   'OTP VALIDADO: canal=' . (string)$this->get('otp_canal', '') . ' telefono=' . $telMask);
 
-        if (count($lista) === 1) {
-            $this->cargarPaciente((int)$lista[0]['id_PACIENTE'], (int)$lista[0]['id_CLINICA']);
-            $this->redirect('citapublica');
-        }
-        $this->set('paso', 'elige_clinica');
+        // La busqueda ya esta limitada a la clinica elegida en el paso 1.
+        $this->cargarPaciente((int)$lista[0]['id_PACIENTE'], (int)$lista[0]['id_CLINICA']);
         $this->redirect('citapublica');
     }
 
     /** Fuerza el alta de un paciente nuevo (boton "Soy paciente nuevo"). */
     public function nuevo(): void {
+        $idMedico = (int)$this->get('id_MEDICO', 0);
+        $idClinica = (int)$this->get('id_CLINICA', 0);
+        if ($idMedico <= 0 || $idClinica <= 0) { $this->redirect('citapublica'); }
         $tel = (string)$this->get('telefono', '');
         $this->reset();
+        $this->set('id_MEDICO', $idMedico);
+        $this->set('id_CLINICA', $idClinica);
         $this->set('telefono', $tel);
         $this->set('paso', 'nuevo');
         $this->redirect('citapublica');
     }
 
-    /** Selecciona clinica: para paciente existente carga sus datos. */
+    /** Selecciona una clinica valida del medico elegido y reinicia la identificacion. */
     public function clinica(): void {
+        $idMedico = (int)$this->get('id_MEDICO', 0);
         $id = (int)$this->input('id_CLINICA', 0);
-        if ($id <= 0) { $this->redirect('citapublica'); }
-        $this->set('id_CLINICA', $id);
-        $this->set('id_MEDICO', 0);
-        $this->set('id_CONSULTORIO', 0);
-        $this->set('id_CATALOGO_ESPECIALIDAD', 0);
-        if ((bool)$this->get('verificado', false)) {
-            foreach ((array)$this->get('coincidencias', []) as $c) {
-                if ((int)$c['id_CLINICA'] === $id) {
-                    $this->cargarPaciente((int)$c['id_PACIENTE'], $id);
-                    $this->redirect('citapublica');
-                }
-            }
-        } elseif (!empty($this->get('coincidencias', []))) {
-            // Hay coincidencias pero aun no se valida el codigo: no se muestran datos.
-            $this->set('paso', 'verificar');
+        $permitidas = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $this->clinicasDelMedico($idMedico));
+        if ($idMedico <= 0 || $id <= 0 || !in_array($id, $permitidas, true)) {
+            $this->flash('error', 'Elige una clinica donde atienda el medico seleccionado.');
             $this->redirect('citapublica');
         }
-        $this->set('paso', 'nuevo');
-        $this->set('id_PACIENTE', 0);
-        $this->set('paciente', []);
+        $this->reset();
+        $this->set('id_MEDICO', $idMedico);
+        $this->set('id_CLINICA', $id);
+        $this->set('paso', 'buscar');
         $this->redirect('citapublica');
+    }
+
+    /** Clinicas activas asignadas al usuario medico. */
+    private function clinicasDelMedico(int $idMedico): array {
+        if ($idMedico <= 0) return [];
+        $activas = [];
+        try {
+            foreach (ClinicaModel::listar() as $c) {
+                if ((int)($c['activo'] ?? 1) === 1) $activas[(int)$c['id_CLINICA']] = $c;
+            }
+        } catch (Throwable $e) { return []; }
+        $out = [];
+        try {
+            foreach (UsuarioModel::listar() as $u) {
+                $idC = (int)($u['id_CLINICA'] ?? 0);
+                if ((int)($u['id_USUARIOS'] ?? 0) === $idMedico && isset($activas[$idC])) $out[$idC] = $activas[$idC];
+            }
+        } catch (Throwable $e) { return []; }
+        $rows = array_values($out);
+        usort($rows, fn($a, $b) => strcasecmp((string)($a['nombre'] ?? ''), (string)($b['nombre'] ?? '')));
+        return $rows;
     }
 
     private function cargarPaciente(int $idPaciente, int $idClinica): void {
@@ -438,12 +484,21 @@ class CitapublicaController extends Controller {
         $this->set('paso', 'cita');
     }
 
-    /* ---------------- paso 2: medico / consultorio / especialidad ---------------- */
+    /* ---------------- paso 1: medico y clinica ---------------- */
 
     public function seleccion(): void {
-        foreach (['id_MEDICO', 'id_CONSULTORIO', 'id_CATALOGO_ESPECIALIDAD'] as $k) {
-            if (array_key_exists($k, $_POST)) $this->set($k, (int)$_POST[$k]);
+        $idMedico = (int)$this->input('id_MEDICO', 0);
+        $validos = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), UsuarioModel::listarMedicos());
+        $clinicas = in_array($idMedico, $validos, true) ? $this->clinicasDelMedico($idMedico) : [];
+        if ($idMedico <= 0 || empty($clinicas)) {
+            $this->reset();
+            $this->flash('error', 'Elige un medico que atienda en una clinica activa.');
+            $this->redirect('citapublica');
         }
+        $this->reset();
+        $this->set('id_MEDICO', $idMedico);
+        if (count($clinicas) === 1) $this->set('id_CLINICA', (int)$clinicas[0]['id_CLINICA']);
+        $this->set('paso', 'buscar');
         $this->redirect('citapublica');
     }
 
@@ -451,7 +506,7 @@ class CitapublicaController extends Controller {
 
     public function agendar(): void {
         $idClinica = (int)$this->get('id_CLINICA', 0);
-        if ($idClinica <= 0) { $this->flash('error', 'Falta elegir tu clinica en el paso 2.'); $this->redirect('citapublica'); }
+        if ($idClinica <= 0) { $this->flash('error', 'Falta elegir tu clinica en el paso 1.'); $this->redirect('citapublica'); }
 
         // Usuario GENERICO: obligatorio para poder registrar.
         $gen = null;
@@ -469,7 +524,7 @@ class CitapublicaController extends Controller {
             $this->redirect('citapublica');
         }
 
-        $idMedico       = (int)$this->input('id_MEDICO', 0);
+        $idMedico       = (int)$this->get('id_MEDICO', 0);
         $fecha          = (string)$this->input('fecha_cita', '');
         $hi             = (string)$this->input('hora_inicio', '');
         // Cita publica: solo horas completas. Se recortan los minutos y la cita dura 1 hora.
@@ -507,7 +562,7 @@ class CitapublicaController extends Controller {
         $this->set('id_CATALOGO_ESPECIALIDAD', $idEspecialidad);
 
         $err = [];
-        if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 2.';
+        if ($idMedico <= 0)       $err[] = 'Falta elegir al medico. Selecciona uno en el paso 1.';
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $err[] = 'Aun no eliges dia. Toca un espacio en blanco del calendario.';
         if (!preg_match('/^\d{2}:00$/', $hi) || !preg_match('/^\d{2}:00$/', $hf)) $err[] = 'Aun no eliges horario. Toca un espacio en blanco del calendario y elige una hora completa, por ejemplo 11:00.';
         // Dias bloqueados del medico (solo aplica a la cita publica).
