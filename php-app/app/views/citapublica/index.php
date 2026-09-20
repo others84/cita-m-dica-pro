@@ -57,19 +57,66 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <div class="flash flash-<?= htmlspecialchars($f['type'] ?? 'info') ?>"><?= htmlspecialchars($f['msg'] ?? '') ?></div>
   <?php endforeach; ?>
 
-  <!-- Paso 1: identificacion por celular -->
+  <!-- Paso 1: medico y clinica -->
   <section class="card">
     <p class="paso-num">Paso 1 de 5</p>
+    <h2>Elige medico y clinica</h2>
+    <p class="ayuda">Primero elige al medico con quien deseas atenderte.</p>
+    <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
+      <label>Medico
+        <select name="id_MEDICO" required onchange="this.form.submit()">
+          <?php if (count($medicos) !== 1): ?>
+          <option value="">-- seleccione --</option>
+          <?php endif; ?>
+          <?php foreach ($medicos as $m): ?>
+            <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= $idMedico === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
+              <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+    </form>
+
+    <?php if ($idMedico): ?>
+      <?php if (count($clinicas) === 1): ?>
+        <div class="form-grid">
+          <label>Clinica
+            <input type="text" value="<?= htmlspecialchars((string)($clinicas[0]['nombre'] ?? '')) ?>" readonly>
+          </label>
+        </div>
+      <?php elseif (!empty($clinicas)): ?>
+        <p class="ayuda">Este medico atiende en varias clinicas. Elige a cual quieres ir.</p>
+        <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
+          <label>Clinica
+            <select name="id_CLINICA" required onchange="this.form.submit()">
+              <option value="">-- seleccione --</option>
+              <?php foreach ($clinicas as $c): ?>
+                <option value="<?= (int)$c['id_CLINICA'] ?>" <?= $idClinica === (int)$c['id_CLINICA'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($c['nombre']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        </form>
+      <?php else: ?>
+        <p class="ayuda">Este medico no tiene una clinica disponible para citas en linea.</p>
+      <?php endif; ?>
+    <?php endif; ?>
+  </section>
+
+  <?php if ($idMedico && $idClinica): ?>
+  <!-- Paso 2: identificacion por celular -->
+  <section class="card">
+    <p class="paso-num">Paso 2 de 5</p>
     <h2>Identificate</h2>
-    <p class="ayuda">Escribe tu numero de celular a 10 digitos, sin espacios ni guiones. Ejemplo: 2221234567.</p>
-    <p class="ayuda">Si ya te has atendido con nosotros, tus datos apareceran solos. Si es tu primera vez, te pediremos algunos datos mas adelante.</p>
+    <p class="ayuda">Si es tu primera cita, elige "Soy paciente nuevo". Si ya te has atendido aqui, escribe tu celular para recuperar tus datos de forma segura.</p>
     <form method="post" action="<?= url('citapublica/buscar') ?>" class="form-grid"><?= csrf_field() ?>
       <label>Celular (10 digitos)
-        <input name="telefono" inputmode="numeric" maxlength="20" required value="<?= htmlspecialchars($telefono) ?>" placeholder="2221234567">
+        <input name="telefono" inputmode="numeric" maxlength="20" value="<?= htmlspecialchars($telefono) ?>" placeholder="2221234567">
       </label>
       <div class="form-actions">
+        <button class="btn btn-sec" type="submit" formaction="<?= url('citapublica/nuevo') ?>" formmethod="post" formnovalidate>Soy paciente nuevo</button>
         <button class="btn" type="submit">Buscar mis datos</button>
-        <a class="btn btn-sec" href="<?= url('citapublica/reiniciar') ?>">Agendar cita</a>
       </div>
       <p class="ayuda col-span">Solo buscamos tu numero; no veras datos de otras personas.</p>
     </form>
@@ -109,76 +156,13 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
             </form>
           <?php endif; ?>
         <?php endif; ?>
-        <div class="form-actions">
-          <a class="btn btn-sec" href="<?= url('citapublica/nuevo') ?>">Soy paciente nuevo</a>
-        </div>
       </div>
     <?php endif; ?>
-
-    <?php if ($paso === 'elige_clinica' && !empty($coincidencias)): ?>
-      <p class="ayuda">Tu numero esta en mas de una clinica. Elige a donde quieres ir.</p>
-      <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
-        <label>Clinica
-          <select name="id_CLINICA" required>
-            <option value="">-- seleccione --</option>
-            <?php foreach ($coincidencias as $c): ?>
-              <option value="<?= (int)$c['id_CLINICA'] ?>"><?= htmlspecialchars($c['clinica']) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <div class="form-actions"><button class="btn" type="submit">Continuar</button></div>
-      </form>
-    <?php endif; ?>
   </section>
+  <?php endif; ?>
 
 <?php $mostrarResto = in_array($paso, ['nuevo', 'cita'], true); ?>
 <?php if ($mostrarResto): ?>
-  <!-- Paso 2: panel clinica -->
-  <section class="card">
-    <p class="paso-num">Paso 2 de 5</p>
-    <h2>Elige clinica y medico</h2>
-    <p class="ayuda">Elige la clinica a la que quieres ir y despues el medico con el que deseas atenderte.</p>
-    <form method="post" action="<?= url('citapublica/clinica') ?>" class="form-grid"><?= csrf_field() ?>
-      <label>Clinica
-        <select name="id_CLINICA" required onchange="this.form.submit()">
-          <option value="">-- seleccione --</option>
-          <?php foreach ($clinicas as $c): ?>
-            <option value="<?= (int)$c['id_CLINICA'] ?>" <?= $idClinica === (int)$c['id_CLINICA'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($c['nombre']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-    </form>
-
-    <?php if (!$idClinica): ?>
-      <p class="ayuda">Primero elige tu clinica; enseguida apareceran los medicos que atienden ahi.</p>
-    <?php else: ?>
-      <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
-        <label>Medico
-          <select name="id_MEDICO" required onchange="this.form.submit()">
-            <?php if (count($medicos) !== 1): ?>
-            <option value="">-- seleccione --</option>
-            <?php endif; ?>
-            <?php foreach ($medicos as $m): ?>
-              <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= $idMedico === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-        <label>Consultorio
-          <input type="text" value="<?= htmlspecialchars($consultorioNom ?: 'No disponible') ?>" readonly>
-        </label>
-        <label>Especialidad
-          <input type="text" value="<?= htmlspecialchars($especialidadNom ?: 'No disponible') ?>" readonly>
-        </label>
-        <p class="ayuda col-span">El consultorio y la especialidad se llenan solos. No tienes que hacer nada aqui.</p>
-      </form>
-    <?php endif; ?>
-  </section>
-
-
   <!-- Paso 3: calendario del medico -->
   <section class="card calendar-card">
     <p class="paso-num">Paso 3 de 5</p>
