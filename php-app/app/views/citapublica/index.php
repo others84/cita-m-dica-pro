@@ -65,7 +65,9 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <form method="post" action="<?= url('citapublica/seleccion') ?>" class="form-grid"><?= csrf_field() ?>
       <label>Medico
         <select name="id_MEDICO" required onchange="this.form.submit()">
+          <?php if (count($medicos) !== 1): ?>
           <option value="">-- seleccione --</option>
+          <?php endif; ?>
           <?php foreach ($medicos as $m): ?>
             <option value="<?= (int)$m['id_USUARIOS'] ?>" <?= $idMedico === (int)$m['id_USUARIOS'] ? 'selected' : '' ?>>
               <?= htmlspecialchars($m['nombre_completo'] ?? '') ?>
@@ -113,7 +115,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
         <input name="telefono" inputmode="numeric" maxlength="20" value="<?= htmlspecialchars($telefono) ?>" placeholder="2221234567">
       </label>
       <div class="form-actions">
-        <a class="btn btn-sec" href="<?= url('citapublica/nuevo') ?>">Soy paciente nuevo</a>
+        <button class="btn btn-sec" type="submit" formaction="<?= url('citapublica/nuevo') ?>" formmethod="post" formnovalidate>Soy paciente nuevo</button>
         <button class="btn" type="submit">Buscar mis datos</button>
       </div>
       <p class="ayuda col-span">Solo buscamos tu numero; no veras datos de otras personas.</p>

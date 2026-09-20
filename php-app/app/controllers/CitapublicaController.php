@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
 require_once __DIR__ . '/../models/ConsultorioModel.php';
 require_once __DIR__ . '/../models/EspecialidadModel.php';
 require_once __DIR__ . '/../models/PacienteModel.php';
@@ -40,17 +41,11 @@ class CitapublicaController extends Controller {
 
         $medicos = [];
         try { $medicos = UsuarioModel::listarMedicos(); } catch (Throwable $e) { $medicos = []; }
-        // Solo se publican medicos que pertenecen por lo menos a una clinica activa.
-        $clinicasPorMedico = [];
-        foreach ($clinicasActivas as $c) $clinicasPorMedico[(int)$c['id_CLINICA']] = $c;
         $asignaciones = [];
-        try {
-            foreach (UsuarioModel::listar() as $u) {
-                $idU = (int)($u['id_USUARIOS'] ?? 0);
-                $idC = (int)($u['id_CLINICA'] ?? 0);
-                if ($idU > 0 && isset($clinicasPorMedico[$idC])) $asignaciones[$idU][$idC] = $clinicasPorMedico[$idC];
-            }
-        } catch (Throwable $e) { $asignaciones = []; }
+        foreach ($medicos as $m) {
+            $idU = (int)($m['id_USUARIOS'] ?? 0);
+            if ($idU > 0) $asignaciones[$idU] = $this->clinicasDelMedico($idU, $clinicasActivas);
+        }
         $medicos = array_values(array_filter($medicos, fn($m) => !empty($asignaciones[(int)($m['id_USUARIOS'] ?? 0)])));
 
         $idsMedicos = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $medicos);
@@ -59,6 +54,10 @@ class CitapublicaController extends Controller {
             $idClinica = null;
             $this->set('id_MEDICO', 0);
             $this->set('id_CLINICA', 0);
+        }
+        if (!$idMedico && count($medicos) === 1) {
+            $idMedico = (int)$medicos[0]['id_USUARIOS'];
+            $this->set('id_MEDICO', $idMedico);
         }
         $clinicas = $idMedico ? array_values($asignaciones[$idMedico] ?? []) : [];
         usort($clinicas, fn($a, $b) => strcasecmp((string)($a['nombre'] ?? ''), (string)($b['nombre'] ?? '')));
@@ -437,21 +436,19 @@ class CitapublicaController extends Controller {
     }
 
     /** Clinicas activas asignadas al usuario medico. */
-    private function clinicasDelMedico(int $idMedico): array {
+    private function clinicasDelMedico(int $idMedico, ?array $clinicasActivas = null): array {
         if ($idMedico <= 0) return [];
         $activas = [];
         try {
-            foreach (ClinicaModel::listar() as $c) {
+            foreach ($clinicasActivas ?? ClinicaModel::listar() as $c) {
                 if ((int)($c['activo'] ?? 1) === 1) $activas[(int)$c['id_CLINICA']] = $c;
             }
         } catch (Throwable $e) { return []; }
         $out = [];
-        try {
-            foreach (UsuarioModel::listar() as $u) {
-                $idC = (int)($u['id_CLINICA'] ?? 0);
-                if ((int)($u['id_USUARIOS'] ?? 0) === $idMedico && isset($activas[$idC])) $out[$idC] = $activas[$idC];
-            }
-        } catch (Throwable $e) { return []; }
+        foreach (UsuarioClinicaModel::listarPorUsuario($idMedico) as $asignacion) {
+            $idC = (int)($asignacion['id_CLINICA'] ?? 0);
+            if (isset($activas[$idC])) $out[$idC] = $activas[$idC];
+        }
         $rows = array_values($out);
         usort($rows, fn($a, $b) => strcasecmp((string)($a['nombre'] ?? ''), (string)($b['nombre'] ?? '')));
         return $rows;
@@ -488,7 +485,8 @@ class CitapublicaController extends Controller {
 
     public function seleccion(): void {
         $idMedico = (int)$this->input('id_MEDICO', 0);
-        $validos = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), UsuarioModel::listarMedicos());
+        try { $listaMedicos = UsuarioModel::listarMedicos(); } catch (Throwable $e) { $listaMedicos = []; }
+        $validos = array_map(fn($m) => (int)($m['id_USUARIOS'] ?? 0), $listaMedicos);
         $clinicas = in_array($idMedico, $validos, true) ? $this->clinicasDelMedico($idMedico) : [];
         if ($idMedico <= 0 || empty($clinicas)) {
             $this->reset();
@@ -590,11 +588,10 @@ class CitapublicaController extends Controller {
         $medicoNom = '';
         if (!$err) {
             try {
-                $ok = false;
-                foreach (UsuarioModel::listarMedicos($idClinica) as $r) {
-                    if ((int)($r['id_USUARIOS'] ?? 0) === $idMedico) {
-                        $ok = true; $medicoNom = (string)($r['nombre_completo'] ?? ''); break;
-                    }
+                $permitidas = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $this->clinicasDelMedico($idMedico));
+                $ok = in_array($idClinica, $permitidas, true);
+                foreach (UsuarioModel::listarMedicos() as $r) {
+                    if ((int)($r['id_USUARIOS'] ?? 0) === $idMedico) { $medicoNom = (string)($r['nombre_completo'] ?? ''); break; }
                 }
                 if (!$ok) $err[] = 'Ese medico no atiende en la clinica que elegiste. Elige otro medico.';
             } catch (Throwable $e) { $err[] = 'No pudimos comprobar tus datos en este momento. Intenta de nuevo en unos minutos.'; }
