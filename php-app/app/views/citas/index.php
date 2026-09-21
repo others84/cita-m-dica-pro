@@ -110,6 +110,8 @@
             <?php elseif (in_array($estadoNom, ['confirmada','confirmado'], true)): ?>
               <?php post_button('citas/atenderForm', ['id' => (int)$c['id_CITA']], 'Atender', 'btn'); ?>
             <?php endif; ?>
+            <?php post_button('citas/cancelarForm', ['id' => (int)$c['id_CITA']], 'Cancelada', 'btn btn-sec'); ?>
+            <?php post_button('citas/noAsistio', ['id' => (int)$c['id_CITA']], 'No asistió', 'btn btn-sec', '¿Cambiar el estatus de esta cita a "No asistió"?'); ?>
           <?php else: ?>
             <?php post_button('citas/editar', ['id' => (int)$c['id_CITA']], 'Editar', 'btn btn-sec'); ?>
             <?php post_button('citas/cancelarForm', ['id' => (int)$c['id_CITA']], 'Cancelada', 'btn btn-sec'); ?>
