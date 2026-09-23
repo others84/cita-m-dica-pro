@@ -2,6 +2,12 @@
 $fn = $editRow['fecha_nacimiento'] ?? '';
 if ($fn instanceof DateTime) $fn = $fn->format('Y-m-d');
 $fn = $fn ? substr((string)$fn,0,10) : '';
+// Valor visible en DD/MM/AAAA para el campo con mascara; el hidden conserva ISO.
+$fnDisplay = '';
+if ($fn) {
+  $partes = explode('-', $fn);
+  if (count($partes) === 3) $fnDisplay = $partes[2] . '/' . $partes[1] . '/' . $partes[0];
+}
 // Mapeos para el cascada Pais -> Estado -> Municipio
 $paisPorEstado = [];
 foreach ($estados as $e) {
@@ -61,7 +67,10 @@ if (!isset($editRow)) {
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
     <label>Telefono <input name="telefono" required value="<?= htmlspecialchars($editRow['telefono'] ?? '') ?>"></label>
     <label>Email (opcional) <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
-    <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= htmlspecialchars($fn) ?>"></label>
+    <label>Fecha nacimiento
+      <input type="text" id="fnac_mask" name="fecha_nacimiento_display" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}" autocomplete="off" required value="<?= htmlspecialchars($fnDisplay) ?>">
+      <input type="hidden" name="fecha_nacimiento" value="<?= htmlspecialchars($fn) ?>">
+    </label>
     <label>Genero
       <select name="id_CATALOGO_GENERO" required>
         <option value="">--</option>
