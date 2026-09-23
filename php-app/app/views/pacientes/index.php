@@ -2,6 +2,12 @@
 $fn = $editRow['fecha_nacimiento'] ?? '';
 if ($fn instanceof DateTime) $fn = $fn->format('Y-m-d');
 $fn = $fn ? substr((string)$fn,0,10) : '';
+// Valor visible en DD/MM/AAAA para el campo con mascara; el hidden conserva ISO.
+$fnDisplay = '';
+if ($fn) {
+  $partes = explode('-', $fn);
+  if (count($partes) === 3) $fnDisplay = $partes[2] . '/' . $partes[1] . '/' . $partes[0];
+}
 // Mapeos para el cascada Pais -> Estado -> Municipio
 $paisPorEstado = [];
 foreach ($estados as $e) {
@@ -61,7 +67,10 @@ if (!isset($editRow)) {
     <label>Direccion <input name="direccion" required value="<?= htmlspecialchars($editRow['direccion'] ?? '') ?>"></label>
     <label>Telefono <input name="telefono" required value="<?= htmlspecialchars($editRow['telefono'] ?? '') ?>"></label>
     <label>Email (opcional) <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
-    <label>Fecha nacimiento <input type="date" name="fecha_nacimiento" required value="<?= htmlspecialchars($fn) ?>"></label>
+    <label>Fecha nacimiento
+      <input type="text" id="fnac_mask" name="fecha_nacimiento_display" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}" autocomplete="off" required value="<?= htmlspecialchars($fnDisplay) ?>">
+      <input type="hidden" name="fecha_nacimiento" value="<?= htmlspecialchars($fn) ?>">
+    </label>
     <label>Genero
       <select name="id_CATALOGO_GENERO" required>
         <option value="">--</option>
@@ -144,6 +153,66 @@ if (!isset($editRow)) {
   pa.addEventListener('change', function(){ selEstado=0; selMun=0; fillEstados(); });
   es.addEventListener('change', function(){ selMun=0; fillMunis(); });
   if (selPais) fillEstados(); // pre-carga en modo edicion
+})();
+</script>
+
+<script>
+// Mascara manual DD/MM/AAAA para la fecha de nacimiento.
+// El campo visible no se envia al servidor; un hidden conserva ISO (YYYY-MM-DD)
+// que es el formato que esperan spAltaPaciente / spCambioPaciente.
+(function(){
+  var input = document.getElementById('fnac_mask');
+  if (!input) return;
+  var hidden = input.form ? input.form.querySelector('input[name="fecha_nacimiento"]') : null;
+  if (!hidden) hidden = document.querySelector('input[name="fecha_nacimiento"]');
+  var anioActual = new Date().getFullYear();
+
+  function soloDigitos(v){ return (v || '').replace(/\D+/g, ''); }
+
+  function aplicarMascara(v){
+    var d = soloDigitos(v).slice(0, 8);
+    if (d.length > 4) return d.slice(0,2) + '/' + d.slice(2,4) + '/' + d.slice(4);
+    if (d.length > 2) return d.slice(0,2) + '/' + d.slice(2);
+    return d;
+  }
+
+  function validaFecha(v){
+    var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v || '');
+    if (!m) return false;
+    var dd = parseInt(m[1],10), mm = parseInt(m[2],10), aaaa = parseInt(m[3],10);
+    if (mm < 1 || mm > 12) return false;
+    if (dd < 1 || dd > 31) return false;
+    if (aaaa < 1900 || aaaa > anioActual) return false;
+    var dt = new Date(aaaa, mm - 1, dd);
+    if (dt.getFullYear() !== aaaa || dt.getMonth() !== mm - 1 || dt.getDate() !== dd) return false;
+    return true;
+  }
+
+  function sincronizaHidden(){
+    hidden.value = validaFecha(input.value)
+      ? input.value.slice(6,10) + '-' + input.value.slice(3,5) + '-' + input.value.slice(0,2)
+      : '';
+  }
+
+  input.addEventListener('input', function(){
+    var inicio = input.selectionStart || 0;
+    var antes = input.value;
+    var novo = aplicarMascara(antes);
+    input.value = novo;
+    // Si el reformateo inserto una barra justo donde iba el cursor, avanza uno.
+    if (novo.length > antes.length && novo.charAt(inicio) === '/') inicio++;
+    try { input.setSelectionRange(inicio, inicio); } catch(e){}
+    sincronizaHidden();
+  });
+
+  input.addEventListener('focus', function(){
+    if (input.value === '') {
+      try { input.setSelectionRange(0, 0); } catch(e){}
+    }
+  });
+
+  if (input.form) input.form.addEventListener('submit', sincronizaHidden);
+  sincronizaHidden(); // precarga el hidden en modo edicion
 })();
 </script>
 
