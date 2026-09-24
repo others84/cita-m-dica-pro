@@ -7,10 +7,7 @@
 ## 2. Horas reales al marcar "Atendida"
 - **Inicio de la consulta** = momento en que el médico presiona "Atender" (se abre la ventana de atención). Esa hora se guarda temporalmente en la sesión para esa cita.
 - **Fin de la consulta** = momento en que presiona "Atendida".
-- Reglas al guardar como Atendida:
-  - **Atendida el mismo día programado:** hora fin = hora actual. Si la hora actual es igual o anterior a la hora de inicio, la hora de inicio también se ajusta a la hora real de inicio.
-  - **Atendida antes de la fecha programada:** fecha de la cita, hora inicio y hora fin cambian automáticamente a la fecha y horas reales (inicio = cuando presionó "Atender", fin = cuando presionó "Atendida").
-  - **Atendida después de la fecha programada:** se conserva fecha y horas originales (queda registro en el log).
+- Siempre, sin importar si se atiende antes, el mismo día o después de lo programado: al guardar como Atendida, la fecha de la cita pasa a ser el día en que se presionó "Atender", la hora inicio la hora en que se presionó "Atender" y la hora fin la hora en que se presionó "Atendida".
 - Si por alguna razón no se tiene la hora de inicio (p. ej. sesión expirada), se usa la hora de fin menos 1 minuto.
 - La hora se toma del reloj de SQL Server para evitar diferencias de reloj.
 - Log: "CITA HORAS REALES id_CITA=... fecha=... inicio=... fin=...".
