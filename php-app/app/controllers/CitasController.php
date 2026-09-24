@@ -185,9 +185,34 @@ class CitasController extends Controller {
     /** Muestra la cita en solo lectura para capturar el motivo de cancelacion. */
     public function cancelarForm(): void { $this->form('cancelar'); }
     /** Ventana de atencion: el medico revisa la cita y la marca como Atendida. */
-    public function atenderForm(): void { $this->form('atender'); }
-    /** El medico ajusta la hora de finalizacion (solo citas agendadas). */
-    public function horarioForm(): void { $this->form('horario'); }
+    public function atenderForm(): void {
+        // Momento real de inicio de la consulta (clic en "Atender").
+        $id = $this->stateInt('id');
+        if ($id && empty($_SESSION['atencion_inicio'][$id])) {
+            $_SESSION['atencion_inicio'][$id] = CitaModel::ahoraSql();
+        }
+        $this->form('atender');
+    }
+    /** El medico ajusta la hora de finalizacion (solo citas agendadas y futuras). */
+    public function horarioForm(): void {
+        $this->requireLogin();
+        $id = $this->stateInt('id');
+        $c  = $id ? CitaModel::obtener($id) : null;
+        if ($c && !$this->horaFinModificable($c)) {
+            $this->flash('error', 'Ya no se puede modificar la hora fin de esta cita.');
+            $this->clearState('id');
+            $this->redirect('citas');
+            return;
+        }
+        $this->form('horario');
+    }
+
+    /** La hora fin solo se modifica en citas con fecha posterior a hoy. */
+    private function horaFinModificable(array $c): bool {
+        $f = $c['fecha_cita'] ?? '';
+        $f = $f instanceof DateTime ? $f->format('Y-m-d') : substr((string)$f, 0, 10);
+        return $f > substr(CitaModel::ahoraSql(), 0, 10);
+    }
 
 
     private function form(string $modo = 'edicion'): void {
@@ -262,6 +287,12 @@ class CitasController extends Controller {
         if (!$c || !$this->citaPermitida($c)) {
             $this->clearState('id');
             $this->denegarRecurso('CITA', $id, $c ? (int)($c['id_CLINICA'] ?? 0) : null, 'citas');
+            return;
+        }
+        if (!$this->horaFinModificable($c)) {
+            $this->flash('error', 'Ya no se puede modificar la hora fin de esta cita.');
+            $this->clearState('id');
+            $this->redirect('citas');
             return;
         }
         $est = mb_strtolower(trim((string)($c['estado'] ?? '')));
@@ -444,6 +475,44 @@ class CitasController extends Controller {
                     (string)($this->input('observaciones_paciente') ?? '')
                 );
             }
+        } catch (Throwable $e) {
+            Database::log('CITAS.atenderGuardar obs paciente ERR: ' . $e->getMessage());
+        }
+        // Horas reales: inicio = clic en "Atender", fin = clic en "Atendida".
+        try {
+            $est = isset($c) && $c ? mb_strtolower(trim((string)($c['estado'] ?? ''))) : '';
+            if ($c && strpos($est, 'confirmad') !== false) {
+                $fin = CitaModel::ahoraSql();
+                $ini = (string)($_SESSION['atencion_inicio'][$id] ?? '');
+                if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/', $ini)
+                    || substr($ini, 0, 10) !== substr($fin, 0, 10)
+                    || substr($ini, 11, 5) >= substr($fin, 11, 5)) {
+                    // Sin inicio valido: fin menos 1 minuto (mismo dia).
+                    $t = strtotime($fin) - 60;
+                    $ini = date('Y-m-d', $t) === substr($fin, 0, 10) ? date('Y-m-d H:i:s', $t) : substr($fin, 0, 10) . ' 00:00:00';
+                    if (substr($fin, 11, 5) === '00:00') $fin = substr($fin, 0, 11) . '00:01:00';
+                }
+                $fe = substr($ini, 0, 10);
+                $hi = substr($ini, 11, 5);
+                $hf = substr($fin, 11, 5);
+                CitaModel::cambio($id, [
+                    'id_PACIENTE'              => (int)$c['id_PACIENTE'],
+                    'id_MEDICO'                => (int)$c['id_MEDICO'],
+                    'id_CONSULTORIO'           => (int)$c['id_CONSULTORIO'],
+                    'id_CATALOGO_ESPECIALIDAD' => (int)$c['id_CATALOGO_ESPECIALIDAD'],
+                    'fecha_cita'               => $fe,
+                    'hora_inicio'              => $hi . ':00',
+                    'hora_fin'                 => $hf . ':00',
+                    'id_CATALOGO_ESTADO_CITAS' => (int)$c['id_CATALOGO_ESTADO_CITAS'],
+                    'observaciones'            => (string)($c['observaciones'] ?? ''),
+                    'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
+                    'precio'                   => (float)($precio ?? ($c['precio'] ?? 0)),
+                ]);
+                Database::log('CITA HORAS REALES id_CITA=' . $id . ' fecha=' . $fe
+                    . ' inicio=' . $hi . ' fin=' . $hf
+                    . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
+            }
+            unset($_SESSION['atencion_inicio'][$id]);
         } catch (Throwable $e) {
             Database::log('CITAS.atenderGuardar obs paciente ERR: ' . $e->getMessage());
         }
