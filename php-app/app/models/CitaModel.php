@@ -47,6 +47,16 @@ class CitaModel extends Model {
                 [':id'=>$id, ':u'=>self::currentUserId()]);
         }
     }
+    /** Fecha/hora actual de SQL Server ('Y-m-d H:i:s'); si falla usa el reloj de PHP. */
+    public static function ahoraSql(): string {
+        try {
+            $r = self::query("SELECT CONVERT(varchar(19), GETDATE(), 120) AS ahora");
+            $v = (string)($r[0]['ahora'] ?? '');
+            if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $v)) return $v;
+        } catch (Throwable $e) { /* respaldo */ }
+        return date('Y-m-d H:i:s');
+    }
+
     /** Regresa una cita puntual (sin filtro de clinica ni de fechas). */
     public static function obtener(int $id): ?array {
         foreach (self::listar() as $r) {

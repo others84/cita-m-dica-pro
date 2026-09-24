@@ -131,6 +131,9 @@ class App {
         // versiones); config.properties queda solo como respaldo local.
         Config::loadEnv(__DIR__ . '/../../.env');
         Config::load(__DIR__ . '/../../config/config.properties');
+        // Zona horaria de la aplicacion (app.log y fechas calculadas en PHP).
+        $tz = (string)(Config::get('app.timezone') ?: 'America/Mexico_City');
+        if (!@date_default_timezone_set($tz)) date_default_timezone_set('America/Mexico_City');
 
         // Blindaje de URL limpia: ningun dato de negocio puede viajar por la
         // barra de direcciones. Si llega cualquier parametro GET distinto de
