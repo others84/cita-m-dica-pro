@@ -1,22 +1,31 @@
-# Citas: ocultar "Hora fin" en citas de hoy o pasadas y registrar la hora real al atender
+# Citas: ocultar "Hora fin" en citas de hoy o pasadas, registrar horas reales al atender y corregir hora del log
 
 ## 1. Ocultar el botón "Hora fin"
-- En la tabla de citas, el botón "Hora fin" solo aparece si la fecha de la cita es **posterior a hoy** (mañana en adelante).
-- Si la cita es de hoy o de un día anterior, el botón no se muestra.
-- El servidor también lo valida: si alguien intenta abrir o guardar "Hora fin" en una cita de hoy o pasada, se rechaza con el mensaje "Ya no se puede modificar la hora fin de esta cita."
+- En la tabla de citas, "Hora fin" solo aparece si la fecha de la cita es **posterior a hoy**.
+- El servidor también lo valida: abrir o guardar "Hora fin" en una cita de hoy o pasada se rechaza con "Ya no se puede modificar la hora fin de esta cita."
 
-## 2. Hora fin = hora en que se marca "Atendida"
-- Al presionar "Atendida", la hora fin de la cita se reemplaza por la hora actual (horas:minutos), tomada del reloj del servidor de base de datos (igual que el código de verificación, para evitar diferencias de reloj).
-- Casos especiales (se conserva la hora fin original y queda registro en el log):
-  - Si la hora actual es igual o anterior a la hora de inicio (se atendió antes de tiempo).
-  - Si se atiende en un día distinto al de la cita.
-- Se registra en el log: "CITA HORA FIN REAL id_CITA=... hora_fin=...".
+## 2. Horas reales al marcar "Atendida"
+- **Inicio de la consulta** = momento en que el médico presiona "Atender" (se abre la ventana de atención). Esa hora se guarda temporalmente en la sesión para esa cita.
+- **Fin de la consulta** = momento en que presiona "Atendida".
+- Reglas al guardar como Atendida:
+  - **Atendida el mismo día programado:** hora fin = hora actual. Si la hora actual es igual o anterior a la hora de inicio, la hora de inicio también se ajusta a la hora real de inicio.
+  - **Atendida antes de la fecha programada:** fecha de la cita, hora inicio y hora fin cambian automáticamente a la fecha y horas reales (inicio = cuando presionó "Atender", fin = cuando presionó "Atendida").
+  - **Atendida después de la fecha programada:** se conserva fecha y horas originales (queda registro en el log).
+- Si por alguna razón no se tiene la hora de inicio (p. ej. sesión expirada), se usa la hora de fin menos 1 minuto.
+- La hora se toma del reloj de SQL Server para evitar diferencias de reloj.
+- Log: "CITA HORAS REALES id_CITA=... fecha=... inicio=... fin=...".
+
+## 3. Desfase de horas en app.log
+- Causa: la aplicación nunca define la zona horaria de PHP, así que escribe la hora del log en la zona por defecto del servidor (UTC u otra), no en la hora de México.
+- Solución: definir la zona horaria al arrancar la aplicación con una nueva variable `APP_TIMEZONE` en `.env` (por defecto `America/Mexico_City`). Afecta a app.log y a cualquier fecha calculada por PHP (p. ej. "hoy" en la tabla de citas).
+- Recomendación en el servidor: revisar también `date.timezone` en el php.ini de PHP-FPM y `timedatectl` de Ubuntu.
 
 ## Archivos a modificar (por prioridad)
-1. `php-app/app/controllers/CitasController.php` — en `atenderGuardar()` actualizar la hora fin antes de cambiar a Atendida; en `horarioForm()`/`horarioGuardar()` bloquear citas de hoy o pasadas.
-2. `php-app/app/views/citas/index.php` — mostrar "Hora fin" solo si la fecha de la cita es mayor a hoy.
-3. `php-app/app/models/CitaModel.php` — pequeño método para obtener fecha/hora actual de SQL Server (`SELECT GETDATE()`), reutilizando la conexión existente.
+1. `php-app/app/controllers/CitasController.php` — `atenderForm()` guarda la hora de inicio real; `atenderGuardar()` aplica las reglas de fecha/horas antes de cambiar a Atendida; `horarioForm()`/`horarioGuardar()` bloquean citas de hoy o pasadas.
+2. `php-app/public/index.php` — fijar la zona horaria desde `APP_TIMEZONE`.
+3. `php-app/app/views/citas/index.php` — mostrar "Hora fin" solo si la fecha es mayor a hoy.
+4. `php-app/app/models/CitaModel.php` — método para leer fecha/hora actual de SQL Server (`SELECT GETDATE()`).
+5. `php-app/.env.example` — agregar `APP_TIMEZONE=America/Mexico_City` (también agregarlo en `/var/www/citas/.env` del servidor).
 
 ## Detalles técnicos
-- La actualización de hora fin reutiliza `CitaModel::cambio()` con los datos actuales de la cita (mismo patrón que `horarioGuardar`), por lo que no hay cambios en base de datos ni procedimientos almacenados.
-- La comparación de fechas en la vista usa la fecha de hoy del servidor (`date('Y-m-d')`); en el controlador se usa la fecha de SQL Server.
+- Los cambios de fecha/horas reutilizan `CitaModel::cambio()` con los datos actuales de la cita (mismo patrón que `horarioGuardar`); no hay cambios en base de datos ni procedimientos almacenados.
