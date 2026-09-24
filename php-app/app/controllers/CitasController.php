@@ -462,6 +462,7 @@ class CitasController extends Controller {
         $pIn = $this->input('precio');
         $precio = ($pIn === null || $pIn === '') ? null : (float)$pIn;
         if ($precio !== null && $precio < 0) $precio = 0.0;
+        $c = null;
         try {
             $c = $id ? CitaModel::obtener($id) : null;
             if ($c && !$this->citaPermitida($c)) {

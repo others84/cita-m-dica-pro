@@ -105,7 +105,9 @@
           <?php elseif (($rol ?? '') === 'medico'): ?>
             <?php if (in_array($estadoNom, ['agendada','agendado'], true)): ?>
               <?php post_button('citas/confirmar', ['id' => (int)$c['id_CITA']], 'Confirmar', 'btn', '¿Confirmar esta cita?'); ?>
-              <?php post_button('citas/horarioForm', ['id' => (int)$c['id_CITA']], 'Hora fin', 'btn btn-sec'); ?>
+              <?php if ($f > date('Y-m-d')): ?>
+                <?php post_button('citas/horarioForm', ['id' => (int)$c['id_CITA']], 'Hora fin', 'btn btn-sec'); ?>
+              <?php endif; ?>
 
             <?php elseif (in_array($estadoNom, ['confirmada','confirmado'], true)): ?>
               <?php post_button('citas/atenderForm', ['id' => (int)$c['id_CITA']], 'Atender', 'btn'); ?>
