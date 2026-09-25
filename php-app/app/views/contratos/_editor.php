@@ -39,6 +39,7 @@ $vars = ['@@CLINICA','@@DIRECCION','@@EMAIL_CLINICA','@@TELEFONO_CLINICA','@@FEC
 </form>
 <?php if (empty($GLOBALS['__legalEditorJs'])): $GLOBALS['__legalEditorJs'] = true; ?>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
 document.querySelectorAll('.legal-editor-form').forEach(function (f) {
   var ed = document.getElementById(f.dataset.editor), src = f.querySelector('.legal-source'), modoSrc = false;
   function cmd(c, v) { ed.focus(); document.execCommand(c, false, v || null); }
