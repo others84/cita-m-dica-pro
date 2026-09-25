@@ -33,6 +33,17 @@ class Controller {
             echo 'Acceso denegado';
             exit;
         }
+        // Contrato y aviso de privacidad pendientes: solo se permite la pantalla de firma.
+        if (($_SESSION['user']['rol'] ?? '') !== 'admin_sistema' && !($this instanceof ContratosController)) {
+            if (!isset($_SESSION['contratos_pendientes'])) {
+                require_once __DIR__ . '/../controllers/ContratosController.php';
+                ContratosController::cargarPendientes();
+            }
+            if (!empty($_SESSION['contratos_pendientes'])) {
+                header('Location: ' . url('contratos/firmar'));
+                exit;
+            }
+        }
     }
 
     protected function flash(string $type, string $msg): void {

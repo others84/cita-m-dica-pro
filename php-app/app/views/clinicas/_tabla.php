@@ -35,6 +35,7 @@
         <td><span class="badge <?= empty($c['activo'])?'off':'' ?>"><?= empty($c['activo']) ? 'No' : 'Si' ?></span></td>
         <td class="acts">
           <?php post_button('clinicas', ['edit' => (int)$c['id_CLINICA']], 'Editar', 'btn btn-sec'); ?>
+          <?php post_button('contratos/clinica', ['id' => (int)$c['id_CLINICA']], 'Contrato y aviso', 'btn btn-sec'); ?>
           <?php if (!empty($c['activo'])): ?>
             <?php post_button('clinicas/desactivar', ['id' => (int)$c['id_CLINICA']], 'Desactivar', 'btn btn-danger', 'Desactivar clinica?'); ?>
           <?php else: ?>
