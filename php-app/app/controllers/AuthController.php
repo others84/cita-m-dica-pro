@@ -37,6 +37,10 @@ class AuthController extends Controller {
                 if ($csrf) { $_SESSION['csrf_token'] = $csrf; }
                 $_SESSION['user'] = $user;
                 $destino = $user['rol'] === 'admin_sistema' ? url('clinicas') : url('calendario');
+                if ($user['rol'] !== 'admin_sistema') {
+                    require_once __DIR__ . '/ContratosController.php';
+                    if (!empty(ContratosController::cargarPendientes())) $destino = url('contratos/firmar');
+                }
                 header('Location: ' . $destino);
                 exit;
             }

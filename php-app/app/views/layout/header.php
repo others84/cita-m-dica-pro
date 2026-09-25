@@ -35,7 +35,8 @@ if (!function_exists('nav_group_open')) {
     }
 }
 // Solo asistente, medico y administrador de clinica monitorean citas por notificar.
-$__monitorCitas = in_array($rol, ['asistente','medico','administrador'], true);
+$__soloFirma = $rol !== 'admin_sistema' && !empty($_SESSION['contratos_pendientes']);
+$__monitorCitas = !$__soloFirma && in_array($rol, ['asistente','medico','administrador'], true);
 $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class="nav-badge" style="display:none"></span>' : '');
 ?>
 <!doctype html>
@@ -67,6 +68,9 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <small><?= htmlspecialchars($rol) ?></small>
     </div>
     <nav>
+      <?php if ($__soloFirma): ?>
+        <?= nav_link('contratos/firmar', 'Contrato y aviso', $__cur) ?>
+      <?php else: ?>
       <?php if ($rol === 'asistente'): ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
@@ -160,11 +164,12 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('opciones/correo', 'Configuración de correo', $__cur) ?>
           <?= nav_link('opciones/whatsapp', 'Configuración de WhatsApp', $__cur) ?>
         </details>
-        <details class="menu-group"<?= nav_group_open(['clinicas', 'usuariosClinica', 'sistema/bloquearClinicas'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['clinicas', 'usuariosClinica', 'sistema/bloquearClinicas', 'contratos/plantillas', 'contratos/clinica'], $__cur) ?>>
           <summary>Clínicas</summary>
           <?= nav_link('clinicas', 'Clínicas', $__cur) ?>
           <?= nav_link('usuariosClinica', 'Asignar clínicas a usuarios', $__cur) ?>
           <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
+          <?= nav_link('contratos/plantillas', 'Plantillas legales', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
           <summary>Reportes</summary>
@@ -174,6 +179,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('reportes/repTop10', 'Top 10 médicos', $__cur) ?>
           <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
         </details>
+      <?php endif; ?>
       <?php endif; ?>
 
       <a class="logout" href="<?= url('auth/logout') ?>">Cerrar sesión</a>
