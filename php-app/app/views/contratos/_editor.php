@@ -64,5 +64,6 @@ document.querySelectorAll('.legal-editor-form').forEach(function (f) {
     f.querySelector('input[name=html]').value = ed.innerHTML;
   });
 });
+});
 </script>
 <?php endif; ?>
