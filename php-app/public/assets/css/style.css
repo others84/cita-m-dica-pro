@@ -422,9 +422,11 @@ body{background:var(--c1);color:var(--c5)}
 .sidebar .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sidebar .brand img{width:32px;height:32px;flex:0 0 32px}
 .sidebar-close,.menu-toggle{
-  width:42px;height:42px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--c5);
+  width:42px;height:42px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--c5);
   display:none;align-items:center;justify-content:center;cursor:pointer;
 }
+.menu-toggle{background:var(--c2);color:var(--c4);font-weight:800}
+.menu-toggle .nav-icon{width:22px;height:22px}
 .sidebar-close:hover,.menu-toggle:hover{background:var(--c1);color:var(--c4)}
 .sidebar nav{flex:1;gap:4px;padding:16px 12px 20px;overflow-y:auto;scrollbar-width:thin}
 .sidebar nav a,.sidebar nav .menu-group > summary{
