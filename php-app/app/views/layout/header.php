@@ -21,10 +21,36 @@ if (!function_exists('nav_is_active')) {
     }
 }
 if (!function_exists('nav_link')) {
+    function nav_icon(string $name): string {
+        $paths = [
+            'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+            'appointments' => '<path d="M8 2v4M16 2v4M4 5h16a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="m9 16 2 2 4-5"/>',
+            'patients' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+            'settings' => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.55V21h-4v-.08A1.7 1.7 0 0 0 8.94 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3.08 14H3v-4h.08A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88L4.2 7.06 7.03 4.2l.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3.08V3h4v.08A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9 1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/>',
+            'reports' => '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+            'clinic' => '<path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h2M13 9h2M9 13h2M13 13h2M10 21v-4h4v4"/>',
+            'catalog' => '<path d="M4 5h16v14H4zM8 2v6M16 2v6M4 10h16"/>',
+            'document' => '<path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h6M9 17h6"/>',
+            'logout' => '<path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>',
+        ];
+        $path = $paths[$name] ?? $paths['document'];
+        return '<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . $path . '</svg>';
+    }
+    function nav_icon_for_path(string $path): string {
+        $p = strtolower($path);
+        if (strpos($p, 'calendario') !== false) return 'calendar';
+        if (strpos($p, 'citas') !== false) return 'appointments';
+        if (strpos($p, 'pacientes') !== false || strpos($p, 'medicos') !== false || strpos($p, 'asistentes') !== false || strpos($p, 'usuarios') !== false) return 'patients';
+        if (strpos($p, 'reportes') !== false) return 'reports';
+        if (strpos($p, 'clinica') !== false || strpos($p, 'consultorios') !== false) return 'clinic';
+        if (strpos($p, 'contratos') !== false) return 'document';
+        if (strpos($p, 'opciones') !== false || strpos($p, 'horarios') !== false || strpos($p, 'diasbloqueados') !== false || strpos($p, 'mensajes') !== false) return 'settings';
+        return 'catalog';
+    }
     /** Enlace del menu lateral con clase "active" cuando corresponde a la vista actual. */
     function nav_link(string $path, string $label, string $cur, string $extra = ''): string {
         $cls = trim($extra . (nav_is_active($path, $cur) ? ' active' : ''));
-        return '<a class="' . htmlspecialchars($cls) . '" href="' . url($path) . '">' . $label . '</a>';
+        return '<a class="' . htmlspecialchars($cls) . '" href="' . url($path) . '">' . nav_icon(nav_icon_for_path($path)) . '<span class="nav-label">' . $label . '</span></a>';
     }
 }
 if (!function_exists('nav_group_open')) {
@@ -61,13 +87,12 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <div class="brand"><img src="<?= asset('img/logo.png') ?>" alt="" width="28" height="28"> Citas Médicas</div>
-    <div class="user">
-      <strong><?= htmlspecialchars($user['nombre']) ?></strong>
-      <small><?= htmlspecialchars($rol) ?></small>
+  <aside class="sidebar" id="sidebar" aria-label="Menú principal">
+    <div class="sidebar-head">
+      <div class="brand"><img src="<?= asset('img/logo.png') ?>" alt="" width="32" height="32"><span>Citas Médicas</span></div>
+      <button class="sidebar-close" type="button" aria-label="Cerrar menú" title="Cerrar menú"><?= nav_icon('logout') ?></button>
     </div>
-    <nav>
+    <nav aria-label="Navegación principal">
       <?php if ($__soloFirma): ?>
         <?= nav_link('contratos/firmar', 'Contrato y aviso', $__cur) ?>
       <?php else: ?>
@@ -77,7 +102,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
-          <summary>Configuración</summary>
+          <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
           <?= nav_link('diasbloqueados', 'Días bloqueados', $__cur) ?>
@@ -93,7 +118,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
-          <summary>Configuración</summary>
+          <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
           <?= nav_link('diasbloqueados', 'Días bloqueados', $__cur) ?>
@@ -102,7 +127,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         </details>
 
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion'], $__cur) ?>>
-          <summary>Reportes</summary>
+          <summary><?= nav_icon('reports') ?><span>Reportes</span></summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
           <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
           <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
@@ -113,7 +138,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'catalogos/usuarios'], $__cur) ?>>
-          <summary>Catálogos</summary>
+          <summary><?= nav_icon('catalog') ?><span>Catálogos</span></summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
           <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
           <?= nav_link('medicos', 'Médicos', $__cur) ?>
@@ -122,7 +147,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
-          <summary>Configuración</summary>
+          <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
           <?= nav_link('diasbloqueados', 'Días bloqueados', $__cur) ?>
@@ -132,7 +157,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         </details>
 
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
-          <summary>Reportes</summary>
+          <summary><?= nav_icon('reports') ?><span>Reportes</span></summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
           <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
           <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
@@ -145,7 +170,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['pacientes', 'especialidades', 'consultorios', 'catalogos/paises', 'catalogos/estados', 'catalogos/municipios', 'catalogos/generos', 'catalogos/estadosCita', 'catalogos/usuarios', 'catalogos/respaldo'], $__cur) ?>>
-          <summary>Catálogos</summary>
+          <summary><?= nav_icon('catalog') ?><span>Catálogos</span></summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
           <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
           <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
@@ -158,21 +183,21 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('catalogos/respaldo', 'Respaldo de base de datos', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo', 'opciones/whatsapp'], $__cur) ?>>
-          <summary>Configuración</summary>
+          <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/correo', 'Configuración de correo', $__cur) ?>
           <?= nav_link('opciones/whatsapp', 'Configuración de WhatsApp', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['clinicas', 'usuariosClinica', 'sistema/bloquearClinicas', 'contratos/plantillas', 'contratos/clinica'], $__cur) ?>>
-          <summary>Clínicas</summary>
+          <summary><?= nav_icon('clinic') ?><span>Clínicas</span></summary>
           <?= nav_link('clinicas', 'Clínicas', $__cur) ?>
           <?= nav_link('usuariosClinica', 'Asignar clínicas a usuarios', $__cur) ?>
           <?= nav_link('sistema/bloquearClinicas', 'Bloquear acceso a clínicas', $__cur) ?>
           <?= nav_link('contratos/plantillas', 'Plantillas legales', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['reportes/ingresos', 'reportes/repIngresos', 'reportes/repAtencion', 'reportes/repTop10', 'reportes/repEspecialidad'], $__cur) ?>>
-          <summary>Reportes</summary>
+          <summary><?= nav_icon('reports') ?><span>Reportes</span></summary>
           <?= nav_link('reportes/ingresos', 'Ingresos por consulta', $__cur) ?>
           <?= nav_link('reportes/repIngresos', 'Ingresos por citas', $__cur) ?>
           <?= nav_link('reportes/repAtencion', 'Atención', $__cur) ?>
@@ -182,7 +207,6 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php endif; ?>
       <?php endif; ?>
 
-      <a class="logout" href="<?= url('auth/logout') ?>">Cerrar sesión</a>
     </nav>
     <?php if ($__monitorCitas): ?>
     <script>
@@ -212,8 +236,21 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
     </script>
     <?php endif; ?>
   </aside>
+  <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" tabindex="-1"></button>
   <main class="content">
-    <header class="topbar"><h1><?= htmlspecialchars($title ?? '') ?></h1></header>
+    <header class="topbar">
+      <div class="topbar-title">
+        <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false" title="Abrir menú">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <h1><?= htmlspecialchars($title ?? '') ?></h1>
+      </div>
+      <div class="topbar-account">
+        <span class="user-avatar" aria-hidden="true"><?= htmlspecialchars(mb_strtoupper(mb_substr((string)$user['nombre'], 0, 1))) ?></span>
+        <span class="user-summary"><strong><?= htmlspecialchars($user['nombre']) ?></strong><small><?= htmlspecialchars(str_replace('_', ' ', $rol)) ?></small></span>
+        <a class="topbar-logout" href="<?= url('auth/logout') ?>" title="Cerrar sesión" aria-label="Cerrar sesión"><?= nav_icon('logout') ?><span>Cerrar sesión</span></a>
+      </div>
+    </header>
     <section class="page">
       <?php if (!empty($_SESSION['flash'])): foreach ($_SESSION['flash'] as $f): ?>
         <div class="flash flash-<?= htmlspecialchars($f['type']) ?>"><?= htmlspecialchars($f['msg']) ?></div>
