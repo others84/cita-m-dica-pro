@@ -26,6 +26,23 @@ if (!function_exists('nav_link')) {
             'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
             'appointments' => '<path d="M8 2v4M16 2v4M4 5h16a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="m9 16 2 2 4-5"/>',
             'patients' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+            'patient' => '<circle cx="12" cy="7" r="3.5"/><path d="M5.5 21v-2.5a6.5 6.5 0 0 1 13 0V21M9 15.2l3 2.3 3-2.3"/>',
+            'assistant' => '<circle cx="12" cy="6.5" r="3"/><path d="M6 21v-3.5a6 6 0 0 1 12 0V21M9 12.3V10h6v2.3M4 16h16v5H4zM9 18.5h6"/>',
+            'doctor' => '<path d="M6 3v5a6 6 0 0 0 12 0V3M4 3h4M16 3h4M12 14v2a4 4 0 0 0 4 4h1"/><circle cx="19" cy="19" r="2"/>',
+            'user-computer' => '<circle cx="8" cy="7" r="3"/><path d="M2.5 17a5.5 5.5 0 0 1 9-4.2M13 13h9v6h-9zM16 22h3M17.5 19v3"/>',
+            'mask' => '<path d="M3 5.5c3-1.3 6-1.3 9 0 3-1.3 6-1.3 9 0v5c0 5.4-3.7 9.1-9 10.5-5.3-1.4-9-5.1-9-10.5zM6.5 10c1.2-1 2.4-1 3.6 0M13.9 10c1.2-1 2.4-1 3.6 0M9 15.5c2 1.4 4 1.4 6 0"/>',
+            'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+            'blocked-calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 12v7"/>',
+            'phone' => '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 5h4M11 18h2"/>',
+            'password' => '<path d="M4 8l1.2 2.1L7.5 9M12 8l1.2 2.1L15.5 9M8 14l1.2 2.1 2.3-1.1M16 14l1.2 2.1 2.3-1.1"/>',
+            'user-password' => '<circle cx="7" cy="7" r="3"/><path d="M2 20v-2a5 5 0 0 1 9.5-2.2M14 12l1.1 1.9 2.1-1M19 12l1.1 1.9 2.1-1M16.5 17l1.1 1.9 2.1-1"/>',
+            'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+            'mexico' => '<path d="M3 5l4 1 2-2 3 3 3-1 2 3 4 2-2 3 1 3-4 1-2 3-3-2-2-4-3-2z"/>',
+            'puebla' => '<path d="M9 2l4 2-1 4 4 2-2 3 3 4-4 1-2 4-3-3-4-1 2-4-2-3 4-2z"/>',
+            'gender' => '<circle cx="7" cy="6" r="3"/><path d="M2 20v-2a5 5 0 0 1 10 0v2M17 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6M14 20v-4h-2l2.5-5h5l2.5 5h-2v4"/>',
+            'seated' => '<circle cx="9" cy="5" r="2.5"/><path d="M9 8v6h5l3 6M9 11H5v6h7M5 17v4"/>',
+            'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>',
+            'clinic-blocked' => '<path d="M3 21h12M5 21V6l5-3 5 3v5M8 9h2M8 13h2"/><circle cx="18" cy="17" r="4"/><path d="m15.2 14.2 5.6 5.6"/>',
             'settings' => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.55V21h-4v-.08A1.7 1.7 0 0 0 8.94 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3.08 14H3v-4h.08A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88L4.2 7.06 7.03 4.2l.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3.08V3h4v.08A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9 1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/>',
             'reports' => '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
             'clinic' => '<path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h2M13 9h2M9 13h2M13 13h2M10 21v-4h4v4"/>',
@@ -37,7 +54,28 @@ if (!function_exists('nav_link')) {
         return '<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . $path . '</svg>';
     }
     function nav_icon_for_path(string $path): string {
-        $p = strtolower($path);
+        $p = strtolower(trim($path, '/'));
+        $exact = [
+            'pacientes' => 'patient',
+            'asistentes' => 'assistant',
+            'medicos' => 'doctor',
+            'catalogos/usuarios' => 'user-computer',
+            'opciones/apariencia' => 'mask',
+            'horarios' => 'clock',
+            'diasbloqueados' => 'blocked-calendar',
+            'mensajes' => 'phone',
+            'opciones/cambiarpassword' => 'password',
+            'opciones/passwordusuarios' => 'user-password',
+            'catalogos/paises' => 'globe',
+            'catalogos/estados' => 'mexico',
+            'catalogos/municipios' => 'puebla',
+            'catalogos/generos' => 'gender',
+            'catalogos/estadoscita' => 'seated',
+            'opciones/correo' => 'mail',
+            'opciones/whatsapp' => 'phone',
+            'sistema/bloquearclinicas' => 'clinic-blocked',
+        ];
+        if (isset($exact[$p])) return $exact[$p];
         if (strpos($p, 'calendario') !== false) return 'calendar';
         if (strpos($p, 'citas') !== false) return 'appointments';
         if (strpos($p, 'pacientes') !== false || strpos($p, 'medicos') !== false || strpos($p, 'asistentes') !== false || strpos($p, 'usuarios') !== false) return 'patients';
@@ -169,7 +207,7 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
       <?php if ($rol === 'admin_sistema'): ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['pacientes', 'especialidades', 'consultorios', 'catalogos/paises', 'catalogos/estados', 'catalogos/municipios', 'catalogos/generos', 'catalogos/estadosCita', 'catalogos/usuarios', 'catalogos/respaldo'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['pacientes', 'especialidades', 'consultorios', 'catalogos/paises', 'catalogos/estados', 'catalogos/municipios', 'catalogos/generos', 'catalogos/estadosCita', 'catalogos/usuarios'], $__cur) ?>>
           <summary><?= nav_icon('catalog') ?><span>Catálogos</span></summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
           <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
@@ -180,7 +218,6 @@ $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class=
           <?= nav_link('catalogos/generos', 'Géneros', $__cur) ?>
           <?= nav_link('catalogos/estadosCita', 'Edo de citas', $__cur) ?>
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
-          <?= nav_link('catalogos/respaldo', 'Respaldo de base de datos', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo', 'opciones/whatsapp'], $__cur) ?>>
           <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
