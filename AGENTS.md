@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- El marco autenticado de `php-app` usa un menú lateral claro y una barra superior adaptable; preservar esa estructura al agregar navegación porque es el patrón visual aprobado.
