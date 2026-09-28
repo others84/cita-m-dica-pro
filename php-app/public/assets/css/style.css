@@ -480,7 +480,9 @@ body{background:var(--c1);color:var(--c5)}
   .content{width:100%;min-height:100vh;min-height:100dvh}
   .topbar{height:64px;padding:0 14px;gap:10px}
   .topbar-account{gap:7px}
-  .user-summary{display:none}
+  .user-summary{display:flex;max-width:130px}
+  .user-summary strong{font-size:.8rem}
+  .user-summary small{font-size:.68rem;margin-top:1px}
   .topbar-logout{width:42px;padding:0;justify-content:center;border-left:0}
   .topbar-logout span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .page{padding:16px}
