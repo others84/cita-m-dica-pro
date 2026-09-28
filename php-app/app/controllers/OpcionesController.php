@@ -86,6 +86,65 @@ class OpcionesController extends Controller {
         $this->redirect('opciones/correo');
     }
 
+    /** Administrador de sistema: aviso por correo de accesos de administradores. */
+    public function avisoAcceso(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigAvisoAccesoModel.php';
+        $cfg = null;
+        try { $cfg = ConfigAvisoAccesoModel::obtener(); }
+        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->view('opciones/aviso_acceso', ['title' => 'Aviso de accesos', 'cfg' => $cfg]);
+    }
+
+    public function avisoAccesoGuardar(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigAvisoAccesoModel.php';
+        try {
+            $lista = ConfigAvisoAccesoModel::listaDestinos((string)$this->input('destinos'));
+            $asunto = trim((string)$this->input('asunto'));
+            $texto = trim(str_replace("\r\n", "\n", (string)$this->input('plantilla')));
+            $activo = (int)$this->input('activo') === 1;
+            if (!$lista) throw new Exception('Indica al menos un correo destino.');
+            foreach ($lista as $c) {
+                if (!filter_var($c, FILTER_VALIDATE_EMAIL) || strlen($c) > 120) throw new Exception('El correo "' . $c . '" no es válido.');
+            }
+            $destinos = implode(', ', $lista);
+            if (strlen($destinos) > 500) throw new Exception('La lista de correos es demasiado larga.');
+            if ($asunto === '' || mb_strlen($asunto) > 200) throw new Exception('El asunto es obligatorio (máximo 200 caracteres).');
+            if ($texto === '' || mb_strlen($texto) > 2000) throw new Exception('El texto es obligatorio (máximo 2000 caracteres).');
+            ConfigAvisoAccesoModel::guardar($destinos, $asunto, $texto, $activo);
+            $this->flash('ok', 'Aviso de accesos guardado.');
+        } catch (Throwable $e) {
+            $this->flash('error', $e->getMessage());
+        }
+        $this->redirect('opciones/avisoAcceso');
+    }
+
+    public function avisoAccesoPrueba(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../core/AvisoAcceso.php';
+        try {
+            $cfg = ConfigAvisoAccesoModel::obtener();
+            if (!$cfg) throw new Exception('Primero guarda la configuración del aviso.');
+            $destinos = ConfigAvisoAccesoModel::listaDestinos((string)$cfg['destinos']);
+            $u = $_SESSION['user'];
+            $datos = [
+                'USUARIO' => (string)($u['usuario'] ?? ''), 'NOMBRE' => (string)($u['nombre'] ?? ''),
+                'ROL' => AvisoAcceso::rolTexto((string)($u['rol'] ?? '')),
+                'FECHA' => date('d/m/Y', strtotime((string)$cfg['ahora']) ?: time()),
+                'HORA' => date('H:i:s', strtotime((string)$cfg['ahora']) ?: time()),
+                'IP' => AvisoAcceso::ipCliente(), 'CLINICA' => '',
+            ];
+            AvisoAcceso::enviar($destinos,
+                '[Prueba] ' . ConfigAvisoAccesoModel::render((string)$cfg['asunto'], $datos),
+                ConfigAvisoAccesoModel::render((string)$cfg['plantilla'], $datos));
+            $this->flash('ok', 'Aviso de prueba enviado a ' . implode(', ', $destinos) . '.');
+        } catch (Throwable $e) {
+            $this->flash('error', 'No se pudo enviar: ' . $e->getMessage());
+        }
+        $this->redirect('opciones/avisoAcceso');
+    }
+
     /** Administrador de sistema: credenciales de WhatsApp Cloud API. */
     public function whatsapp(): void {
         $this->requireLogin(['admin_sistema']);

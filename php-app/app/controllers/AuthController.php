@@ -36,6 +36,8 @@ class AuthController extends Controller {
                 session_regenerate_id(true);
                 if ($csrf) { $_SESSION['csrf_token'] = $csrf; }
                 $_SESSION['user'] = $user;
+                require_once __DIR__ . '/../core/AvisoAcceso.php';
+                AvisoAcceso::notificar($user);
                 $destino = $user['rol'] === 'admin_sistema' ? url('clinicas') : url('calendario');
                 if ($user['rol'] !== 'admin_sistema') {
                     require_once __DIR__ . '/ContratosController.php';
