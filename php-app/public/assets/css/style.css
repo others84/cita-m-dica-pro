@@ -413,7 +413,7 @@ table.data.ord-col-6 tbody tr.cita-por-notificar td:nth-child(6){background:var(
 body{background:var(--c1);color:var(--c5)}
 .app{background:var(--c1)}
 .sidebar{
-  position:sticky;top:0;height:100vh;height:100dvh;width:300px;flex:0 0 300px;
+  position:sticky;top:0;height:100vh;height:100dvh;width:330px;flex:0 0 330px;
   padding:0;background:var(--surface);color:var(--c5);border-right:1px solid var(--line);
   box-shadow:2px 0 14px rgba(32,50,77,.035);z-index:40;
 }
@@ -428,7 +428,7 @@ body{background:var(--c1);color:var(--c5)}
 .sidebar-close:hover,.menu-toggle:hover{background:var(--c1);color:var(--c4)}
 .sidebar nav{flex:1;gap:4px;padding:16px 12px 20px;overflow-y:auto;scrollbar-width:thin}
 .sidebar nav a,.sidebar nav .menu-group > summary{
-  position:relative;display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:11px;
+  position:relative;display:flex;flex-flow:row nowrap;align-items:center;gap:11px;
   min-height:42px;padding:9px 12px;border-radius:6px;background:transparent;color:var(--muted);font-size:.875rem;white-space:nowrap;
 }
 .sidebar nav a:hover,.sidebar nav .menu-group > summary:hover{background:var(--surface-soft);color:var(--c4)}
@@ -439,12 +439,13 @@ body{background:var(--c1);color:var(--c5)}
   content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--c4);
 }
 .sidebar nav .menu-group{margin:0}
-.sidebar nav .menu-group > summary{display:grid;justify-content:initial}
-.sidebar nav .menu-group > summary::after{grid-column:3;color:var(--muted);font-size:.65rem}
-.sidebar nav .menu-group > a{padding-left:43px;grid-template-columns:16px minmax(0,1fr);font-size:.82rem}
+.sidebar nav .menu-group > summary{display:flex;flex-flow:row nowrap}
+.sidebar nav .menu-group > summary > span{flex:1 1 auto;min-width:0;white-space:nowrap}
+.sidebar nav .menu-group > summary::after{margin-left:auto;color:var(--muted);font-size:.65rem}
+.sidebar nav .menu-group > a{padding-left:43px;font-size:.82rem}
 .sidebar nav .menu-group > a .nav-icon{width:15px;height:15px}
 .nav-icon{width:19px;height:19px;display:block;flex:0 0 auto}
-.nav-label{min-width:0;line-height:1.25;white-space:nowrap}
+.nav-label{display:block;flex:1 1 auto;min-width:0;line-height:1.25;white-space:nowrap}
 .nav-badge{display:inline-flex;margin-left:.3rem;min-width:20px;height:20px;align-items:center;justify-content:center;padding:0 5px;border-radius:10px;background:var(--c4);color:var(--surface);font-size:.7rem}
 .content{background:var(--c1);min-height:100vh;min-height:100dvh}
 .topbar{
