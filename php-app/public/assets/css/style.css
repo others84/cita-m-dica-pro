@@ -494,3 +494,18 @@ body{background:var(--c1);color:var(--c5)}
   .page{padding:12px}
 }
 @media (prefers-reduced-motion:reduce){.sidebar,.sidebar-backdrop{transition:none}}
+
+/* ===== Citas en espera ===== */
+.badge-espera{background:var(--c2);color:var(--c5);margin-left:.25rem}
+.espera-aviso{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.espera-panel{margin-bottom:1rem;border:2px solid var(--c3)}
+.espera-dias{display:flex;flex-direction:column;gap:.6rem;max-height:420px;overflow:auto}
+.espera-dia-tit{font-weight:700;color:var(--c5);margin-bottom:.25rem}
+.espera-horas{display:flex;flex-wrap:wrap;gap:.4rem}
+.espera-slot{position:relative;cursor:pointer}
+.espera-slot input{position:absolute;opacity:0;pointer-events:none}
+.espera-slot span{display:inline-block;min-width:64px;min-height:36px;line-height:36px;text-align:center;padding:0 .5rem;border:1px solid var(--c2);border-radius:8px;background:#fff;color:var(--c5)}
+.espera-slot input:checked + span{background:var(--c3);color:#fff;border-color:var(--c3)}
+.espera-slot input:focus-visible + span{outline:2px solid var(--c4);outline-offset:2px}
+.espera-check{display:flex;align-items:center;gap:.5rem;grid-column:1/-1}
+.espera-check input{width:auto}
