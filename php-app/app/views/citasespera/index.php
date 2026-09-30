@@ -62,6 +62,10 @@
           </div>
         <?php endforeach; ?>
       </div>
+      <label class="espera-check" style="display:flex;align-items:center;gap:.5rem;margin-top:.75rem">
+        <input type="checkbox" name="en_espera" value="1" checked>
+        En espera de un espacio anterior (desmarque si ya no se va a mover más)
+      </label>
       <div class="form-actions" style="margin-top:.75rem">
         <button class="btn" type="submit" onclick="return confirm('¿Mover la cita al horario elegido?');">Mover cita</button>
       </div>
