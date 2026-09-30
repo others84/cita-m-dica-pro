@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Controller.php';
 class FiltroController extends Controller {
     /** Pantallas donde se permite el filtro (evita redirecciones arbitrarias). */
     private const DESTINOS = [
-        'citas','citasmanana','pacientes','calendario','medicos','especialidades','consultorios',
+        'citas','citasmanana','citasespera','pacientes','calendario','medicos','especialidades','consultorios',
         'clinicas','asistentes','administradores','usuarios_clinica','reportes',
         'dashboard','sistema','catalogos','horarios','diasbloqueados','mensajes',
     ];

@@ -391,6 +391,14 @@ class CitasController extends Controller {
                 $this->registraLogEstado((int)$nuevoId, null, $nuevo !== '' ? $nuevo : 'Agendada',
                     (int)($ctxAlta['fClinica'] ?? 0));
             }
+            // Casilla "En espera de un espacio anterior".
+            if (isset($_POST['espera_presente'])) {
+                $idEsp = $id ?: (int)($nuevoId ?? 0);
+                if ($idEsp) {
+                    try { CitaModel::marcaEspera($idEsp, !empty($_POST['en_espera'])); }
+                    catch (Throwable $e) { Database::log('CITAS.guardar en_espera ERR: ' . $e->getMessage()); }
+                }
+            }
             // Actualizar observaciones del paciente ya validado.
             $obsPaciente = (string)($this->input('observaciones_paciente') ?? '');
             PacienteModel::cambioObservaciones((int)$pac['id_PACIENTE'], $obsPaciente);
@@ -661,6 +669,30 @@ class CitasController extends Controller {
                 (int)($c['id_CLINICA'] ?? 0),
                 $c
             );
+            // Cancelada / Atendida / No asistio: sale de la lista de espera.
+            $final = !in_array('confirmada', $nombresEstado, true);
+            if ($final && (int)($c['en_espera'] ?? 0) === 1) {
+                try { CitaModel::marcaEspera($id, false); }
+                catch (Throwable $e) { Database::log('CITAS.cambiaEstado en_espera ERR: ' . $e->getMessage()); }
+            }
+            // Si se libero un espacio, avisar de las citas en espera posteriores.
+            $libera = in_array('cancelada', $nombresEstado, true) || in_array('no asistio', $nombresEstado, true);
+            if ($libera) {
+                try {
+                    $fLib = substr($fmt($c['fecha_cita'], 'Y-m-d'), 0, 10);
+                    $hLib = substr($fmt($c['hora_inicio'], 'H:i'), 0, 5);
+                    $n = count(array_filter(CitaModel::enEspera((int)$c['id_MEDICO'], null),
+                        fn($e) => (int)$e['id_CITA'] !== $id
+                            && substr($fmt($e['fecha_cita'], 'Y-m-d'), 0, 10) . ' ' . substr($fmt($e['hora_inicio'], 'H:i'), 0, 5) > "$fLib $hLib"));
+                    if ($n > 0 && "$fLib $hLib" > substr(CitaModel::ahoraSql(), 0, 16)) {
+                        $okMsg .= ' Se liberó un espacio el ' . date('d/m/Y', strtotime($fLib)) . ' a las ' . $hLib
+                            . '. Hay ' . $n . ' paciente(s) en espera con este médico: revise "Citas en espera".';
+                        if (($_SESSION['user']['rol'] ?? '') !== 'medico') {
+                            $_SESSION['ui']['citasespera']['medico'] = (int)$c['id_MEDICO'];
+                        }
+                    }
+                } catch (Throwable $e) { Database::log('CITAS.espacio liberado ERR: ' . $e->getMessage()); }
+            }
             $this->flash('ok', $okMsg);
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo actualizar la cita: ' . $e->getMessage());

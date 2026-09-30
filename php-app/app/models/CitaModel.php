@@ -2,10 +2,109 @@
 require_once __DIR__ . '/../core/Model.php';
 class CitaModel extends Model {
     public static function listar(?int $idMedico = null, ?string $desde = null, ?string $hasta = null, ?int $idClinica = null): array {
-        return self::query(
+        $rows = self::query(
             'EXEC citas.spRegresaCitas @id_MEDICO=:m, @id_CLINICA=:c, @fecha_desde=:d, @fecha_hasta=:h',
             [':m'=>$idMedico, ':c'=>$idClinica, ':d'=>$desde, ':h'=>$hasta]
         );
+        $mapa = self::esperaMap();
+        foreach ($rows as &$r) {
+            $id = (int)($r['id_CITA'] ?? 0);
+            $r['en_espera'] = isset($mapa[$id]) ? 1 : 0;
+            $r['fecha_en_espera'] = $mapa[$id] ?? null;
+        }
+        unset($r);
+        return $rows;
+    }
+
+    /** [id_CITA => 'Y-m-d H:i:s'] de las citas marcadas en espera (vacio si falta el parche). */
+    public static function esperaMap(): array {
+        $out = [];
+        try {
+            foreach (self::query('EXEC citas.spRegresaCitasEspera') as $r) {
+                $f = $r['fecha_en_espera'] ?? '';
+                if ($f instanceof DateTime) $f = $f->format('Y-m-d H:i:s');
+                $out[(int)$r['id_CITA']] = substr((string)$f, 0, 19);
+            }
+        } catch (Throwable $e) { /* parche aun no aplicado */ }
+        return $out;
+    }
+
+    /** Marca (1) o quita (0) la cita de la lista de espera. */
+    public static function marcaEspera(int $id, bool $enEspera): void {
+        self::execute('EXEC citas.spMarcaCitaEspera @id_CITA=:id, @en_espera=:e, @id_usuario=:u',
+            [':id'=>$id, ':e'=>$enEspera ? 1 : 0, ':u'=>self::currentUserId()]);
+    }
+
+    /** Estado activo (agendada / confirmada). */
+    public static function estadoActivo(array $c): bool {
+        $e = strtr(mb_strtolower(trim((string)($c['estado'] ?? ''))), ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u']);
+        return strpos($e, 'agendad') !== false || strpos($e, 'confirmad') !== false;
+    }
+
+    /** Citas en espera, activas y a futuro; ordenadas por quien lo pidio primero. */
+    public static function enEspera(?int $idMedico = null, ?int $idClinica = null): array {
+        $hoy = substr(self::ahoraSql(), 0, 10);
+        $rows = self::listar($idMedico, $hoy, date('Y-m-d', strtotime('+365 days')), $idClinica);
+        $rows = array_values(array_filter($rows, function ($c) use ($idMedico) {
+            if ((int)($c['en_espera'] ?? 0) !== 1 || !self::estadoActivo($c)) return false;
+            return $idMedico === null || (int)($c['id_MEDICO'] ?? 0) === $idMedico;
+        }));
+        usort($rows, fn($a, $b) => strcmp((string)$a['fecha_en_espera'], (string)$b['fecha_en_espera']));
+        return $rows;
+    }
+
+    /**
+     * Horarios libres del medico desde ahora hasta antes de la cita dada,
+     * con la misma duracion. Regresa ['Y-m-d' => ['HH:MM', ...]].
+     */
+    public static function horariosLibres(array $c, int $maxDias = 60): array {
+        require_once __DIR__ . '/HorarioMedicoModel.php';
+        require_once __DIR__ . '/DiaBloqueadoModel.php';
+        $fmt = fn($v, string $f) => $v instanceof DateTime ? $v->format($f) : (string)$v;
+        $idMed = (int)$c['id_MEDICO'];
+        $fCita = substr($fmt($c['fecha_cita'], 'Y-m-d'), 0, 10);
+        $hiCita = substr($fmt($c['hora_inicio'], 'H:i'), 0, 5);
+        $hfCita = substr($fmt($c['hora_fin'], 'H:i'), 0, 5);
+        $min = fn(string $h) => (int)substr($h, 0, 2) * 60 + (int)substr($h, 3, 2);
+        $dur = max(15, $min($hfCita) - $min($hiCita));
+        $inicioCita = strtotime($fCita . ' ' . $hiCita);
+
+        $ahora = self::ahoraSql();
+        $hoy = substr($ahora, 0, 10);
+        $ahoraTs = strtotime($ahora);
+        $hasta = min($fCita, date('Y-m-d', strtotime($hoy . " +$maxDias days")));
+
+        $h = HorarioMedicoModel::porMedico($idMed);
+        $hIni = $min($h['hora_inicio']); $hFin = $min($h['hora_fin']);
+        $cIni = $h['comida_inicio'] !== '' ? $min($h['comida_inicio']) : null;
+        $cFin = $h['comida_fin'] !== '' ? $min($h['comida_fin']) : null;
+        $bloq = array_flip(DiaBloqueadoModel::fechasFuturas($idMed));
+
+        // Citas ocupadas del medico en el rango.
+        $ocup = [];
+        foreach (self::listar($idMed, $hoy, $hasta, null) as $o) {
+            if ((int)($o['id_MEDICO'] ?? 0) !== $idMed || (int)$o['id_CITA'] === (int)$c['id_CITA']) continue;
+            if (!self::estadoActivo($o)) continue;
+            $of = substr($fmt($o['fecha_cita'], 'Y-m-d'), 0, 10);
+            $ocup[$of][] = [$min(substr($fmt($o['hora_inicio'], 'H:i'), 0, 5)), $min(substr($fmt($o['hora_fin'], 'H:i'), 0, 5))];
+        }
+
+        $out = [];
+        for ($d = strtotime($hoy); date('Y-m-d', $d) <= $hasta; $d = strtotime('+1 day', $d)) {
+            $dia = date('Y-m-d', $d);
+            if (isset($bloq[$dia])) continue;
+            for ($t = $hIni; $t + $dur <= $hFin; $t += 30) {
+                $ts = strtotime($dia) + $t * 60;
+                if ($ts <= $ahoraTs || $ts >= $inicioCita) continue;
+                if ($cIni !== null && $cFin !== null && $t < $cFin && $t + $dur > $cIni) continue;
+                $libre = true;
+                foreach ($ocup[$dia] ?? [] as [$a, $b]) {
+                    if ($t < $b && $t + $dur > $a) { $libre = false; break; }
+                }
+                if ($libre) $out[$dia][] = sprintf('%02d:%02d', intdiv($t, 60), $t % 60);
+            }
+        }
+        return $out;
     }
     public static function alta(array $d): int {
         return self::executeWithOutput('spAltaCita', [
