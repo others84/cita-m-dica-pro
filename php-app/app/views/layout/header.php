@@ -105,6 +105,7 @@ if (!function_exists('nav_group_open')) {
 $__soloFirma = $rol !== 'admin_sistema' && !empty($_SESSION['contratos_pendientes']);
 $__monitorCitas = !$__soloFirma && in_array($rol, ['asistente','medico','administrador'], true);
 $__labelCitas = 'Citas' . ($__monitorCitas ? ' <span id="nav-citas-badge" class="nav-badge" style="display:none"></span>' : '');
+$__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-badge" class="nav-badge" style="display:none"></span>' : '');
 ?>
 <!doctype html>
 <html lang="es">

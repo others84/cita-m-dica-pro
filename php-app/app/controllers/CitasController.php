@@ -177,7 +177,15 @@ class CitasController extends Controller {
         } catch (Throwable $e) {
             // Silenciado a proposito: el monitor no escribe en app.log.
         }
-        echo json_encode(['total' => $total, 'ts' => time()]);
+        // Citas en espera (mismo alcance que la pantalla "Citas en espera").
+        $espera = 0;
+        try {
+            $rolE = $_SESSION['user']['rol'] ?? '';
+            $idMedE = $rolE === 'medico' ? (((int)($_SESSION['user']['id_USUARIOS'] ?? 0)) ?: null) : null;
+            $fClinE = $idMedE ? null : ($ctx['fClinica'] ?? null);
+            $espera = count(CitaModel::enEspera($idMedE, $fClinE));
+        } catch (Throwable $e) { /* silencioso */ }
+        echo json_encode(['total' => $total, 'espera' => $espera, 'ts' => time()]);
         exit;
     }
 
