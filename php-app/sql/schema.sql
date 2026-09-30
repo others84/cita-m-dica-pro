@@ -3410,3 +3410,5 @@ GO
 GRANT EXECUTE ON OBJECT::citas.spRegresaConfigAvisoAcceso TO citasadmin;
 GRANT EXECUTE ON OBJECT::citas.spGuardaConfigAvisoAcceso  TO citasadmin;
 GO
+
+
