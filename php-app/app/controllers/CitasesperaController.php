@@ -146,11 +146,14 @@ class CitasesperaController extends Controller {
                 'horas_anticipacion_notif' => (int)($c['horas_anticipacion_notif'] ?? 24),
                 'precio'                   => (float)($c['precio'] ?? 0),
             ]);
+            $sigue = (string)$this->input('en_espera') === '1';
+            if (!$sigue) CitaModel::marcaEspera($id, false);
             Database::log('CITA ADELANTADA id_CITA=' . $id
                 . ' antes=' . $fAnt . ' ' . $hiAnt . ' ahora=' . $fecha . ' ' . $hora
+                . ' en_espera=' . ($sigue ? '1' : '0')
                 . ' usuario=' . (string)($_SESSION['user']['usuario'] ?? '?'));
             $this->flash('ok', 'Cita movida al ' . date('d/m/Y', strtotime($fecha)) . ' a las ' . $hora
-                . '. Sigue en espera por si se libera otro espacio antes.');
+                . ($sigue ? '. Sigue en espera por si se libera otro espacio antes.' : '. Ya no aparecerá en la lista de espera.'));
             unset($_SESSION['ui']['citasespera']['sel']);
             $_SESSION['ui']['citasespera']['movida'] = $id;
         } catch (Throwable $e) {
