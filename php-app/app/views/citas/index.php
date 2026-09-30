@@ -70,7 +70,7 @@
         <td><?= htmlspecialchars($c['medico'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['especialidad'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['consultorio'] ?? '') ?></td>
-        <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span></td>
+        <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span><?php if ((int)($c['en_espera'] ?? 0) === 1): ?> <span class="badge badge-espera" title="Esperando un espacio anterior">En espera</span><?php endif; ?></td>
         <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td title="<?= htmlspecialchars($obsPac) ?>"><?= htmlspecialchars($obsPacCorta) ?></td>

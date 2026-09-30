@@ -130,6 +130,14 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
       <input type="number" name="horas_anticipacion_notif" min="0" max="240" value="<?= htmlspecialchars((string)($editRow['horas_anticipacion_notif'] ?? 24)) ?>"<?= $dis ?>>
     </label>
 
+    <?php if (!$dis): ?>
+    <label class="espera-check">
+      <input type="hidden" name="espera_presente" value="1">
+      <input type="checkbox" name="en_espera" value="1"<?= !empty($editRow['en_espera']) ? ' checked' : '' ?>>
+      En espera de un espacio anterior (avisar si se libera un horario antes)
+    </label>
+    <?php endif; ?>
+
     <label style="grid-column:1/-1">Observaciones paciente <small id="obs_paciente_count" style="color:var(--c4,#1E3A5F);font-weight:400">(0/5000)</small>
       <textarea id="obs_paciente" name="observaciones_paciente" rows="3" maxlength="5000"<?= $horario ? ' disabled' : '' ?>><?= htmlspecialchars((string)($editRow['observaciones_paciente'] ?? '')) ?></textarea>
     </label>
