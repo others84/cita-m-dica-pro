@@ -6,7 +6,7 @@ Algunos pacientes ya tienen su cita, pero quieren que les avisen si se libera un
 ## 1. Casilla en la cita
 - En el formulario para agendar o editar una cita se agrega la casilla **"En espera de un espacio anterior"**.
 - En la tabla de **Citas** aparece una pequeña etiqueta "En espera" en esas citas.
-- La casilla se quita sola cuando la cita se adelanta, se cancela, se atiende o se marca como "No asistió".
+- La casilla **se mantiene al adelantar la cita**, porque puede volver a moverse. Solo se quita sola cuando la cita se cancela, se atiende o se marca como "No asistió". También se puede quitar a mano desde la edición de la cita.
 
 ## 2. Nueva pantalla "Citas en espera"
 - Está en el menú para Asistente, Médico y Administrador de clínica, con su propio icono (un reloj de arena). Respeta el filtro de clínica y cada médico solo ve sus propias citas.
@@ -18,7 +18,7 @@ Algunos pacientes ya tienen su cita, pero quieren que les avisen si se libera un
 Botón **"Adelantar"** en cada fila:
 1. Se abre una ventana con los **horarios libres del mismo médico** entre hoy y la fecha actual de la cita. Toma en cuenta su horario de atención, los días bloqueados y las citas ya ocupadas.
 2. Se elige un horario y se presiona **"Mover cita"**. Se conservan el mismo médico, la especialidad, el consultorio y el precio, y la duración de la cita no cambia.
-3. La casilla se quita sola, se guarda el cambio en la bitácora (fecha anterior, fecha nueva y quién la movió) y aparece un botón de **WhatsApp** con un mensaje listo que avisa al paciente de su nueva fecha.
+3. La cita sigue en la lista de espera con su nueva fecha, por si se libera otro espacio antes. Se guarda el cambio en la bitácora (fecha anterior, fecha nueva y quién la movió) y aparece un botón de **WhatsApp** con un mensaje listo que avisa al paciente de su nueva fecha.
 
 ## 4. Aviso cuando se libera un espacio (recomendado)
 Cuando una cita se marca como **Cancelada** o **No asistió**, el sistema revisa si hay citas en espera con ese médico en fechas posteriores. Si las hay, muestra un mensaje: "Se liberó un espacio el 12/10 a las 10:00. Hay 3 pacientes en espera", con un botón que lleva a la pantalla filtrada. Desde ahí se adelanta la cita con un solo clic en ese mismo horario.
@@ -38,6 +38,7 @@ Cuando una cita se marca como **Cancelada** o **No asistió**, el sistema revisa
 ## Detalles técnicos
 - Nuevas columnas en `CITA`: `en_espera BIT NOT NULL DEFAULT 0` y `fecha_en_espera DATETIME NULL`, que sirve para dar prioridad a quien la pidió primero.
 - `spAltaCita` y `spCambioCita` reciben `@en_espera` como opcional con valor 0 por defecto, para seguir funcionando con las llamadas actuales. `spRegresaCitas` también devuelve estas columnas.
-- `spMueveCitaEspera(@id_CITA, @fecha, @hora_inicio, @hora_fin, @id_usuario)` revalida en el servidor que el horario siga libre, pone `en_espera=0` y escribe en `LOG`.
+- `spMueveCitaEspera(@id_CITA, @fecha, @hora_inicio, @hora_fin, @id_usuario)` revalida en el servidor que el horario siga libre, conserva `en_espera=1` y `fecha_en_espera` (para no perder la prioridad) y escribe en `LOG`.
+- Al cancelar, atender o marcar "No asistió", los procedimientos correspondientes ponen `en_espera=0`.
 - Los horarios libres se calculan con `HorarioMedicoModel`, `DiaBloqueadoModel` y las citas del médico. La fecha y hora de referencia se toman de SQL Server (`CitaModel::ahoraSql()`).
 - Las acciones usan POST con CSRF, como en el resto del sistema.
