@@ -142,7 +142,7 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
-        <?= nav_link('citasespera', 'Citas en espera', $__cur) ?>
+        <?= nav_link('citasespera', $__labelEspera, $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
           <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
@@ -159,7 +159,7 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
-        <?= nav_link('citasespera', 'Citas en espera', $__cur) ?>
+        <?= nav_link('citasespera', $__labelEspera, $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
           <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
@@ -181,7 +181,7 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
       <?php if ($rol === 'administrador'): ?>
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
-        <?= nav_link('citasespera', 'Citas en espera', $__cur) ?>
+        <?= nav_link('citasespera', $__labelEspera, $__cur) ?>
         <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'catalogos/usuarios'], $__cur) ?>>
           <summary><?= nav_icon('catalog') ?><span>Catálogos</span></summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
@@ -272,6 +272,9 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
             else { el.textContent = ''; el.style.display = 'none'; }
             if (previo !== null && n !== previo && enCitas) { window.location.reload(); }
             previo = n;
+            var ee = document.getElementById('nav-espera-badge');
+            var ne = d && d.espera ? parseInt(d.espera, 10) : 0;
+            if (ee) { if (ne > 0) { ee.textContent = '(' + ne + ')'; ee.style.display = 'inline'; } else { ee.textContent = ''; ee.style.display = 'none'; } }
           })
           .catch(function () {});
       }
