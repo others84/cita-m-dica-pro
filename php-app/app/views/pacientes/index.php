@@ -195,13 +195,29 @@ if (!isset($editRow)) {
   }
 
   input.addEventListener('input', function(){
-    var inicio = input.selectionStart || 0;
     var antes = input.value;
+    var cur = input.selectionStart;
+    if (cur == null) cur = antes.length;
+    var alFinal = cur >= antes.length;
+    // Cuenta los digitos a la izquierda del cursor (las barras no cuentan).
+    var nDig = soloDigitos(antes.slice(0, cur)).length;
     var novo = aplicarMascara(antes);
-    input.value = novo;
-    // Si el reformateo inserto una barra justo donde iba el cursor, avanza uno.
-    if (novo.length > antes.length && novo.charAt(inicio) === '/') inicio++;
-    try { input.setSelectionRange(inicio, inicio); } catch(e){}
+    if (novo !== antes) input.value = novo;
+    var pos;
+    if (alFinal) {
+      pos = novo.length;
+    } else {
+      pos = 0;
+      var vistos = 0;
+      while (pos < novo.length && vistos < nDig) {
+        if (/\d/.test(novo.charAt(pos))) vistos++;
+        pos++;
+      }
+    }
+    var fija = function(){ try { input.setSelectionRange(pos, pos); } catch(e){} };
+    fija();
+    // Android/Gboard puede sobrescribir el cursor; se reaplica tras el pintado.
+    if (window.requestAnimationFrame) requestAnimationFrame(fija); else setTimeout(fija, 0);
     sincronizaHidden();
   });
 
