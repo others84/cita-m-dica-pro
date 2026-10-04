@@ -8,6 +8,14 @@ if ($hf instanceof DateTime) $hf = $hf->format('H:i');
 $f  = $f  ? substr((string)$f,0,10)  : '';
 $hi = $hi ? substr((string)$hi,0,5) : '';
 $hf = $hf ? substr((string)$hf,0,5) : '';
+// Prellenado desde el calendario (solo citas nuevas).
+$__pre = empty($editRow) ? ($_SESSION['ui']['citas']['prefill_vista'] ?? null) : null;
+if (is_array($__pre)) {
+    $f  = (string)($__pre['fecha'] ?? '');
+    $hi = (string)($__pre['hora_inicio'] ?? '');
+    $hf = (string)($__pre['hora_fin'] ?? '');
+}
+$__preMed = is_array($__pre) ? (int)($__pre['id_medico'] ?? 0) : 0;
 $modo = $modo ?? 'edicion';
 $soloCancelar = ($modo === 'cancelar');
 $atender = ($modo === 'atender');
@@ -58,7 +66,7 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
         <option value="">-- seleccione --</option>
         <?php foreach ($medicos as $m):
           $idm = (int)($m['id_USUARIOS'] ?? 0); ?>
-          <option value="<?= $idm ?>" <?= isset($editRow) && (int)($editRow['id_MEDICO']??0)===$idm ? 'selected':'' ?>>
+          <option value="<?= $idm ?>" <?= (isset($editRow) && (int)($editRow['id_MEDICO']??0)===$idm) || ($__preMed && $__preMed===$idm) ? 'selected':'' ?>>
             <?= htmlspecialchars((string)($m['nombre_completo'] ?? $m['usuario'] ?? '')) ?>
           </option>
         <?php endforeach; ?>

@@ -139,7 +139,40 @@ class CitasController extends Controller {
         $this->redirect('citas');
     }
 
-    public function nueva(): void { $this->clearState('id'); $this->form(); }
+    public function nueva(): void {
+        $this->clearState('id');
+        // El prellenado del calendario solo vale para la siguiente apertura.
+        $_SESSION['ui']['citas']['prefill_vista'] = $_SESSION['ui']['citas']['prefill'] ?? null;
+        unset($_SESSION['ui']['citas']['prefill']);
+        $this->form();
+        unset($_SESSION['ui']['citas']['prefill_vista']);
+    }
+
+    /** Clic en un espacio libre del calendario: abre "Agendar cita" con fecha/hora/medico. */
+    public function desdeCalendario(): void {
+        $this->requireLogin();
+        $fecha = (string)$this->input('fecha', '');
+        $hora  = substr((string)$this->input('hora', ''), 0, 5);
+        $idMed = (int)$this->input('id_medico', 0);
+        $d = DateTime::createFromFormat('Y-m-d', $fecha);
+        if (!$d || $d->format('Y-m-d') !== $fecha) { $this->redirect('calendario'); return; }
+        if ($hora !== '' && !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $hora)) $hora = '';
+        $ahora = substr(CitaModel::ahoraSql(), 0, 16);
+        $cmp = $hora !== '' ? "$fecha $hora" : $fecha;
+        if ($cmp < ($hora !== '' ? $ahora : substr($ahora, 0, 10))) {
+            $this->flash('error', 'No se pueden agendar citas en fechas u horas pasadas.');
+            $this->redirect('calendario');
+            return;
+        }
+        if (($_SESSION['user']['rol'] ?? '') === 'medico') $idMed = (int)($_SESSION['user']['id_USUARIOS'] ?? 0);
+        $hf = $hora !== '' ? date('H:i', strtotime("$fecha $hora +30 minutes")) : '';
+        if ($hf !== '' && $hf < $hora) $hf = '23:59';
+        $_SESSION['ui']['citas']['prefill'] = [
+            'fecha' => $fecha, 'hora_inicio' => $hora, 'hora_fin' => $hf, 'id_medico' => $idMed ?: null,
+        ];
+        $this->clearState('id');
+        $this->redirect('citas/nueva');
+    }
 
     /**
      * Monitor de citas: devuelve en JSON cuantas citas ya entraron en su
