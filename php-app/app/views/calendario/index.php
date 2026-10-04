@@ -27,6 +27,7 @@
 
 <div class="card calendar-card">
   <div id="ec-contador" class="cal-contador">Citas agendadas: <strong id="ec-contador-num">0</strong></div>
+  <div class="cal-ayuda">Da clic en un horario libre para agendar una cita.</div>
   <div id="ec" class="calendar-box" style="height:700px;min-height:700px;width:100%;background:#fff;">
     <div class="calendar-loading">Cargando calendario...</div>
   </div>
@@ -129,6 +130,26 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
     cont.innerHTML = 'Citas agendadas ' + etiquetaVista(vista) + ': <strong>' + n + '</strong>';
   }
 
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function agendarEn(d, allDay) {
+    if (!(d instanceof Date)) d = new Date(d);
+    const fecha = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const hora = allDay ? '' : pad(d.getHours()) + ':' + pad(d.getMinutes());
+    const ahora = new Date();
+    const hoy = ahora.getFullYear() + '-' + pad(ahora.getMonth() + 1) + '-' + pad(ahora.getDate());
+    const pasado = allDay ? fecha < hoy : d < ahora;
+    if (pasado) { alert('No se pueden agendar citas en fechas u horas pasadas.'); return; }
+    const f = document.createElement('form');
+    f.method = 'post'; f.action = <?= json_encode(url('citas/desdeCalendario')) ?>;
+    const datos = { _csrf: <?= json_encode(csrf_token()) ?>, fecha: fecha, hora: hora,
+                    id_medico: <?= json_encode((string)($fMedico ?? '')) ?> };
+    for (const k in datos) {
+      const i = document.createElement('input');
+      i.type = 'hidden'; i.name = k; i.value = datos[k]; f.appendChild(i);
+    }
+    document.body.appendChild(f); f.submit();
+  }
+
   function buildOptions() {
     return {
       view: 'timeGridWeek',
@@ -157,6 +178,7 @@ window.CITAS_EVENTS = <?= json_encode($eventos ?? [], JSON_HEX_TAG | JSON_HEX_AM
       eventClick: function (info) {
         showModal({ extendedProps: info.event.extendedProps, start: info.event.start });
       },
+      dateClick: function (info) { agendarEn(info.date, info.allDay); },
       datesSet: function (info) { actualizarContador(info); }
     };
   }

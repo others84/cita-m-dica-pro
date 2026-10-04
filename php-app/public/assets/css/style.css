@@ -509,3 +509,7 @@ body{background:var(--c1);color:var(--c5)}
 .espera-slot input:focus-visible + span{outline:2px solid var(--c4);outline-offset:2px}
 .espera-check{display:flex;align-items:center;gap:.5rem;grid-column:1/-1}
 .espera-check input{width:auto}
+
+/* Agendar desde el calendario */
+.cal-ayuda{font-size:.85rem;color:var(--c4);margin:.25rem 0 .5rem}
+#ec .ec-body .ec-day,#ec .ec-time-grid .ec-day{cursor:pointer}
