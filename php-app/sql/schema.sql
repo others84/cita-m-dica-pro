@@ -312,7 +312,7 @@ CREATE TABLE citas.PACIENTE (
     email                    VARCHAR(120)      NOT NULL,
     fecha_nacimiento         DATE              NOT NULL,
     id_CATALOGO_GENERO       INT               NOT NULL,
-    id_CATALOGO_MUNICIPIO    INT               NOT NULL,
+    id_CATALOGO_MUNICIPIO    INT                   NULL,
     observaciones            VARCHAR(5000)      NULL,
     notifica_email           BIT               NOT NULL DEFAULT(0),
     notifica_wa              BIT               NOT NULL DEFAULT(0),
