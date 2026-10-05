@@ -425,6 +425,19 @@ class CitasController extends Controller {
                     $this->registraLogEstado($id, $antes, $nuevo, (int)($prev['id_CLINICA'] ?? 0));
                 }
             } else {
+                // Evita citas duplicadas por doble clic: cada formulario trae un token de un solo uso.
+                $tok = (string)($_POST['alta_token'] ?? '');
+                if ($tok !== '') {
+                    $usados = $_SESSION['citas_alta_tokens'] ?? [];
+                    if (isset($usados[$tok])) {
+                        $this->flash('ok', 'La cita ya se habia agendado; no se duplico.');
+                        $this->clearState('id');
+                        $this->redirect('citas');
+                        return;
+                    }
+                    $usados[$tok] = time();
+                    $_SESSION['citas_alta_tokens'] = array_slice($usados, -50, null, true);
+                }
                 $nuevoId = CitaModel::alta($data);
                 $this->flash('ok', 'Cita agendada.');
                 $nuevo = $this->nombreEstado((int)$data['id_CATALOGO_ESTADO_CITAS']);

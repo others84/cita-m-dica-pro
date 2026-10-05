@@ -40,8 +40,9 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
   <?php if ($atender): ?>
     <p style="color:var(--c4);margin-top:0">Revise la informacion de la cita y del paciente. Capture las observaciones y presione "Atendida" para cerrar la consulta.</p>
   <?php endif; ?>
-  <form method="post" action="<?= url($accion) ?>" class="form-grid"><?= csrf_field() ?>
+  <form method="post" action="<?= url($accion) ?>" class="form-grid" id="form-cita"><?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= htmlspecialchars((string)($editId ?? '')) ?>">
+    <?php if (empty($editId)): ?><input type="hidden" name="alta_token" value="<?= bin2hex(random_bytes(16)) ?>"><?php endif; ?>
 
     <label>Paciente
       <select name="id_PACIENTE" id="sel_paciente" required<?= $dis ?>>
@@ -170,6 +171,38 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </div>
   </form>
 </div>
+<div id="cita-guardando" class="modal-backdrop" style="display:none">
+  <div class="modal" style="text-align:center;max-width:340px">
+    <div class="spinner-cita"></div>
+    <h3 style="margin:.6rem 0 .3rem"><?= empty($editId) ? 'Generando la cita...' : 'Guardando los cambios...' ?></h3>
+    <p style="margin:0;color:var(--c4)">Espere por favor, no cierre ni recargue la pagina.</p>
+  </div>
+</div>
+<style>
+.spinner-cita{width:42px;height:42px;margin:0 auto;border:4px solid var(--c2);border-top-color:var(--c5);border-radius:50%;animation:spinCita .8s linear infinite}
+@keyframes spinCita{to{transform:rotate(360deg)}}
+</style>
+<script>
+(function () {
+  var f = document.getElementById('form-cita');
+  if (!f) return;
+  var enviado = false;
+  f.addEventListener('submit', function (e) {
+    if (e.defaultPrevented) return;
+    if (enviado) { e.preventDefault(); return; }
+    enviado = true;
+    f.querySelectorAll('button[type=submit]').forEach(function (b) { b.disabled = true; });
+    document.getElementById('cita-guardando').style.display = 'flex';
+  });
+  window.addEventListener('pageshow', function (ev) {
+    if (ev.persisted) {
+      enviado = false;
+      document.getElementById('cita-guardando').style.display = 'none';
+      f.querySelectorAll('button[type=submit]').forEach(function (b) { b.disabled = false; });
+    }
+  });
+})();
+</script>
 <?php if ($soloCancelar): ?>
 <script>
 function validaMotivoCancelacion() {
