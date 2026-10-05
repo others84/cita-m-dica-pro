@@ -245,10 +245,10 @@ class PacientesController extends Controller {
             }
             if ($id) {
                 $cliEsperada = isset($actual) && $actual ? (int)($actual['id_CLINICA'] ?? 0) : null;
-                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa, $cliEsperada ?: null);
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMunParam, $observaciones, $notifEmail, $notifWa, $cliEsperada ?: null);
                 $this->flash('ok', 'Paciente actualizado.');
             } else {
-                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa);
+                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMunParam, $observaciones, $notifEmail, $notifWa);
                 $this->flash('ok', 'Paciente registrado.');
             }
         } catch (Throwable $e) {

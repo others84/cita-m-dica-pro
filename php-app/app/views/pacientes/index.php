@@ -91,13 +91,13 @@ if (!isset($editRow)) {
         <?php endforeach; ?>
       </select>
     </label>
-    <label>Estado
-      <select id="sel_estado" required>
+    <label>Estado (opcional)
+      <select id="sel_estado">
         <option value="">-- seleccione --</option>
       </select>
     </label>
-    <label>Municipio
-      <select id="sel_municipio" name="id_CATALOGO_MUNICIPIO" required>
+    <label>Municipio (opcional)
+      <select id="sel_municipio" name="id_CATALOGO_MUNICIPIO">
         <option value="">-- seleccione --</option>
       </select>
     </label>
