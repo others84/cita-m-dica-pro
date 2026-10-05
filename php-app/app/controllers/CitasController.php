@@ -437,7 +437,6 @@ class CitasController extends Controller {
                     }
                     $usados[$tok] = time();
                     $_SESSION['citas_alta_tokens'] = array_slice($usados, -50, null, true);
-                    session_write_close(); session_start();
                 }
                 $nuevoId = CitaModel::alta($data);
                 $this->flash('ok', 'Cita agendada.');
