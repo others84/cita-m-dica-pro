@@ -35,6 +35,9 @@ if (!isset($editRow)) {
   foreach ($generos as $g) {
     if ($normaliza($g['nombre'] ?? '') === 'femenino') { $selGenero = (int)$g['id_CATALOGO_GENERO']; break; }
   }
+}
+// Pais "Mexico" preseleccionado siempre que no venga un municipio que indique otro.
+if (!$selPais) {
   foreach ($paises as $p) {
     if ($normaliza($p['nombre'] ?? '') === 'mexico') { $selPais = (int)$p['id_CATALOGO_PAIS']; break; }
   }
