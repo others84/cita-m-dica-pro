@@ -205,6 +205,7 @@ class PacientesController extends Controller {
         $fnac = trim((string)$this->input('fecha_nacimiento'));
         $idGen = (int)$this->input('id_CATALOGO_GENERO');
         $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
+        $idMunParam = $idMun > 0 ? $idMun : null; // municipio opcional: 0 se guarda como NULL
         $observaciones = trim((string)$this->input('observaciones'));
         $notifEmail = !empty($_POST['notifica_email']) ? 1 : 0;
         $notifWa    = !empty($_POST['notifica_wa']) ? 1 : 0;
@@ -218,7 +219,7 @@ class PacientesController extends Controller {
         if ($tel === '') $faltantes[] = 'telefono';
         if ($fnac === '') $faltantes[] = 'fecha de nacimiento';
         if ($idGen <= 0) $faltantes[] = 'genero';
-        if ($idMun <= 0) $faltantes[] = 'municipio';
+        // El municipio (y por tanto estado) es opcional: se puede capturar despues.
         // El email es opcional: solo se valida el formato cuando viene capturado.
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $faltantes[] = 'email valido';
         if ($email === '') $notifEmail = 0; // sin correo no hay a donde notificar
@@ -244,10 +245,10 @@ class PacientesController extends Controller {
             }
             if ($id) {
                 $cliEsperada = isset($actual) && $actual ? (int)($actual['id_CLINICA'] ?? 0) : null;
-                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa, $cliEsperada ?: null);
+                PacienteModel::cambio($id, $idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMunParam, $observaciones, $notifEmail, $notifWa, $cliEsperada ?: null);
                 $this->flash('ok', 'Paciente actualizado.');
             } else {
-                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMun, $observaciones, $notifEmail, $notifWa);
+                PacienteModel::alta($idClinica, $apPat, $apMat, $nombre, $direccion, $tel, $email, $fnac, $idGen, $idMunParam, $observaciones, $notifEmail, $notifWa);
                 $this->flash('ok', 'Paciente registrado.');
             }
         } catch (Throwable $e) {
