@@ -513,3 +513,13 @@ body{background:var(--c1);color:var(--c5)}
 /* Agendar desde el calendario */
 .cal-ayuda{font-size:.85rem;color:var(--c4);margin:.25rem 0 .5rem}
 #ec .ec-body .ec-day,#ec .ec-time-grid .ec-day{cursor:pointer}
+
+/* Historial del paciente */
+.link-paciente{background:none;border:0;padding:0;margin:0;font:inherit;color:var(--c5);font-weight:600;cursor:pointer;text-align:left}
+.link-paciente:hover,.link-paciente:focus{text-decoration:underline}
+.hist-paciente{margin-bottom:1rem}
+.hist-datos{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;color:var(--c4);font-size:.92rem}
+.hist-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.6rem;margin-top:.9rem}
+.hist-resumen div{background:var(--c2);border-radius:8px;padding:.55rem .7rem;text-align:center}
+.hist-resumen b{display:block;font-size:1.35rem;color:var(--c5)}
+.hist-resumen small{color:var(--c4)}

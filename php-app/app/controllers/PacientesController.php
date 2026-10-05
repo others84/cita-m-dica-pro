@@ -282,4 +282,60 @@ class PacientesController extends Controller {
         $this->clearState('edit');
         $this->redirect('pacientes');
     }
+
+    /** Clic en el nombre del paciente (Pacientes o Citas): guarda el paciente y abre su historial. */
+    public function historial(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        $desde = $this->input('desde') === 'citas' ? 'citas' : 'pacientes';
+        $_SESSION['ui']['historial'] = ['id' => $id, 'desde' => $desde, 'dir' => 'asc'];
+        $this->redirect('pacientes/historialVer');
+    }
+
+    /** Alterna el orden por fecha de cita (asc/desc). */
+    public function historialOrden(): void {
+        $this->requireLogin();
+        $d = $_SESSION['ui']['historial']['dir'] ?? 'asc';
+        $_SESSION['ui']['historial']['dir'] = $d === 'asc' ? 'desc' : 'asc';
+        $this->redirect('pacientes/historialVer');
+    }
+
+    /** Pantalla "Historial del paciente" (solo consulta). */
+    public function historialVer(): void {
+        $this->requireLogin();
+        require_once __DIR__ . '/../models/CitaModel.php';
+        $st = $_SESSION['ui']['historial'] ?? [];
+        $id = (int)($st['id'] ?? 0);
+        $desde = ($st['desde'] ?? '') === 'citas' ? 'citas' : 'pacientes';
+        $dir = ($st['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+        $pac = $id ? PacienteModel::obtener($id) : null;
+        $idCli = $pac ? (int)($pac['id_CLINICA'] ?? 0) : 0;
+        if (!$pac || !$this->clinicaPermitida($idCli)) {
+            $this->denegarRecurso('PACIENTE', $id, $pac ? $idCli : null, $desde);
+            return;
+        }
+        $rol = $_SESSION['user']['rol'] ?? '';
+        $idMed = $rol === 'medico' ? (int)($_SESSION['user']['id_USUARIOS'] ?? 0) : null;
+        $citas = []; $error = null;
+        try {
+            $citas = array_values(array_filter(
+                CitaModel::listar($idMed, null, null, $idCli ?: null),
+                fn($c) => (int)($c['id_PACIENTE'] ?? 0) === $id
+                    && ($idMed === null || (int)($c['id_MEDICO'] ?? 0) === $idMed)
+            ));
+        } catch (Throwable $e) { $error = $e->getMessage(); }
+        $fmt = fn($v, string $f, int $n) => $v instanceof DateTime ? $v->format($f) : substr((string)$v, 0, $n);
+        usort($citas, function ($a, $b) use ($fmt, $dir) {
+            $ka = $fmt($a['fecha_cita'], 'Y-m-d', 10) . ' ' . $fmt($a['hora_inicio'], 'H:i', 5);
+            $kb = $fmt($b['fecha_cita'], 'Y-m-d', 10) . ' ' . $fmt($b['hora_inicio'], 'H:i', 5);
+            return $dir === 'asc' ? strcmp($ka, $kb) : strcmp($kb, $ka);
+        });
+        if (class_exists('Database')) {
+            Database::log(sprintf('PACIENTES.historial user=%s rol=%s paciente=%d citas=%d',
+                $_SESSION['user']['usuario'] ?? '?', $rol, $id, count($citas)));
+        }
+        $this->view('pacientes/historial', [
+            'paciente' => $pac, 'citas' => $citas, 'dir' => $dir, 'desde' => $desde, 'errorCarga' => $error,
+        ]);
+    }
 }
