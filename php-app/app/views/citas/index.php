@@ -66,7 +66,7 @@
       <tr<?= $porNotificar ? ' class="cita-por-notificar"' : '' ?>>
         <td><?= htmlspecialchars($f) ?></td>
         <td><?= htmlspecialchars($hi . ' - ' . $hf) ?></td>
-        <td><?= htmlspecialchars($c['paciente'] ?? '') ?></td>
+        <td><?php if (!empty($c['id_PACIENTE'])): post_button('pacientes/historial', ['id' => (int)$c['id_PACIENTE'], 'desde' => 'citas'], (string)($c['paciente'] ?? ''), 'link-paciente'); else: echo htmlspecialchars($c['paciente'] ?? ''); endif; ?></td>
         <td><?= htmlspecialchars($c['medico'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['especialidad'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['consultorio'] ?? '') ?></td>

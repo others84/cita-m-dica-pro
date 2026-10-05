@@ -30,7 +30,7 @@
       $obsCorta = mb_strlen($obs) > 40 ? mb_substr($obs, 0, 40) . '...' : $obs;
     ?>
       <tr>
-        <td><?= htmlspecialchars($nom) ?></td>
+        <td><?php post_button('pacientes/historial', ['id' => (int)$p['id_PACIENTE'], 'desde' => 'pacientes'], $nom, 'link-paciente'); ?></td>
         <td><?= htmlspecialchars($p['direccion'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['telefono'] ?? '') ?></td>
         <td><?= htmlspecialchars($p['email'] ?? '') ?></td>
