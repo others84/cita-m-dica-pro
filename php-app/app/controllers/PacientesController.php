@@ -205,6 +205,7 @@ class PacientesController extends Controller {
         $fnac = trim((string)$this->input('fecha_nacimiento'));
         $idGen = (int)$this->input('id_CATALOGO_GENERO');
         $idMun = (int)$this->input('id_CATALOGO_MUNICIPIO');
+        $idMunParam = $idMun > 0 ? $idMun : null; // municipio opcional: 0 se guarda como NULL
         $observaciones = trim((string)$this->input('observaciones'));
         $notifEmail = !empty($_POST['notifica_email']) ? 1 : 0;
         $notifWa    = !empty($_POST['notifica_wa']) ? 1 : 0;
@@ -218,7 +219,7 @@ class PacientesController extends Controller {
         if ($tel === '') $faltantes[] = 'telefono';
         if ($fnac === '') $faltantes[] = 'fecha de nacimiento';
         if ($idGen <= 0) $faltantes[] = 'genero';
-        if ($idMun <= 0) $faltantes[] = 'municipio';
+        // El municipio (y por tanto estado) es opcional: se puede capturar despues.
         // El email es opcional: solo se valida el formato cuando viene capturado.
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $faltantes[] = 'email valido';
         if ($email === '') $notifEmail = 0; // sin correo no hay a donde notificar
