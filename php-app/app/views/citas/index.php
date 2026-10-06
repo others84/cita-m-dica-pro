@@ -119,6 +119,7 @@
             <?php post_button('citas/cancelarForm', ['id' => (int)$c['id_CITA']], 'Cancelada', 'btn btn-sec'); ?>
             <?php post_button('citas/noAsistio', ['id' => (int)$c['id_CITA']], 'No asistió', 'btn btn-sec', '¿Cambiar el estatus de esta cita a "No asistió"?'); ?>
           <?php endif; ?>
+          <?php post_button('citas/eliminar', ['id' => (int)$c['id_CITA']], 'Borrar', 'btn btn-sec', '¿Borrar esta cita de forma definitiva? Esta acción no se puede deshacer.'); ?>
         </td>
       </tr>
     <?php endforeach; endif; ?>

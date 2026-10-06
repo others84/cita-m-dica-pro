@@ -130,6 +130,11 @@ class CitaModel extends Model {
             ':co'=>$d['id_CONSULTORIO'], ':u'=>self::currentUserId(),
         ]);
     }
+    /** Borrado definitivo de la cita (spBajaCita). */
+    public static function baja(int $id): void {
+        self::execute('EXEC citas.spBajaCita @id_CITA=:id, @id_usuario=:u',
+            [':id'=>$id, ':u'=>self::currentUserId()]);
+    }
     public static function cancela(int $id, int $idEstado): void {
         self::execute('EXEC citas.spCancelaCita @id_CITA=:id, @id_CATALOGO_ESTADO_CITAS=:e, @id_usuario=:u',
             [':id'=>$id, ':e'=>$idEstado, ':u'=>self::currentUserId()]);

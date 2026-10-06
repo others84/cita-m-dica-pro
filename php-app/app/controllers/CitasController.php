@@ -480,6 +480,22 @@ class CitasController extends Controller {
         $this->redirect('citas');
     }
 
+    /** Borrado definitivo de la cita (no se puede deshacer). */
+    public function eliminar(): void {
+        $this->requireLogin();
+        $id = (int)$this->input('id');
+        $cita = $id ? CitaModel::obtener($id) : null;
+        if (!$cita || !$this->citaPermitida($cita)) {
+            $this->clearState('id');
+            $this->denegarRecurso('CITA', $id, $cita ? (int)($cita['id_CLINICA'] ?? 0) : null, 'citas');
+            return;
+        }
+        try { CitaModel::baja($id); $this->flash('ok', 'Cita eliminada definitivamente.'); }
+        catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
+        $this->clearState('id');
+        $this->redirect('citas');
+    }
+
     /** Guarda la cancelacion con el motivo capturado en observaciones. */
     public function cancelarGuardar(): void {
         $this->requireLogin();
