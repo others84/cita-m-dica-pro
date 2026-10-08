@@ -15,6 +15,7 @@ require_once __DIR__ . '/../models/MunicipioModel.php';
 require_once __DIR__ . '/../models/LogModel.php';
 require_once __DIR__ . '/../models/HorarioMedicoModel.php';
 require_once __DIR__ . '/../models/DiaBloqueadoModel.php';
+require_once __DIR__ . '/../models/PadecimientoModel.php';
 
 /**
  * Pagina publica (sin sesion) para que un paciente agende su cita.
@@ -124,6 +125,8 @@ class CitapublicaController extends Controller {
             'paciente'       => (array)$this->get('paciente', []),
             'idPaciente'     => (int)$this->get('id_PACIENTE', 0),
             'obsCita'        => (string)$this->get('obs_cita', ''),
+            'padecimientos'  => $idMedico ? PadecimientoModel::porMedico((int)$idMedico, true) : [],
+            'padSel'         => (array)$this->get('pad_sel', []),
             'fechaCita'      => (string)$this->get('fecha_cita', ''),
             'horaInicio'     => (string)$this->get('hora_inicio', ''),
             'generos'        => $this->cat(fn() => GeneroModel::listar()),
@@ -635,6 +638,13 @@ class CitapublicaController extends Controller {
         // Observaciones de la CITA (independientes de las del paciente).
         $obsCita = (string)$this->input('observaciones_cita', '');
         $this->set('obs_cita', $obsCita);
+        // Padecimientos (opcional): solo los activos del medico elegido.
+        $padSel = [];
+        $validos = [];
+        foreach (PadecimientoModel::porMedico($idMedico, true) as $pp) $validos[(int)$pp['id_PADECIMIENTO']] = true;
+        foreach ((array)($_POST['padecimientos'] ?? []) as $pv) { $pv = (int)$pv; if (isset($validos[$pv])) $padSel[] = $pv; }
+        $padSel = array_values(array_unique($padSel));
+        $this->set('pad_sel', $padSel);
         if ($idPaciente <= 0) {
             foreach (['ap_paterno'=>'apellido paterno','ap_materno'=>'apellido materno','nombre'=>'nombre(s)',
                       'direccion'=>'direccion','telefono'=>'celular','fecha_nacimiento'=>'fecha de nacimiento'] as $k => $lbl) {
@@ -694,12 +704,16 @@ class CitapublicaController extends Controller {
                 'observaciones' => 'Cita generada desde la pagina publica'
                     . (trim($obsCita) !== '' ? "\n" . trim($obsCita) : ''),
                 'horas_anticipacion_notif' => 24,
-                'precio' => 0,
+                'precio' => $padSel ? PadecimientoModel::suma($idMedico, $padSel) : 0,
                 'id_MEDICO' => $idMedico,
                 'id_CATALOGO_ESPECIALIDAD' => $idEspecialidad,
                 'id_CONSULTORIO' => $idConsultorio,
             ]);
 
+            if ($padSel) {
+                try { PadecimientoModel::guardarEnCita((int)$idCita, $padSel); }
+                catch (Throwable $e) { Database::log('CITA PUBLICA padecimientos ERR: ' . $e->getMessage()); }
+            }
             try { LogModel::estadoCita($idCita, null, 'Agendada', $idClinica, $clinicaNom, 'GENERICO'); }
             catch (Throwable $e) { Database::log('CITA PUBLICA log estado ERR: ' . $e->getMessage()); }
             $this->ev('CITA', 'CITA',

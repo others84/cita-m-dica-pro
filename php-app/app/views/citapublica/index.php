@@ -249,6 +249,17 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
           </select>
           <span class="ayuda">La ciudad o pueblo donde vives.</span>
         </label>
+        <?php if (!empty($padecimientos)): ?>
+        <div class="col-span">
+          <strong>Motivo de la consulta (opcional)</strong>
+          <span class="ayuda">Si ya sabes qué necesitas, márcalo. Si no, déjalo en blanco y el médico lo elegirá.</span>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem 1rem;margin-top:.3rem">
+            <?php foreach ($padecimientos as $pd): ?>
+              <label class="chk"><input type="checkbox" name="padecimientos[]" value="<?= (int)$pd['id_PADECIMIENTO'] ?>" <?= in_array((int)$pd['id_PADECIMIENTO'], array_map('intval', $padSel ?? []), true) ? 'checked' : '' ?>> <?= htmlspecialchars((string)$pd['nombre']) ?></label>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endif; ?>
         <label class="col-span">Observaciones de la cita - motivo de la consulta
           <textarea name="observaciones_cita" rows="3" maxlength="500" placeholder="Ejemplo: revision anual"><?= htmlspecialchars((string)($obsCita ?? '')) ?></textarea>
           <span class="ayuda">Cuentanos en pocas palabras por que quieres esta consulta. Ejemplo: "revision anual" o "dolor desde hace una semana". Lo que escribas solo lo ve tu medico.</span>

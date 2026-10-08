@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../../models/PadecimientoModel.php'; $__padTxt = PadecimientoModel::textoPorCita(); ?>
 <?php
   $p = $paciente ?? [];
   $nom = trim(($p['ap_paterno'] ?? '') . ' ' . ($p['ap_materno'] ?? '') . ' ' . ($p['nombre'] ?? ''));
@@ -65,7 +66,7 @@
         <td><?= htmlspecialchars($c['especialidad'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['consultorio'] ?? '') ?></td>
         <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span></td>
-        <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
+        <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?><?php $__pt = $__padTxt[(int)($c['id_CITA'] ?? 0)] ?? ''; if ($__pt !== ''): ?><span class="pad-txt"><?= htmlspecialchars($__pt) ?></span><?php endif; ?></td>
         <td style="white-space:pre-wrap"><?= htmlspecialchars(trim((string)($c['observaciones'] ?? ''))) ?></td>
       </tr>
     <?php endforeach; endif; ?>

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../models/EspecialidadModel.php';
 require_once __DIR__ . '/../models/EstadoCitaModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
 require_once __DIR__ . '/../models/LogModel.php';
+require_once __DIR__ . '/../models/PadecimientoModel.php';
 
 class CitasController extends Controller {
     public function index(): void {
@@ -308,7 +309,9 @@ class CitasController extends Controller {
             'modo'          => $modo,
             'notifEditable' => $notifEditable,
             'pacientes'     => PacienteModel::listar($fClinica),
-            'medicos'       => UsuarioModel::listarMedicos($fClinica),
+            'medicos'       => $__meds = UsuarioModel::listarMedicos($fClinica),
+            'padMap'        => PadecimientoModel::activosPorMedicos($__meds),
+            'padSel'        => $editId ? PadecimientoModel::deCita((int)$editId) : [],
             'consultorios'  => ConsultorioModel::listar($fClinica),
             'especialidades'=> EspecialidadModel::listar($fClinica),
             'estados'       => $estados,
@@ -445,6 +448,14 @@ class CitasController extends Controller {
                 $this->registraLogEstado((int)$nuevoId, null, $nuevo !== '' ? $nuevo : 'Agendada',
                     (int)($ctxAlta['fClinica'] ?? 0));
             }
+            // Padecimientos elegidos (solo se aceptan los del medico de la cita).
+            if (isset($_POST['pad_presente'])) {
+                $idPad = $id ?: (int)($nuevoId ?? 0);
+                if ($idPad) {
+                    try { PadecimientoModel::guardarEnCita($idPad, (array)($_POST['padecimientos'] ?? [])); }
+                    catch (Throwable $e) { Database::log('CITAS.guardar padecimientos ERR: ' . $e->getMessage()); }
+                }
+            }
             // Casilla "En espera de un espacio anterior".
             if (isset($_POST['espera_presente'])) {
                 $idEsp = $id ?: (int)($nuevoId ?? 0);
@@ -547,6 +558,10 @@ class CitasController extends Controller {
                 $this->clearState('id');
                 $this->denegarRecurso('CITA', $id, (int)($c['id_CLINICA'] ?? 0), 'citas');
                 return;
+            }
+            if ($c && isset($_POST['pad_presente'])) {
+                try { PadecimientoModel::guardarEnCita($id, (array)($_POST['padecimientos'] ?? [])); }
+                catch (Throwable $e) { Database::log('CITAS.atenderGuardar padecimientos ERR: ' . $e->getMessage()); }
             }
             if ($c) {
                 PacienteModel::cambioObservaciones(

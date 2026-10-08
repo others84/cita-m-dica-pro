@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../../models/PadecimientoModel.php'; $__padTxt = PadecimientoModel::textoPorCita(); ?>
 <?php $controller='citas'; include __DIR__.'/../_partials/filtro_clinica.php'; ?>
 <?php
   $rol = $rol ?? ($_SESSION['user']['rol'] ?? '');
@@ -71,7 +72,7 @@
         <td><?= htmlspecialchars($c['especialidad'] ?? '') ?></td>
         <td><?= htmlspecialchars($c['consultorio'] ?? '') ?></td>
         <td><span class="badge"><?= htmlspecialchars($c['estado'] ?? '') ?></span></td>
-        <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?></td>
+        <td>$<?= number_format((float)($c['precio'] ?? 0), 2) ?><?php $__pt = $__padTxt[(int)($c['id_CITA'] ?? 0)] ?? ''; if ($__pt !== ''): ?><span class="pad-txt"><?= htmlspecialchars($__pt) ?></span><?php endif; ?></td>
         <td title="<?= htmlspecialchars($obs) ?>"><?= htmlspecialchars($obsCorta) ?></td>
         <td title="<?= htmlspecialchars($obsPac) ?>"><?= htmlspecialchars($obsPacCorta) ?></td>
         <td><span class="badge"><?= $notificado ? 'Sí' : 'No' ?></span></td>
