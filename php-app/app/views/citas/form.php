@@ -63,7 +63,7 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
     </label>
 
     <label>Medico
-      <select name="id_MEDICO" required<?= $dis ?>>
+      <select name="id_MEDICO" id="sel_medico" required<?= $dis ?>>
         <option value="">-- seleccione --</option>
         <?php foreach ($medicos as $m):
           $idm = (int)($m['id_USUARIOS'] ?? 0); ?>
@@ -121,8 +121,22 @@ $accion = $soloCancelar ? 'citas/cancelarGuardar' : ($atender ? 'citas/atenderGu
       </select>
     </label>
 
+    <?php $__padDis = ($soloCancelar || $horario); ?>
+    <div class="col-span pad-box">
+      <span class="pad-titulo">Padecimientos <small style="color:var(--c4)">(opcional; el precio se llena con la suma)</small></span>
+      <?php if (!$__padDis): ?><input type="hidden" name="pad_presente" value="1"><?php endif; ?>
+      <div id="pad_lista" class="pad-lista"></div>
+    </div>
+    <script>
+    window.PAD_DATA = <?= json_encode([
+        'map' => $padMap ?? [],
+        'sel' => array_map(fn($r) => ['id' => (int)$r['id_PADECIMIENTO'], 'nombre' => (string)$r['nombre'], 'precio' => (float)$r['precio']], $padSel ?? []),
+        'dis' => $__padDis,
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>;
+    </script>
+
     <label>Precio
-      <input type="number" name="precio" step="0.01" min="0" required
+      <input type="number" name="precio" id="inp_precio" step="0.01" min="0" required
              value="<?= htmlspecialchars((string)($editRow['precio'] ?? '0.00')) ?>"<?= $atender ? '' : $dis ?>>
       <?php if ($atender): ?><small style="color:var(--c4)">Capture el precio de la consulta antes de marcarla como atendida.</small><?php endif; ?>
     </label>
@@ -258,5 +272,54 @@ function validaMotivoCancelacion() {
     }
   }
   updCount();
+})();
+</script><script>
+(function () {
+  var D = window.PAD_DATA || {map:{}, sel:[], dis:false};
+  var med = document.getElementById('sel_medico');
+  var box = document.getElementById('pad_lista');
+  var pr  = document.getElementById('inp_precio');
+  if (!med || !box) return;
+  var selIds = D.sel.map(function (x) { return x.id; });
+  var inicialMed = med.value;
+  var manual = selIds.length > 0 || (pr && parseFloat(pr.value || '0') > 0);
+  if (pr) pr.addEventListener('input', function () { manual = true; });
+  function items() {
+    var l = (D.map[med.value] || []).slice();
+    if (med.value === inicialMed) {   // incluye los ya elegidos aunque esten inactivos
+      D.sel.forEach(function (s) { if (!l.some(function (x) { return x.id === s.id; })) l.push(s); });
+    }
+    return l;
+  }
+  function suma() {
+    var t = 0;
+    box.querySelectorAll('input[type=checkbox]:checked').forEach(function (c) { t += parseFloat(c.getAttribute('data-precio') || '0'); });
+    return t;
+  }
+  function pinta() {
+    var l = items();
+    box.innerHTML = '';
+    if (!med.value) { box.innerHTML = '<span class="pad-vacio">Elige primero un médico.</span>'; return; }
+    if (!l.length) { box.innerHTML = '<span class="pad-vacio">Este médico no tiene padecimientos registrados.</span>'; return; }
+    l.forEach(function (p) {
+      var lb = document.createElement('label'); lb.className = 'chk pad-item';
+      var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'padecimientos[]'; c.value = p.id;
+      c.setAttribute('data-precio', p.precio); c.checked = selIds.indexOf(p.id) >= 0; c.disabled = !!D.dis;
+      c.addEventListener('change', function () {
+        selIds = Array.prototype.map.call(box.querySelectorAll('input:checked'), function (x) { return parseInt(x.value, 10); });
+        if (!pr || pr.disabled) return;
+        var t = suma().toFixed(2);
+        if (manual && pr.value !== '' && parseFloat(pr.value) !== parseFloat(t)) {
+          if (!confirm('¿Reemplazar el precio capturado ($' + pr.value + ') por la suma de los padecimientos ($' + t + ')?')) return;
+        }
+        pr.value = t; manual = false;
+      });
+      lb.appendChild(c);
+      lb.appendChild(document.createTextNode(' ' + p.nombre + ' ($' + Number(p.precio).toFixed(2) + ')'));
+      box.appendChild(lb);
+    });
+  }
+  med.addEventListener('change', function () { selIds = []; pinta(); });
+  pinta();
 })();
 </script>
