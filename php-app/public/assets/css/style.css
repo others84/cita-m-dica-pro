@@ -523,3 +523,11 @@ body{background:var(--c1);color:var(--c5)}
 .hist-resumen div{background:var(--c2);border-radius:8px;padding:.55rem .7rem;text-align:center}
 .hist-resumen b{display:block;font-size:1.35rem;color:var(--c5)}
 .hist-resumen small{color:var(--c4)}
+
+/* Padecimientos en la cita */
+.pad-box { display:flex; flex-direction:column; gap:.35rem; }
+.pad-titulo { font-weight:600; color:var(--c5); }
+.pad-lista { display:flex; flex-wrap:wrap; gap:.4rem .9rem; padding:.6rem .7rem; border:1px solid var(--c2, #cbd5e1); border-radius:8px; max-height:220px; overflow-y:auto; }
+.pad-item { display:flex; align-items:center; gap:.35rem; margin:0; font-weight:normal; }
+.pad-vacio { color:var(--c4); font-size:.9rem; }
+.pad-txt { display:block; font-size:.8rem; color:var(--c4); }
