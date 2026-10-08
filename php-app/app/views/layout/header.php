@@ -64,6 +64,7 @@ if (!function_exists('nav_link')) {
             'opciones/apariencia' => 'mask',
             'horarios' => 'clock',
             'citasespera' => 'hourglass',
+            'padecimientos' => 'catalog',
             'diasbloqueados' => 'blocked-calendar',
             'mensajes' => 'phone',
             'opciones/cambiarpassword' => 'password',
@@ -161,10 +162,11 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
         <?= nav_link('citasmanana', 'Citas mañana', $__cur) ?>
         <?= nav_link('citasespera', $__labelEspera, $__cur) ?>
         <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/cambiarPassword', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/apariencia', 'padecimientos'], $__cur) ?>>
           <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('horarios', 'Horario de atención', $__cur) ?>
+          <?= nav_link('padecimientos', 'Padecimientos', $__cur) ?>
           <?= nav_link('diasbloqueados', 'Días bloqueados', $__cur) ?>
           <?= nav_link('mensajes', 'Texto de notificación', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
@@ -182,13 +184,14 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
         <?= nav_link('calendario', 'Calendario de citas', $__cur) ?>
         <?= nav_link('citas', $__labelCitas, $__cur) ?>
         <?= nav_link('citasespera', $__labelEspera, $__cur) ?>
-        <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'catalogos/usuarios'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['pacientes', 'asistentes', 'medicos', 'especialidades', 'consultorios', 'padecimientos', 'catalogos/usuarios'], $__cur) ?>>
           <summary><?= nav_icon('catalog') ?><span>Catálogos</span></summary>
           <?= nav_link('pacientes', 'Pacientes', $__cur) ?>
           <?= nav_link('asistentes', 'Asistentes', $__cur) ?>
           <?= nav_link('medicos', 'Médicos', $__cur) ?>
           <?= nav_link('especialidades', 'Especialidad', $__cur) ?>
           <?= nav_link('consultorios', 'Consultorios', $__cur) ?>
+          <?= nav_link('padecimientos', 'Padecimientos', $__cur) ?>
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'horarios', 'diasbloqueados', 'mensajes', 'opciones/cambiarPassword', 'opciones/passwordUsuarios'], $__cur) ?>>
