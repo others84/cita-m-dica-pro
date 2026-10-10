@@ -26,17 +26,28 @@ class AuthController extends Controller {
             unset($_SESSION['flash_error']);
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $usuario  = trim($_POST['usuario'] ?? '');
+            require_once __DIR__ . '/../models/LoginIntentoModel.php';
+            require_once __DIR__ . '/../core/AvisoAcceso.php';
+            $usuario  = substr(trim($_POST['usuario'] ?? ''), 0, 40);
             $password = $_POST['password'] ?? '';
+            $ip = AvisoAcceso::ipCliente();
+            $seg = 0;
+            try { $seg = $usuario !== '' ? LoginIntentoModel::segundosBloqueo($usuario) : 0; }
+            catch (Throwable $e) { Database::log('LoginIntento estado ERR: ' . $e->getMessage()); }
+            if ($seg > 0) {
+                $error = 'Usuario bloqueado temporalmente por intentos fallidos. Intenta en ' . max(1, (int)ceil($seg / 60)) . ' minuto(s).';
+                require __DIR__ . '/../views/auth/login.php';
+                return;
+            }
             $user = Auth::attempt($usuario, $password);
             if ($user) {
+                try { LoginIntentoModel::reiniciar($usuario); } catch (Throwable $e) { Database::log('LoginIntento reinicia ERR: ' . $e->getMessage()); }
                 // Anti session fixation: se emite un identificador de sesion
                 // nuevo al autenticar, conservando el token CSRF vigente.
                 $csrf = $_SESSION['csrf_token'] ?? null;
                 session_regenerate_id(true);
                 if ($csrf) { $_SESSION['csrf_token'] = $csrf; }
                 $_SESSION['user'] = $user;
-                require_once __DIR__ . '/../core/AvisoAcceso.php';
                 AvisoAcceso::notificar($user);
                 $destino = $user['rol'] === 'admin_sistema' ? url('clinicas') : url('calendario');
                 if ($user['rol'] !== 'admin_sistema') {
@@ -47,6 +58,15 @@ class AuthController extends Controller {
                 exit;
             }
             $error = 'Usuario o contraseña incorrectos';
+            if ($usuario !== '') {
+                try {
+                    if (LoginIntentoModel::registrarFallo($usuario, $ip)) {
+                        require_once __DIR__ . '/../core/AvisoBloqueo.php';
+                        AvisoBloqueo::notificar($usuario, $ip, LoginIntentoModel::MINUTOS_BLOQUEO);
+                        $error = 'Demasiados intentos fallidos. El usuario quedó bloqueado ' . LoginIntentoModel::MINUTOS_BLOQUEO . ' minutos.';
+                    }
+                } catch (Throwable $e) { Database::log('LoginIntento fallo ERR: ' . $e->getMessage()); }
+            }
         }
         require __DIR__ . '/../views/auth/login.php';
     }
@@ -129,8 +149,8 @@ class AuthController extends Controller {
         if ($esPost && $valido) {
             $nueva = (string)($_POST['nueva'] ?? '');
             $conf  = (string)($_POST['confirmacion'] ?? '');
-            if (strlen($nueva) < 8) {
-                $error = 'La contraseña debe tener al menos 8 caracteres.';
+            if ($errP = self::errorPassword($nueva)) {
+                $error = $errP;
             } elseif ($nueva !== $conf) {
                 $error = 'La confirmación no coincide con la nueva contraseña.';
             } else {

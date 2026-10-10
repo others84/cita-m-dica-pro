@@ -292,4 +292,31 @@ class Controller {
         if ($rolNombre === '' || $idClinica <= 0) return;
         ClinicaModel::validaCupo($idClinica, $rolNombre, $idUsuario);
     }
+
+    /** Regla de contrasena: minimo 8 caracteres, al menos una letra y un numero. Devuelve el error o null. */
+    public static function errorPassword(string $p): ?string {
+        if (trim($p) === '') return 'La contraseña es obligatoria.';
+        if (strlen($p) < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+        if (!preg_match('/[A-Za-zÁÉÍÓÚáéíóúÑñ]/u', $p) || !preg_match('/\d/', $p)) return 'La contraseña debe incluir al menos una letra y un número.';
+        return null;
+    }
+
+    /** Nombre del rol (minusculas) del usuario indicado, o '' si no existe. */
+    protected function rolDeUsuario(int $idUsuario): string {
+        require_once __DIR__ . '/../models/UsuarioModel.php';
+        foreach (UsuarioModel::listar() as $u) {
+            if ((int)($u['id_USUARIOS'] ?? 0) === $idUsuario) return mb_strtolower((string)($u['rol'] ?? ''));
+        }
+        return '';
+    }
+
+    /** True si la asignacion usuario-clinica existe, es de ese usuario y de esa clinica. */
+    protected function asignacionDeUsuario(int $idUsuario, int $idUC, int $idClinica): bool {
+        require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+        if ($idUC <= 0) return false;
+        foreach (UsuarioClinicaModel::listarPorUsuario($idUsuario) as $r) {
+            if ((int)($r['id_USUARIOS_CLINICA'] ?? 0) === $idUC && (int)($r['id_CLINICA'] ?? 0) === $idClinica) return true;
+        }
+        return false;
+    }
 }

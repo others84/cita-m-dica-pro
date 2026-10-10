@@ -19,7 +19,7 @@
     </label>
     <label>Email <input type="email" name="email" autocomplete="off" value="<?= htmlspecialchars($editId ? ($editRow['email'] ?? '') : '') ?>"></label>
     <label>Password <?= $editId ? '(dejar vacio para no cambiar)' : '' ?>
-      <input type="password" name="password" autocomplete="new-password" value="" <?= $editId?'':'required' ?> minlength="4">
+      <input type="password" name="password" autocomplete="new-password" value="" <?= $editId?'':'required' ?> minlength="8" pattern="(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*\d).{8,}" title="Mínimo 8 caracteres, con al menos una letra y un número">
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" <?= $clinicaForm <= 0 ? 'disabled' : '' ?>><?= $editId ? 'Actualizar' : 'Guardar' ?></button>

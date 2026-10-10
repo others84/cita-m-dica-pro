@@ -38,6 +38,8 @@ class MedicosController extends Controller {
      */
     private function medicoPermitido(int $idUsuario): bool {
         if ($idUsuario <= 0) return false;
+        $rolObj = $this->rolDeUsuario($idUsuario);
+        if (strpos($rolObj, 'medico') === false && strpos($rolObj, 'médico') === false) return false;
         $permitidas = $this->clinicasPermitidas();
         if ($permitidas === null) return true;             // admin_sistema
         foreach (UsuarioClinicaModel::listarPorUsuario($idUsuario) as $r) {
@@ -149,6 +151,10 @@ class MedicosController extends Controller {
             if (!in_array($idClinica, $idsAdmin, true)) {
                 throw new RuntimeException('Clinica fuera del alcance del administrador.');
             }
+            if (!$this->asignacionDeUsuario($idMedico, $idUC, $idClinica)) {
+                Database::log("MEDICO CLINICA REMOVER DENEGADO id_USUARIOS_CLINICA={$idUC} id_USUARIOS={$idMedico} clinica_id={$idClinica}");
+                throw new RuntimeException('La asignación no corresponde a este médico.');
+            }
             $nCitas = $this->citasDelMedicoEnClinica($idMedico, $idClinica);
             if ($nCitas > 0) {
                 throw new RuntimeException("No se puede eliminar la clinica: el medico ya tiene {$nCitas} cita(s) agendada(s) en ella.");
@@ -190,6 +196,8 @@ class MedicosController extends Controller {
             $this->redirect('medicos');
         }
         if ($idRol <= 0) { $this->flash('error', 'No existe el perfil "medico" en el catalogo de roles.'); $this->redirect('medicos'); }
+        $errPass = ($id === null || $pass !== '') ? self::errorPassword($pass) : null;
+        if ($errPass) { $this->flash('error', $errPass); $this->redirect('medicos'); return; }
         try {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idClinica, $nombre, $email);
