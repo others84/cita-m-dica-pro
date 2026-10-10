@@ -27,7 +27,7 @@
       </select>
     </label>
     <label>Password <?= $editId ? '(dejar vacio para no cambiar)' : '' ?>
-      <input type="password" name="password" <?= $editId?'':'required' ?> minlength="4">
+      <input type="password" name="password" <?= $editId?'':'required' ?> minlength="8" pattern="(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*\d).{8,}" title="Mínimo 8 caracteres, con al menos una letra y un número">
     </label>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn"><?= $editId?'Actualizar':'Guardar' ?></button>

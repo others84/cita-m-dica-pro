@@ -149,8 +149,8 @@ class AuthController extends Controller {
         if ($esPost && $valido) {
             $nueva = (string)($_POST['nueva'] ?? '');
             $conf  = (string)($_POST['confirmacion'] ?? '');
-            if (strlen($nueva) < 8) {
-                $error = 'La contraseña debe tener al menos 8 caracteres.';
+            if ($errP = self::errorPassword($nueva)) {
+                $error = $errP;
             } elseif ($nueva !== $conf) {
                 $error = 'La confirmación no coincide con la nueva contraseña.';
             } else {

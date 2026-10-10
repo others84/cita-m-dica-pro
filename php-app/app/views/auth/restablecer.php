@@ -42,10 +42,10 @@ $valido = !empty($valido);
       <p class="subtitle">Define tu nueva contraseña para el usuario <strong><?= htmlspecialchars((string)($usuario ?? '')) ?></strong>.</p>
       <?php if (!empty($error)): ?><div class="alert"><?= htmlspecialchars($error) ?></div><?php endif; ?>
       <label>Nueva contraseña
-        <input type="password" name="nueva" required minlength="8" maxlength="72" autocomplete="new-password" autofocus>
+        <input type="password" name="nueva" required minlength="8" maxlength="72" pattern="(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*\d).{8,}" title="Mínimo 8 caracteres, con al menos una letra y un número" autocomplete="new-password" autofocus>
       </label>
       <label>Confirmar contraseña
-        <input type="password" name="confirmacion" required minlength="8" maxlength="72" autocomplete="new-password">
+        <input type="password" name="confirmacion" required minlength="8" maxlength="72" pattern="(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*\d).{8,}" title="Mínimo 8 caracteres, con al menos una letra y un número" autocomplete="new-password">
       </label>
       <button type="submit">Guardar contraseña</button>
       <p class="login-alt"><a href="<?= url('auth/login') ?>">Cancelar</a></p>

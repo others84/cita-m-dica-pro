@@ -40,6 +40,7 @@ class AsistentesController extends Controller {
     /** True si el asistente pertenece a alguna clinica del administrador actual. */
     private function asistentePermitido(int $idUsuario): bool {
         if ($idUsuario <= 0) return false;
+        if (strpos($this->rolDeUsuario($idUsuario), 'asistente') === false) return false;
         $permitidas = $this->clinicasPermitidas();
         if ($permitidas === null) return true; // admin_sistema
         foreach (UsuarioClinicaModel::listarPorUsuario($idUsuario) as $r) {
@@ -114,6 +115,8 @@ class AsistentesController extends Controller {
             $this->redirect('asistentes');
         }
         if ($idRol <= 0) { $this->flash('error', 'No existe el perfil "asistente" en el catalogo de roles.'); $this->redirect('asistentes'); }
+        $errPass = ($id === null || $pass !== '') ? self::errorPassword($pass) : null;
+        if ($errPass) { $this->flash('error', $errPass); $this->redirect('asistentes'); return; }
         try {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idClinica, $nombre, $email);
@@ -171,6 +174,10 @@ class AsistentesController extends Controller {
         try {
             if (!$this->asistentePermitido($idAsistente)) throw new RuntimeException('Asistente fuera del alcance del administrador.');
             if (!in_array($idClinica, $idsAdmin, true)) throw new RuntimeException('Clinica fuera del alcance del administrador.');
+            if (!$this->asignacionDeUsuario($idAsistente, $idUC, $idClinica)) {
+                Database::log("ASISTENTE CLINICA REMOVER DENEGADO id_USUARIOS_CLINICA={$idUC} id_USUARIOS={$idAsistente} clinica_id={$idClinica}");
+                throw new RuntimeException('La asignación no corresponde a este asistente.');
+            }
             UsuarioClinicaModel::baja($idUC);
             $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
             Database::log("ASISTENTE CLINICA REMOVIDA id_USUARIOS={$idAsistente} clinica_id={$idClinica} por='{$usr}'");

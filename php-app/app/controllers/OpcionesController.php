@@ -13,7 +13,7 @@ class OpcionesController extends Controller {
             $conf   = (string)$this->input('confirmacion');
             $user   = $_SESSION['user'];
             try {
-                if ($nueva === '' || strlen($nueva) < 4) throw new Exception('La nueva contraseña debe tener al menos 4 caracteres.');
+                if ($err = self::errorPassword($nueva)) throw new Exception($err);
                 if ($nueva !== $conf) throw new Exception('La confirmación no coincide con la nueva contraseña.');
                 $ok = UsuarioModel::login($user['usuario'], $actual);
                 if (!$ok) throw new Exception('La contraseña actual es incorrecta.');
@@ -243,11 +243,13 @@ class OpcionesController extends Controller {
         $conf  = (string)$this->input('confirmacion');
         try {
             if ($idUsuario <= 0) throw new Exception('Selecciona un usuario.');
-            if (strlen($nueva) < 4) throw new Exception('La nueva contraseña debe tener al menos 4 caracteres.');
+            if ($err = self::errorPassword($nueva)) throw new Exception($err);
             if ($nueva !== $conf) throw new Exception('La confirmación no coincide con la nueva contraseña.');
             $permitidos = array_map(fn($u) => (int)$u['id_USUARIOS'], $this->usuariosDeClinicas($ctx));
             if (!in_array($idUsuario, $permitidos, true)) {
-                throw new Exception('El usuario no pertenece a tus clínicas.');
+                $admin = $_SESSION['user']['usuario'] ?? '?';
+                Database::log("PASSWORD RESET DENEGADO id_USUARIOS={$idUsuario} por={$admin}");
+                throw new Exception('Solo puedes cambiar la contraseña de asistentes y médicos de tus clínicas.');
             }
             UsuarioModel::cambioPassword($idUsuario, $nueva);
             $admin = $_SESSION['user']['usuario'] ?? '?';
@@ -274,6 +276,11 @@ class OpcionesController extends Controller {
             $id = (int)($u['id_USUARIOS'] ?? 0);
             if ($id <= 0 || isset($vistos[$id])) continue;
             $vistos[$id] = true;
+            // Solo asistentes y medicos; nunca administradores ni el propio usuario.
+            if ($id === (int)($_SESSION['user']['id_USUARIOS'] ?? 0)) continue;
+            $rolU = mb_strtolower((string)($u['rol'] ?? ''));
+            if (strpos($rolU, 'administrador') !== false) continue;
+            if (strpos($rolU, 'asistente') === false && strpos($rolU, 'medico') === false && strpos($rolU, 'médico') === false) continue;
             // Clinicas del usuario: las asignadas via USUARIOS_CLINICA y, si
             // trae id_CLINICA en su registro, tambien esa.
             $ids = array_map(fn($r) => (int)$r['id_CLINICA'], UsuarioClinicaModel::listarPorUsuario($id));

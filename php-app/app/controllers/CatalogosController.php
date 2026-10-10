@@ -340,6 +340,9 @@ class CatalogosController extends Controller {
             $this->denegarRecurso('usuario', $id, null, 'catalogos/usuarios');
             return;
         }
+        $pass = (string)($pass ?? '');
+        $errPass = (!$id || $pass !== '') ? self::errorPassword($pass) : null;
+        if ($errPass) { $this->flash('error', $errPass); $this->redirect('catalogos/usuarios'); return; }
         try {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idCli, $nombre, $email);
