@@ -16,6 +16,9 @@ require_once __DIR__ . '/../models/LogModel.php';
 require_once __DIR__ . '/../models/HorarioMedicoModel.php';
 require_once __DIR__ . '/../models/DiaBloqueadoModel.php';
 require_once __DIR__ . '/../models/PadecimientoModel.php';
+require_once __DIR__ . '/../models/LimiteIpModel.php';
+require_once __DIR__ . '/../models/ConfigAntibotModel.php';
+require_once __DIR__ . '/../core/Captcha.php';
 
 /**
  * Pagina publica (sin sesion) para que un paciente agende su cita.
@@ -24,6 +27,34 @@ require_once __DIR__ . '/../models/PadecimientoModel.php';
 class CitapublicaController extends Controller {
 
     private const NS = 'citapublica';
+    private bool $reenvio = false;
+
+    /* ---------------- anti-bots ---------------- */
+    private const MSG_LIMITE = 'Se alcanzo el maximo de solicitudes desde tu conexion. Intenta mas tarde o llama a la clinica.';
+
+    /** Redirige con error si la IP excedio el limite de la accion. */
+    private function exigeLimite(string $accion, int $max, int $minutos): void {
+        if ($max <= 0) return;
+        $ip = LimiteIpModel::ip();
+        if (LimiteIpModel::cuenta($ip, $accion, $minutos) >= $max) {
+            $this->ev('SEGURIDAD', 'LIMITE_IP', 'BLOQUEO IP accion=' . $accion . ' ip=' . $ip . ' limite=' . $max . '/' . $minutos . 'min');
+            Database::log('BLOQUEO IP accion=' . $accion . ' ip=' . $ip);
+            $this->flash('error', self::MSG_LIMITE);
+            $this->redirect('citapublica');
+        }
+    }
+
+    /** Redirige con error si el CAPTCHA esta activo y no se resolvio. */
+    private function exigeCaptcha(): void {
+        if (!ConfigAntibotModel::captchaActivo()) return;
+        $cfg = ConfigAntibotModel::obtener();
+        $ip = LimiteIpModel::ip();
+        if (!Captcha::verificar((string)$cfg['secret'], (string)($_POST['cf-turnstile-response'] ?? ''), $ip)) {
+            $this->ev('SEGURIDAD', 'CAPTCHA', 'CAPTCHA FALLIDO ip=' . $ip . ' uri=' . ($_SERVER['REQUEST_URI'] ?? ''));
+            $this->flash('error', 'Confirma la casilla "No soy un robot" antes de continuar.');
+            $this->redirect('citapublica');
+        }
+    }
 
     /* ---------------- estado en sesion ---------------- */
     private function st(): array { return $_SESSION['ui'][self::NS] ?? []; }
@@ -245,6 +276,9 @@ class CitapublicaController extends Controller {
             $this->flash('error', 'El celular debe tener 10 numeros. Ejemplo: 2221234567.');
             $this->redirect('citapublica');
         }
+        $ab = ConfigAntibotModel::obtener();
+        $this->exigeLimite('buscar', $ab['lim_buscar_hora'], 60);
+        LimiteIpModel::registra(LimiteIpModel::ip(), 'buscar');
         $this->reset();
         $this->set('id_MEDICO', $idMedico);
         $this->set('id_CLINICA', $idClinica);
@@ -313,6 +347,9 @@ class CitapublicaController extends Controller {
             $this->flash('error', 'Elige como quieres recibir tu codigo.');
             $this->redirect('citapublica');
         }
+        if (empty($this->reenvio)) $this->exigeCaptcha();
+        $ab = ConfigAntibotModel::obtener();
+        $this->exigeLimite('otp', $ab['lim_otp_hora'], 60);
         try {
             if (OtpCitaPublicaModel::enviosRecientes($tel) >= OtpCitaPublicaModel::MAX_ENVIOS_HORA) {
                 $this->ev('SEGURIDAD', 'OTP_CITA_PUBLICA',
@@ -320,6 +357,7 @@ class CitapublicaController extends Controller {
                 throw new Exception('Ya pediste varios codigos. Espera una hora e intentalo de nuevo, o llama a tu clinica.');
             }
             $codigo = OtpCitaPublicaModel::generar($tel, $canal, $_SERVER['REMOTE_ADDR'] ?? null);
+            LimiteIpModel::registra(LimiteIpModel::ip(), 'otp');
             $this->mandaCodigo($canal, $codigo);
             $this->set('otp_canal', $canal);
             $this->set('otp_enviado', true);
@@ -344,6 +382,7 @@ class CitapublicaController extends Controller {
     /** Reenvia el codigo por el mismo canal que ya se habia elegido. */
     public function reenviarCodigo(): void {
         $_POST['canal'] = (string)$this->get('otp_canal', '');
+        $this->reenvio = true; // el reenvio no pide CAPTCHA, pero si respeta el limite por IP
         $this->enviarCodigo();
     }
 
@@ -508,6 +547,9 @@ class CitapublicaController extends Controller {
     public function agendar(): void {
         $idClinica = (int)$this->get('id_CLINICA', 0);
         if ($idClinica <= 0) { $this->flash('error', 'Falta elegir tu clinica en el paso 1.'); $this->redirect('citapublica'); }
+        $this->exigeCaptcha();
+        $ab = ConfigAntibotModel::obtener();
+        $this->exigeLimite('cita', $ab['lim_cita_dia'], 1440);
 
         // Usuario GENERICO: obligatorio para poder registrar.
         $gen = null;
@@ -678,6 +720,15 @@ class CitapublicaController extends Controller {
         } catch (Throwable $e) {}
         if ($idEstado <= 0) { $this->flash('error', 'No pudimos agendar en este momento. Intenta mas tarde o llama a la clinica.'); $this->redirect('citapublica'); }
 
+        // Limites anti-bots: citas futuras por celular y altas de pacientes por IP.
+        $telLim = (string)($p['telefono'] ?? $this->get('telefono', ''));
+        if ($ab['lim_citas_futuras'] > 0 && LimiteIpModel::citasFuturas($telLim, $idMedico) >= $ab['lim_citas_futuras']) {
+            $this->ev('SEGURIDAD', 'CITA', 'LIMITE CITAS FUTURAS telefono=' . PacienteModel::mascaraTelefono($telLim) . ' id_MEDICO=' . $idMedico);
+            $this->flash('error', 'Ya tienes ' . $ab['lim_citas_futuras'] . ' citas pendientes con este medico. Si necesitas otra, llama a la clinica.');
+            $this->redirect('citapublica');
+        }
+        if ($idPaciente <= 0) $this->exigeLimite('paciente', $ab['lim_paciente_dia'], 1440);
+
         // A partir de aqui, todo se guarda como el usuario GENERICO.
         Model::usarUsuario((int)$gen['id_USUARIOS']);
         try {
@@ -687,6 +738,7 @@ class CitapublicaController extends Controller {
                     $p['id_CATALOGO_GENERO'], $p['id_CATALOGO_MUNICIPIO'], $p['observaciones'],
                     $p['notifica_email'], $p['notifica_wa']);
                 if ($idPaciente <= 0) throw new RuntimeException('No se pudo registrar el paciente.');
+                LimiteIpModel::registra(LimiteIpModel::ip(), 'paciente');
                 $this->set('id_PACIENTE', $idPaciente);
                 $this->ev('PACIENTE', 'PACIENTE',
                     'ALTA PACIENTE PUBLICA id_PACIENTE=' . $idPaciente . ' clinica=' . $clinicaNom .
