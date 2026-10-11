@@ -32,13 +32,7 @@ session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
 ]);
-// Carpeta de sesiones propia por sitio (evita colisiones de session id).
-$sessPath = session_save_path();
-if ($sessPath === '' || !is_writable($sessPath)) {
-    $tmp = sys_get_temp_dir() . '/citas_sessions' . ($__slug !== '' ? '_' . strtolower($__slug) : '');
-    if (!is_dir($tmp)) @mkdir($tmp, 0700, true);
-    if (is_dir($tmp) && is_writable($tmp)) session_save_path($tmp);
-}
+// Nota: no se redefine session_save_path. PHP usa su almacenamiento
 unset($__scriptName, $__base, $__slug);
 session_start();
 
