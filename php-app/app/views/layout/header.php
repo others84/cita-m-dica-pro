@@ -77,6 +77,7 @@ if (!function_exists('nav_link')) {
             'opciones/correo' => 'mail',
             'opciones/whatsapp' => 'phone',
             'opciones/avisoAcceso' => 'mail',
+            'opciones/antibot' => 'shield',
             'sistema/bloquearclinicas' => 'clinic-blocked',
         ];
         if (isset($exact[$p])) return $exact[$p];
@@ -229,13 +230,14 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
           <?= nav_link('catalogos/estadosCita', 'Edo de citas', $__cur) ?>
           <?= nav_link('catalogos/usuarios', 'Usuarios', $__cur) ?>
         </details>
-        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo', 'opciones/whatsapp', 'opciones/avisoAcceso'], $__cur) ?>>
+        <details class="menu-group"<?= nav_group_open(['opciones/apariencia', 'opciones/cambiarPassword', 'opciones/correo', 'opciones/whatsapp', 'opciones/avisoAcceso', 'opciones/antibot'], $__cur) ?>>
           <summary><?= nav_icon('settings') ?><span>Configuración</span></summary>
           <?= nav_link('opciones/apariencia', 'Apariencia', $__cur) ?>
           <?= nav_link('opciones/cambiarPassword', 'Cambiar contraseña', $__cur) ?>
           <?= nav_link('opciones/correo', 'Configuración de correo', $__cur) ?>
           <?= nav_link('opciones/whatsapp', 'Configuración de WhatsApp', $__cur) ?>
           <?= nav_link('opciones/avisoAcceso', 'Aviso de accesos', $__cur) ?>
+          <?= nav_link('opciones/antibot', 'Protección cita pública', $__cur) ?>
         </details>
         <details class="menu-group"<?= nav_group_open(['clinicas', 'usuariosClinica', 'sistema/bloquearClinicas', 'contratos/plantillas', 'contratos/clinica'], $__cur) ?>>
           <summary><?= nav_icon('clinic') ?><span>Clínicas</span></summary>

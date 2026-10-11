@@ -766,6 +766,7 @@ class CitapublicaController extends Controller {
                 try { PadecimientoModel::guardarEnCita((int)$idCita, $padSel); }
                 catch (Throwable $e) { Database::log('CITA PUBLICA padecimientos ERR: ' . $e->getMessage()); }
             }
+            LimiteIpModel::registra(LimiteIpModel::ip(), 'cita');
             try { LogModel::estadoCita($idCita, null, 'Agendada', $idClinica, $clinicaNom, 'GENERICO'); }
             catch (Throwable $e) { Database::log('CITA PUBLICA log estado ERR: ' . $e->getMessage()); }
             $this->ev('CITA', 'CITA',

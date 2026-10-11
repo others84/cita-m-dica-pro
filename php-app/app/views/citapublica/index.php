@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/../../models/ConfigAntibotModel.php';
+$__cap = ConfigAntibotModel::captchaActivo();
+$__siteKey = $__cap ? (string)ConfigAntibotModel::obtener()['site_key'] : '';
+if ($__cap): ?><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script><?php endif; ?>
+<?php
 /** Pagina publica "Generar cita" (sin sesion de sistema). */
 $paisPorEstado = [];
 foreach ($estados as $e) { $paisPorEstado[(int)$e['id_CATALOGO_ESTADOS']] = (int)($e['id_CATALOGO_PAIS'] ?? 0); }
@@ -139,6 +144,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
                 <?php endif; ?>
               </label>
             <?php endforeach; ?>
+<?php if ($__cap): ?><div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($__siteKey) ?>" data-language="es"></div><?php endif; ?>
             <div class="form-actions">
               <button class="btn" type="submit"><?= $otpEnviado ? 'Enviar otro codigo' : 'Enviarme el codigo' ?></button>
             </div>
@@ -284,6 +290,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
 
       <p class="resumen-cita" id="resumen-cita">Aun no eliges dia y hora. Toca un espacio en blanco del calendario.</p>
 
+<?php if ($__cap): ?><div class="cf-turnstile" data-sitekey="<?= htmlspecialchars($__siteKey) ?>" data-language="es"></div><?php endif; ?>
       <div class="form-actions">
         <button class="btn btn-primary" type="submit">Confirmar mi cita</button>
       </div>
