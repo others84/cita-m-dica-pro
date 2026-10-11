@@ -207,6 +207,47 @@ class OpcionesController extends Controller {
         $this->redirect('opciones/whatsapp');
     }
 
+    /** Administrador de sistema: CAPTCHA y limites por IP de la cita publica. */
+    public function antibot(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigAntibotModel.php';
+        $cfg = ConfigAntibotModel::obtener();
+        $cfg['tiene_secret'] = trim((string)$cfg['secret']) !== '';
+        unset($cfg['secret']);
+        $this->view('opciones/antibot', ['title' => 'Protección cita pública', 'cfg' => $cfg]);
+    }
+
+    public function antibotGuardar(): void {
+        $this->requireLogin(['admin_sistema']);
+        require_once __DIR__ . '/../models/ConfigAntibotModel.php';
+        try {
+            $n = function (string $k, int $max) {
+                $v = (int)$this->input($k);
+                if ($v < 0 || $v > $max) throw new Exception('El límite "' . $k . '" debe estar entre 0 y ' . $max . ' (0 = sin límite).');
+                return $v;
+            };
+            $d = [
+                'captcha_activo' => (int)$this->input('captcha_activo') === 1,
+                'site_key' => trim((string)$this->input('site_key')),
+                'lim_buscar_hora' => $n('lim_buscar_hora', 1000), 'lim_otp_hora' => $n('lim_otp_hora', 1000),
+                'lim_paciente_dia' => $n('lim_paciente_dia', 1000), 'lim_cita_dia' => $n('lim_cita_dia', 1000),
+                'lim_citas_futuras' => $n('lim_citas_futuras', 50),
+            ];
+            $secret = trim((string)$this->input('secret'));
+            if (strlen($d['site_key']) > 200 || strlen($secret) > 300) throw new Exception('Las claves son demasiado largas.');
+            if ($d['captcha_activo']) {
+                $actual = ConfigAntibotModel::obtener();
+                if ($d['site_key'] === '') throw new Exception('Captura la clave pública (site key) de Turnstile.');
+                if ($secret === '' && trim((string)$actual['secret']) === '') throw new Exception('Captura la clave secreta de Turnstile.');
+            }
+            ConfigAntibotModel::guardar($d, $secret);
+            $this->flash('ok', 'Protección de la cita pública guardada.');
+        } catch (Throwable $e) {
+            $this->flash('error', $e->getMessage());
+        }
+        $this->redirect('opciones/antibot');
+    }
+
     /** Apariencia: paleta de colores y tipografia (se guarda en el dispositivo). */
     public function apariencia(): void {
         $this->requireLogin();
