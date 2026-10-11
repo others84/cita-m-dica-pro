@@ -36,8 +36,6 @@ class Auth {
         $map = [
             'Administrador de sistema' => 'admin_sistema',
             'Administrador de clinica' => 'administrador',
-            'Administrador de clínica' => 'administrador',
-            'Medico'                   => 'medico',
             'Médico'                   => 'medico',
             'Asistente'                => 'asistente',
         ];

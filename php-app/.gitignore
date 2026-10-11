@@ -3,4 +3,3 @@
 config/config.properties
 storage/logs/
 *.log
-storage/sessions/

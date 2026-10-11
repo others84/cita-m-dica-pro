@@ -70,3 +70,4 @@
 <?php else: ?>
   <p style="color:var(--c5)">Selecciona un médico para ver y definir sus días bloqueados.</p>
 <?php endif; ?>
+

@@ -116,9 +116,10 @@ class HorariosController extends Controller {
         $this->redirect('horarios');
     }
 
-    /** Solo app.log: los tres renglones de citas.LOG los inserta el SP spGuardaHorarioMedico. */
+    /** Log en la tabla LOG y en app.log con el formato solicitado. */
     private function registrar(string $medico, string $detalle): void {
         $evento = 'el médico "' . $medico . '" definió el horario: ' . $detalle;
+        LogModel::evento('HORARIO', 'spGuardaHorarioMedico', 'HORARIO_MEDICO', $evento);
         if (class_exists('Database')) {
             Database::log($evento . ' | usuario=' . ($_SESSION['user']['usuario'] ?? '?')
                 . ' clinica=' . ($_SESSION['f_clinica'] ?? '(n/d)'));

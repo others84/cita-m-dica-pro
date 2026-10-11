@@ -1,0 +1,257 @@
+<?php
+class Controller {
+    protected function view(string $view, array $data = []): void {
+        extract($data);
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+        if (!file_exists($viewFile)) {
+            echo "Vista no encontrada: $view";
+            return;
+        }
+        require __DIR__ . '/../views/layout/header.php';
+        require $viewFile;
+        require __DIR__ . '/../views/layout/footer.php';
+    }
+
+    /** Renderiza una vista sin el layout (para actualizaciones parciales vía AJAX). */
+    protected function partial(string $view, array $data = []): void {
+        extract($data);
+        $viewFile = __DIR__ . '/../views/' . $view . '.php';
+        if (!file_exists($viewFile)) {
+            echo "Vista no encontrada: $view";
+            return;
+        }
+        require $viewFile;
+    }
+
+    protected function requireLogin(array $roles = []): void {
+        if (empty($_SESSION['user'])) {
+            header('Location: ' . url('auth/login'));
+            exit;
+        }
+        if (!empty($roles) && !in_array($_SESSION['user']['rol'], $roles, true)) {
+            http_response_code(403);
+            echo 'Acceso denegado';
+            exit;
+        }
+    }
+
+    protected function flash(string $type, string $msg): void {
+        $_SESSION['flash'][] = ['type' => $type, 'msg' => $msg];
+    }
+
+    protected function redirect(string $path): void {
+        header('Location: ' . url($path));
+        exit;
+    }
+
+    protected function input(string $key, $default = null) {
+        // Solo POST: los valores nunca deben viajar en la URL.
+        $v = $_POST[$key] ?? $default;
+        if (is_string($v)) {
+            $v = trim($v);
+            if ($v === '') return $default;
+        }
+        return $v;
+    }
+
+    protected function intOrNull($v): ?int {
+        if ($v === null || $v === '') return null;
+        return (int)$v;
+    }
+
+    /**
+     * Estado de pantalla (filtros, registro en edicion) guardado en sesion.
+     * Nunca se lee de la URL: si viene por POST se toma de ahi y se persiste,
+     * si no, se recupera el ultimo valor guardado.
+     */
+    protected function stateNs(?string $ns = null): string {
+        if ($ns !== null) return $ns;
+        $c = get_class($this);
+        return strtolower(preg_replace('/Controller$/', '', $c));
+    }
+
+    protected function stateParam(string $key, $default = null, ?string $ns = null) {
+        $ns = $this->stateNs($ns);
+        if (array_key_exists($key, $_POST)) {
+            $v = $_POST[$key];
+            if (is_string($v)) $v = trim($v);
+            if ($v === '' || $v === null) {
+                unset($_SESSION['ui'][$ns][$key]);
+                return $default;
+            }
+            $_SESSION['ui'][$ns][$key] = $v;
+            return $v;
+        }
+        return $_SESSION['ui'][$ns][$key] ?? $default;
+    }
+
+    protected function stateInt(string $key, ?string $ns = null): ?int {
+        return $this->intOrNull($this->stateParam($key, null, $ns));
+    }
+
+    protected function clearState(string $key, ?string $ns = null): void {
+        $ns = $this->stateNs($ns);
+        unset($_SESSION['ui'][$ns][$key]);
+    }
+
+    /**
+     * Resuelve el contexto de filtro por clinica segun el rol.
+     * Retorna ['clinicasFiltro' => array, 'fClinica' => ?int, 'rol' => string].
+     *
+     * - admin_sistema: puede elegir cualquier clinica (o "todas" => null).
+     * - resto de roles: se limitan a las clinicas asignadas en sesion. Si eligen
+     *   una valida se respeta; si no, se toma la primera asignada. Nunca pueden
+     *   ver datos de una clinica que no tienen asignada.
+     */
+    protected function resolveClinicaContext(): array {
+        $rol = $_SESSION['user']['rol'] ?? '';
+        $sessClinicas = $_SESSION['user']['clinicas'] ?? [];
+        $userClin = $_SESSION['user']['id_CLINICA'] ?? null;
+        // El filtro de clinica viaja por POST (nunca por la URL) y se
+        // persiste en sesion para conservarse entre navegaciones.
+        // El filtro lo fija FiltroController::clinica() y se guarda en sesion
+        // (0 = "todas"). Aqui solo se lee: asi la seleccion nunca se pierde.
+        $posted = array_key_exists('f_clinica', $_POST);
+        $raw = $posted ? $this->intOrNull($_POST['f_clinica']) : null;
+        if ($posted) {
+            $_SESSION['f_clinica'] = $raw === null ? 0 : $raw;
+        }
+        $last = isset($_SESSION['f_clinica']) ? (int)$_SESSION['f_clinica'] : 0;
+
+        if (class_exists('Database')) {
+            $idsInicio = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
+            Database::log(sprintf(
+                'resolveClinicaContext IN rol=%s user=%s uri=%s post_f_clinica=%s session_f_clinica=%s session_ids=[%s] user_id_CLINICA=%s',
+                $rol,
+                $_SESSION['user']['usuario'] ?? '?',
+                $_SERVER['REQUEST_URI'] ?? '?',
+                $posted ? ($raw === null ? 'TODAS' : (string)$raw) : 'NO_POST',
+                $last ?: 'NULL',
+                implode(',', $idsInicio),
+                $userClin === null ? 'NULL' : (string)$userClin
+            ));
+        }
+
+        if ($rol === 'admin_sistema') {
+            // Siempre manda la ultima seleccion guardada (0 => todas).
+            $fAdmin = $last ?: null;
+            if (class_exists('Database')) {
+                Database::log(sprintf(
+                    'resolveClinicaContext OUT rol=%s user=%s modo=admin_sistema fClinica=%s',
+                    $rol,
+                    $_SESSION['user']['usuario'] ?? '?',
+                    $fAdmin === null ? 'NULL' : (string)$fAdmin
+                ));
+            }
+            require_once __DIR__ . '/../models/ClinicaModel.php';
+            return [
+                'clinicasFiltro' => ClinicaModel::listar(),
+                'fClinica' => $fAdmin,
+                'rol' => $rol,
+            ];
+        }
+
+        // Safety net: si la sesion no trae clinicas (login antiguo o sesion
+        // creada antes de asignar clinicas), refrescamos desde DB.
+        if (empty($sessClinicas) && !empty($_SESSION['user']['id_USUARIOS'])) {
+            require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+            $sessClinicas = UsuarioClinicaModel::listarPorUsuario((int)$_SESSION['user']['id_USUARIOS']);
+            $_SESSION['user']['clinicas'] = $sessClinicas;
+            if (class_exists('Database')) {
+                $idsRefrescados = array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sessClinicas);
+                Database::log(sprintf(
+                    'resolveClinicaContext REFRESH user=%s rows=%d ids=[%s]',
+                    $_SESSION['user']['usuario'] ?? '?',
+                    count($sessClinicas),
+                    implode(',', $idsRefrescados)
+                ));
+            }
+        }
+
+        $ids = array_map(fn($c) => (int)$c['id_CLINICA'], $sessClinicas);
+        $fClinica = null;
+        $motivo = 'sin_clinica';
+        if ($last && in_array($last, $ids, true)) {
+            $fClinica = $last;
+            $motivo = 'session_valida';
+        } elseif (!empty($ids)) {
+            $fClinica = $ids[0];
+            $motivo = 'default_primera';
+        } elseif ($userClin) {
+            $fClinica = (int)$userClin;
+            $motivo = 'user_id_CLINICA';
+        }
+        // Persistimos la ultima seleccion valida para que se mantenga entre
+        // navegaciones aunque el usuario no vuelva a pasar ?f_clinica.
+        if ($fClinica) {
+            $_SESSION['f_clinica'] = $fClinica;
+        }
+        if (class_exists('Database')) {
+            Database::log(sprintf(
+                'resolveClinicaContext OUT rol=%s user=%s ids=[%s] post_f_clinica=%s session_f_clinica_previa=%s fClinica=%s motivo=%s session_f_clinica_final=%s',
+                $rol,
+                $_SESSION['user']['usuario'] ?? '?',
+                implode(',', $ids),
+                $posted ? ($raw === null ? 'TODAS' : (string)$raw) : 'NO_POST',
+                $last ?: 'NULL',
+                $fClinica === null ? 'NULL' : (string)$fClinica,
+                $motivo,
+                $_SESSION['f_clinica'] ?? 'NULL'
+            ));
+        }
+        return [
+            'clinicasFiltro' => $sessClinicas,
+            'fClinica' => $fClinica,
+            'rol' => $rol,
+        ];
+    }
+
+    /**
+     * Clinicas que el usuario tiene permitido tocar.
+     * Retorna null cuando el rol puede operar sobre todas (admin_sistema).
+     * @return int[]|null
+     */
+    protected function clinicasPermitidas(): ?array {
+        $rol = $_SESSION['user']['rol'] ?? '';
+        if ($rol === 'admin_sistema') return null;
+        $sess = $_SESSION['user']['clinicas'] ?? [];
+        if (empty($sess) && !empty($_SESSION['user']['id_USUARIOS'])) {
+            require_once __DIR__ . '/../models/UsuarioClinicaModel.php';
+            $sess = UsuarioClinicaModel::listarPorUsuario((int)$_SESSION['user']['id_USUARIOS']);
+            $_SESSION['user']['clinicas'] = $sess;
+        }
+        $ids = array_values(array_filter(array_map(fn($c) => (int)($c['id_CLINICA'] ?? 0), $sess)));
+        $propia = (int)($_SESSION['user']['id_CLINICA'] ?? 0);
+        if ($propia > 0 && !in_array($propia, $ids, true)) $ids[] = $propia;
+        return $ids;
+    }
+
+    /** True si el usuario puede operar sobre registros de esa clinica. */
+    protected function clinicaPermitida(?int $idClinica): bool {
+        $permitidas = $this->clinicasPermitidas();
+        if ($permitidas === null) return true;              // admin_sistema
+        if ($idClinica === null || (int)$idClinica <= 0) return false;
+        return in_array((int)$idClinica, $permitidas, true);
+    }
+
+    /**
+     * Bloquea la operacion cuando el registro no pertenece a una clinica
+     * autorizada (IDOR). Registra el intento y regresa al listado.
+     */
+    protected function denegarRecurso(string $recurso, $id, ?int $idClinica, string $redirect): void {
+        if (class_exists('Database')) {
+            Database::log(sprintf(
+                'ACCESO DENEGADO recurso=%s id=%s id_CLINICA=%s rol=%s usuario=%s id_usuario=%s uri=%s',
+                $recurso,
+                (string)$id,
+                $idClinica === null ? 'NULL' : (string)$idClinica,
+                $_SESSION['user']['rol'] ?? '?',
+                $_SESSION['user']['usuario'] ?? '?',
+                (string)($_SESSION['user']['id_USUARIOS'] ?? '?'),
+                $_SERVER['REQUEST_URI'] ?? '?'
+            ));
+        }
+        $this->flash('error', 'No tiene permiso para operar sobre ese registro.');
+        $this->redirect($redirect);
+    }
+}

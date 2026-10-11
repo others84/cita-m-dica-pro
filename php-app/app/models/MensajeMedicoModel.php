@@ -93,3 +93,4 @@ class MensajeMedicoModel extends Model {
         return strtr($plantilla, $map);
     }
 }
+

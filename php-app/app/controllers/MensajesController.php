@@ -126,3 +126,4 @@ class MensajesController extends Controller {
         return false;
     }
 }
+

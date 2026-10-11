@@ -32,14 +32,7 @@ class ConfigCorreoModel extends Model {
         );
     }
 
-    private static function requiereOpenssl(): void {
-        if (!function_exists('openssl_encrypt') || !function_exists('openssl_decrypt')) {
-            throw new Exception('El servidor no tiene habilitada la extensión OpenSSL de PHP, necesaria para guardar la contraseña de forma segura. Instálala con: sudo apt install php8.5-openssl (o habilita extension=openssl en php.ini) y reinicia PHP-FPM.');
-        }
-    }
-
     private static function llave(): string {
-        self::requiereOpenssl();
         $k = (string)(Config::get('APP_KEY') ?? '');
         if ($k === '') $k = (string)(getenv('APP_KEY') ?: '');
         if ($k === '') throw new Exception('Falta APP_KEY en el archivo .env para cifrar la contraseña de correo.');

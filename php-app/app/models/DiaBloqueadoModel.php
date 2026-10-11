@@ -68,3 +68,4 @@ class DiaBloqueadoModel extends Model {
         );
     }
 }
+

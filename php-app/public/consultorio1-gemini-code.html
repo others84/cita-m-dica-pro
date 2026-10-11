@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dra. Gabriela Puig Morales - Ginecología y Obstetricia</title>
+    <!-- Fuente Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- AOS CSS para animaciones al hacer scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-body: #FFFDFB;
+            --bg-card: #FBE7F1;
+            --purple-light: #D7C6FF;
+            --blue-soft: #8FA9FF;
+            --navy-dark: #2D3A5E;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--navy-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- ENCABEZADO Y NAVEGACIÓN --- */
+        header {
+            background-color: var(--bg-body);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-placeholder {
+            width: 160px;
+            height: 50px;
+            border: 2px dashed var(--blue-soft);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blue-soft);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--navy-dark);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--purple-light);
+            color: var(--navy-dark);
+        }
+
+        /* Menú Desplegable */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--bg-body);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            list-style: none;
+            min-width: 250px;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 0.7rem 1.2rem;
+            border-radius: 0;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: var(--bg-card);
+        }
+
+        /* --- BOTONES CON EFECTO REBOTE --- */
+        .btn-bounce {
+            background-color: var(--blue-soft);
+            color: #fff !important;
+            padding: 0.7rem 1.5rem !important;
+            border-radius: 25px !important;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-bounce:hover {
+            transform: scale(1.08);
+            background-color: var(--navy-dark);
+        }
+
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+
+        /* --- CUERPO Y TRANSICIÓN SPA --- */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            position: relative;
+        }
+
+        .page-section {
+            display: none;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .page-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* --- SECCIONES ESPECÍFICAS --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+        }
+
+        .img-container img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Preguntas Frecuentes */
+        .faq-item {
+            margin-bottom: 1rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .faq-item h4 {
+            color: var(--navy-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- PIE DE PÁGINA --- */
+        footer {
+            background-color: var(--navy-dark);
+            color: #fff;
+            padding: 3rem 1.5rem 1rem 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-col h3, .footer-col h4 {
+            margin-bottom: 1rem;
+            color: var(--purple-light);
+        }
+
+        .footer-col p, .footer-col a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .social-links a {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: var(--purple-light);
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--blue-soft);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
+        }
+
+        /* Modales */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-body);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .nav-links { flex-direction: column; display: none; width: 100%; }
+            .nav-links.mobile-active { display: flex; }
+            .menu-toggle { display: block; font-size: 1.5rem; cursor: pointer; }
+        }
+        @media (min-width: 769px) {
+            .menu-toggle { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. ENCABEZADO -->
+    <header>
+        <nav class="navbar">
+            <div class="logo-placeholder">
+               <img src="logo_dra_gabriela_puig_morales_v13.svg" alt="Mi gráfico vectorial" width="150" height="100"> 
+            </div>
+            <div class="menu-toggle" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" class="nav-btn active" onclick="navigate('inicio')">INICIO</a></li>
+                <li><a href="#" class="nav-btn" onclick="navigate('sobre-mi')">SOBRE MÍ</a></li>
+                <li class="dropdown">
+                    <a href="#" class="nav-btn">SERVICIOS <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" onclick="loadService('prenatal')">Control Prenatal</a></li>
+                        <li><a href="#" onclick="loadService('papanicolau')">Papanicolau</a></li>
+                        <li><a href="#" onclick="loadService('colposcopia')">Colposcopía</a></li>
+                        <li><a href="#" onclick="loadService('menopausia')">Menopausia</a></li>
+                        <li><a href="#" onclick="loadService('partos')">Atención de Partos</a></li>
+                        <li><a href="#" onclick="loadService('cesareas')">Cesáreas e Histerectomías</a></li>
+                        <li><a href="#" onclick="loadService('histeroscopia')">Histeroscopias</a></li>
+                        <li><a href="#" onclick="loadService('planificacion')">Planificación Familiar</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" class="nav-btn" onclick="navigate('faq')">PREGUNTAS FRECUENTES</a></li>
+                <li><a href="#" class="nav-btn btn-bounce" onclick="navigate('contacto')">CONTACTO</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 2. CUERPO DE LA PÁGINA -->
+    <main>
+        <!-- INICIO -->
+        <section id="inicio" class="page-section active">
+            <div class="grid-2">
+                <div data-aos="fade-right">
+                    <h1 style="font-size: 2.3rem; color: var(--navy-dark); margin-bottom: 1rem;">Atención Ginecológica y Obstétrica Especializada en Teziutlán</h1>
+                    <p style="margin-bottom: 1.5rem;">Cuidado profesional, cálido y accesible para la salud de la mujer en todas sus etapas.</p>
+                    <button class="btn-bounce" onclick="navigate('contacto')">Agendar Cita Directa</button>
+                </div>
+                <div data-aos="fade-left" class="img-container">
+                    <!-- Imagen representativa de consultorio/colposcopía -->
+                    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80" alt="Consultorio Colposcopía">
+                </div>
+            </div>
+            
+            <div style="margin-top: 3rem; text-align: center;" data-aos="zoom-in">
+                <!-- Contenedor Lottie Animación -->
+                <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_5njp3vgg.json" background="transparent" speed="1" style="width: 150px; height: 150px; margin: 0 auto;" loop autoplay></lottie-player>
+                <p><strong>Atención oportuna para pacientes de Teziutlán y comunidades vecinas.</strong></p>
+            </div>
+        </section>
+
+        <!-- SOBRE MÍ -->
+        <section id="sobre-mi" class="page-section">
+            <div class="grid-2">
+                <div class="img-container" data-aos="fade-right">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80" alt="Dra. Gabriela Puig Morales">
+                </div>
+                <div data-aos="fade-left">
+                    <h2>Dra. Gabriela Puig Morales</h2>
+                    <p style="color: var(--blue-soft); font-weight: 600; margin-bottom: 1rem;">Obstetra y Ginecóloga | 43 años</p>
+                    <p style="margin-bottom: 1rem;">Médico especialista dedicada al cuidado integral de la mujer. Con una sólida formación académica en la <strong>Benemérita Universidad Autónoma de Puebla (BUAP)</strong> y estudios de alta especialización realizados en <strong>Costa Rica</strong>.</p>
+                    <div class="card">
+                        <h4>Especialidades principales:</h4>
+                        <ul style="margin-left: 1.2rem; margin-top: 0.5rem;">
+                            <li>Papanicolau y Colposcopía</li>
+                            <li>Atención de Partos y Cesáreas</li>
+                            <li>Histerectomías e Histeroscopias</li>
+                            <li>Control de Menopausia</li>
+                            <li>Planificación Familiar</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICIOS (Dinámico) -->
+        <section id="servicios" class="page-section">
+            <div class="grid-2">
+                <div class="img-container" data-aos="fade-right">
+                    <img id="service-img" src="" alt="Servicio Médico">
+                </div>
+                <div data-aos="fade-left">
+                    <h2 id="service-title">Título del Servicio</h2>
+                    <p id="service-desc" class="card" style="margin-top: 1rem; line-height: 1.8;"></p>
+                    <button class="btn-bounce" style="margin-top: 1.5rem;" onclick="navigate('contacto')">Consultar por este servicio</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PREGUNTAS FRECUENTES -->
+        <section id="faq" class="page-section">
+            <h2 style="margin-bottom: 1.5rem; text-align: center;">Preguntas Frecuentes</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="faq-item" data-aos="fade-up">
+                    <h4>¿Cada cuánto debo realizarme el Papanicolau y la Colposcopía?</h4>
+                    <p>Se recomienda realizarlo una vez al año a partir del inicio de la vida sexual activa, o antes si existe alguna sintomatología indicada por la médica.</p>
+                </div>
+                <div class="faq-item" data-aos="fade-up">
+                    <h4>¿Qué debo llevar a mi primera consulta de Control Prenatal?</h4>
+                    <p>Es importante acudir con cualquier estudio previo (ultrasonidos, análisis de laboratorio) y una lista de antecedentes médicos familiares.</p>
+                </div>
+                <div class="faq-item" data-aos="fade-up">
+                    <h4>¿Atiende urgencias de parto a cualquier hora?</h4>
+                    <p>Sí, la atención del parto y las urgencias obstétricas se programan y coordinan mediante comunicación telefónica previa para el internamiento.</p>
+                </div>
+                <div class="faq-item" data-aos="fade-up">
+                    <h4>¿Qué métodos de planificación familiar maneja en el consultorio?</h4>
+                    <p>Se orienta y colocan dispositivos intrauterinos (DIU, SIU), implantes subdérmicos y se brinda asesoría para métodos orales u hormonales.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACTO -->
+        <section id="contacto" class="page-section">
+            <h2>Ubicación y Citas</h2>
+            <div class="grid-2" style="margin-top: 1.5rem;">
+                <div data-aos="fade-right">
+                    <div class="card">
+                        <h3>Contacto Directo</h3>
+                        <p style="margin-top: 1rem;"><i class="fas fa-phone" style="color: var(--blue-soft);"></i> <strong>Teléfono:</strong> 2223302899</p>
+                        <p style="margin-top: 0.5rem;"><i class="fas fa-map-marker-alt" style="color: var(--blue-soft);"></i> <strong>Dirección:</strong> Privada 19 Sur 1915, Centro, Teziutlán, Puebla.</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">* Ubicación accesible para pacientes de zonas rurales y afueras de Teziutlán.</p>
+                        
+                        <a href="tel:2223302899" class="btn-bounce" style="margin-top: 1.5rem; text-align: center; text-decoration: none;">
+                            <i class="fas fa-calendar-check"></i> Agendar Cita Ahora
+                        </a>
+                    </div>
+                </div>
+                <!-- Mapa de Google Maps -->
+                <div data-aos="fade-left" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3753.882894563638!2d-97.3621!3d19.8163!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85da3312c1234567%3A0x123456789abcdef!2sPrivada%2019%20Sur%201915%2C%20Teziutl%C3%A1n%2C%20Pue.!5e0!3m2!1ses!2smx!4v1600000000000!5m2!1ses!2smx" 
+                        width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 3. PIE DE PÁGINA -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-col">
+                <h3>Clínica de la Mujer</h3>
+                <p>Dra. Gabriela Puig Morales</p>
+                <p>Ginecología y Obstetricia en Teziutlán, Puebla.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <p>Tel: 2223302899</p>
+                <p>Privada 19 sur 1915, Teziutlán</p>
+            </div>
+            <div class="footer-col">
+                <h4>Legales</h4>
+                <p><a href="#" onclick="openModal()">Aviso de Privacidad</a></p>
+            </div>
+            <div class="footer-col">
+                <h4>Síguenos</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/522223302899" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Dra. Gabriela Puig Morales - Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL AVISO DE PRIVACIDAD -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <h3>Aviso de Privacidad</h3>
+            <p style="margin-top: 1rem; font-size: 0.85rem; line-height: 1.5;">
+                De conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, el consultorio médico de la <strong>Dra. Gabriela Puig Morales</strong>, ubicado en Privada 19 sur 1915, Teziutlán, Puebla, utiliza sus datos personales únicamente para la apertura de expedientes clínicos, agenda de citas y seguimiento de tratamientos médicos. Sus datos están protegidos bajo estricta confidencialidad médica.
+            </p>
+            <button class="btn-bounce" style="margin-top: 1.5rem;" onclick="closeModal()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS Y LIBRERÍAS DE ANIMACIÓN -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Inicializar animaciones AOS
+        AOS.init({ duration: 800, once: true });
+
+        // Base de Datos de Servicios
+        const dataServicios = {
+            'prenatal': {
+                title: 'Consulta de Embarazo y Control Prenatal',
+                desc: 'Seguimiento mes a mes para garantizar el desarrollo saludable de tu bebé y cuidar tu salud integral durante la gestación.',
+                img: 'https://images.unsplash.com/photo-1537673156864-5d2c72de7824?auto=format&fit=crop&w=800&q=80'
+            },
+            'papanicolau': {
+                title: 'Papanicolau',
+                desc: 'Estudio preventivo indispensable para la detección oportuna de alteraciones o lesiones en el cuello uterino.',
+                img: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80'
+            },
+            'colposcopia': {
+                title: 'Colposcopía',
+                desc: 'Examen detallado mediante microscopio especializado para evaluar el cuello uterino, la vagina y la vulva en búsqueda de lesiones.',
+                img: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80'
+            },
+            'menopausia': {
+                title: 'Atención Integral de la Menopausia',
+                desc: 'Tratamiento y orientación médica para controlar bochornos, cambios hormonales y prevenir la osteoporosis en esta etapa.',
+                img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80'
+            },
+            'partos': {
+                title: 'Atención de Partos Humanizados',
+                desc: 'Acompañamiento médico profesional durante el trabajo de parto, priorizando la seguridad y la comodidad de la mamá y el recién nacido.',
+                img: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80'
+            },
+            'cesareas': {
+                title: 'Cesáreas e Histerectomías',
+                desc: 'Procedimientos quirúrgicos ginecológicos ejecutados con técnica avanzada, bajo las más estrictas normas de seguridad hospitalaria.',
+                img: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80'
+            },
+            'histeroscopia': {
+                title: 'Histeroscopias',
+                desc: 'Técnica mínimamente invasiva que permite visualizar el interior de la cavidad uterina para diagnóstico y tratamiento preciso.',
+                img: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80'
+            },
+            'planificacion': {
+                title: 'Métodos de Planificación Familiar',
+                desc: 'Asesoría médica personalizada en la elección y colocación de métodos anticonceptivos (DIU, implantes, métodos orales).',
+                img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80'
+            }
+        };
+
+        // Navegación SPA Entre Secciones
+        function navigate(sectionId) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const target = document.getElementById(sectionId);
+            if(target) target.classList.add('active');
+
+            // Cierra el menú en móvil si está abierto
+            document.getElementById('navLinks').classList.remove('mobile-active');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        // Cargar Servicio en Body sin cambiar de página
+        function loadService(serviceKey) {
+            const data = dataServicios[serviceKey];
+            if(data) {
+                document.getElementById('service-title').innerText = data.title;
+                document.getElementById('service-desc').innerText = data.desc;
+                document.getElementById('service-img').src = data.img;
+                
+                navigate('servicios');
+            }
+        }
+
+        // Control Menú Responsive
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('mobile-active');
+        }
+
+        // Modales Legales
+        function openModal() { document.getElementById('privacyModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('privacyModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
