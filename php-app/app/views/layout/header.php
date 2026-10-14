@@ -80,6 +80,7 @@ if (!function_exists('nav_link')) {
             'opciones/avisoAcceso' => 'mail',
             'opciones/antibot' => 'shield',
             'sistema/bloquearclinicas' => 'clinic-blocked',
+            'ayuda' => 'document',
         ];
         if (isset($exact[$p])) return $exact[$p];
         if (strpos($p, 'calendario') !== false) return 'calendar';
@@ -256,6 +257,7 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
           <?= nav_link('reportes/repEspecialidad', 'Atención por especialidad', $__cur) ?>
         </details>
       <?php endif; ?>
+      <?= nav_link('ayuda', 'Ayuda', $__cur) ?>
       <?php endif; ?>
 
     </nav>
@@ -300,12 +302,20 @@ $__labelEspera = 'Citas en espera' . ($__monitorCitas ? ' <span id="nav-espera-b
         <h1><?= htmlspecialchars($title ?? '') ?></h1>
       </div>
       <div class="topbar-account">
+        <?php if (!$__soloFirma):
+          require __DIR__ . '/../ayuda/_contenido.php';
+          $__seg = explode('/', $__cur)[0] ?? '';
+          $__secAyuda = $AYUDA_MAPA[$__seg] ?? '';
+          if ($__seg !== 'ayuda'): ?>
+          <a class="topbar-help" href="<?= url('ayuda') . ($__secAyuda ? '#' . $__secAyuda : '') ?>" title="¿Cómo se usa esta pantalla?">?<span> ¿Cómo se usa esta pantalla?</span></a>
+        <?php endif; endif; ?>
         <span class="user-avatar" aria-hidden="true"><?= htmlspecialchars(mb_strtoupper(mb_substr((string)$user['nombre'], 0, 1))) ?></span>
         <span class="user-summary"><strong><?= htmlspecialchars($user['nombre']) ?></strong><small><?= htmlspecialchars(str_replace('_', ' ', $rol)) ?></small></span>
         <a class="topbar-logout" href="<?= url('auth/logout') ?>" title="Cerrar sesión" aria-label="Cerrar sesión"><?= nav_icon('logout') ?><span>Cerrar sesión</span></a>
       </div>
     </header>
     <section class="page">
+      <?php if (!$__soloFirma && empty($user['bienvenida_vista'])) require __DIR__ . '/../ayuda/_modal_bienvenida.php'; ?>
       <?php if (!empty($_SESSION['flash'])): foreach ($_SESSION['flash'] as $f): ?>
         <div class="flash flash-<?= htmlspecialchars($f['type']) ?>"><?= htmlspecialchars($f['msg']) ?></div>
       <?php endforeach; $_SESSION['flash'] = []; endif; ?>
