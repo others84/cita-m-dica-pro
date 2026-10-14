@@ -531,3 +531,17 @@ body{background:var(--c1);color:var(--c5)}
 .pad-item { display:flex; align-items:center; gap:.35rem; margin:0; font-weight:normal; }
 .pad-vacio { color:var(--c4); font-size:.9rem; }
 .pad-txt { display:block; font-size:.8rem; color:var(--c4); }
+
+/* ===== Centro de ayuda ===== */
+.ayuda-intro{margin:0 0 1rem}
+.ayuda-sec{border:1px solid var(--line,#dbe3ef);border-radius:10px;margin:0 0 .6rem;padding:.2rem .9rem;background:var(--surface,#fff)}
+.ayuda-sec summary{cursor:pointer;font-weight:600;padding:.6rem 0}
+.ayuda-sec ol{margin:.2rem 0 .8rem 1.2rem;line-height:1.6}
+.ayuda-sec .btn{margin-bottom:.8rem}
+.topbar-help{font-size:.85rem;white-space:nowrap;margin-right:.75rem}
+.ayuda-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:2000;padding:1rem}
+.ayuda-modal-box{background:var(--surface,#fff);border-radius:12px;max-width:520px;width:100%;padding:1.5rem;box-shadow:0 10px 40px rgba(0,0,0,.25);max-height:90vh;overflow:auto}
+.ayuda-modal-box h2{margin-top:0}
+.ayuda-modal-box ol{line-height:1.7;padding-left:1.2rem}
+.ayuda-modal-acc{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
+@media (max-width:600px){.topbar-help span{display:none}}
