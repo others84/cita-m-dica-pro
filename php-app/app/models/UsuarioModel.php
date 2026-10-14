@@ -18,6 +18,20 @@ class UsuarioModel extends Model {
         }
     }
 
+    /** true si el usuario ya cerro la ventana de bienvenida (o si el parche aun no existe). */
+    public static function bienvenidaVista(int $id): bool {
+        try {
+            $r = self::query('EXEC citas.spBienvenidaVista @id_USUARIOS=:id', [':id' => $id]);
+            return !empty($r[0]['vista']);
+        } catch (Throwable $e) {
+            return true;
+        }
+    }
+
+    public static function marcarBienvenidaVista(int $id): void {
+        self::execute('EXEC citas.spMarcarBienvenidaVista @id_USUARIOS=:id', [':id' => $id]);
+    }
+
     public static function listar(): array {
         return self::query('EXEC citas.spRegresaUsuarios');
     }

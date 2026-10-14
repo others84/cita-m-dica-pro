@@ -47,6 +47,7 @@ class AuthController extends Controller {
                 $csrf = $_SESSION['csrf_token'] ?? null;
                 session_regenerate_id(true);
                 if ($csrf) { $_SESSION['csrf_token'] = $csrf; }
+                $user['bienvenida_vista'] = UsuarioModel::bienvenidaVista((int)($user['id_USUARIOS'] ?? 0));
                 $_SESSION['user'] = $user;
                 AvisoAcceso::notificar($user);
                 $destino = $user['rol'] === 'admin_sistema' ? url('clinicas') : url('calendario');
