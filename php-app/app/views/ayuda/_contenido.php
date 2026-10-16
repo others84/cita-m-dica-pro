@@ -5,43 +5,44 @@
  */
 $__citas = [
     ['calendario', 'Calendario de citas', 'calendario', [
-        'Elige la vista Día, Semana o Mes con los botones superiores.',
-        'Las citas aparecen con el color de su estado (agendada, confirmada, atendida, cancelada).',
-        'Da clic en un horario libre para agendar una cita con esa fecha y hora ya capturadas.',
+        'En esta pantalla se muestra tu calendario de forma gráfica para identificar fácilmente tus horarios disponibles. Puedes agruparlo por Día, Semana o Mes con los botones superiores.',
+        'Las citas agendadas aparecen de color azul. Para consultar la información de una cita, da clic en ella y se abrirá una ventana con sus detalles.',
+        'Para agendar una cita nueva, da clic en un horario libre y se abrirá la pantalla de Citas con esa fecha y hora ya capturadas.',
     ]],
     ['citas', 'Agendar y administrar citas', 'citas', [
-        'Usa "Nueva cita" o un clic en el calendario para abrir el formulario.',
-        'Selecciona paciente, médico, consultorio y especialidad; agrega padecimientos y el precio se suma solo (puedes modificarlo).',
+        'Para crear una nueva cita, da clic en el botón "Nueva cita".',
+        'Selecciona paciente, médico, consultorio y especialidad; agrega padecimientos y el precio se suma automáticamente (puedes modificarlo). Selecciona la fecha y hora de la cita.',
         'Indica las horas de anticipación del recordatorio por WhatsApp.',
-        'Marca "En espera de un espacio anterior" si el paciente quiere adelantar su cita.',
+        'Marca "En espera de un espacio anterior" si el paciente quiere adelantar su cita cuando otro paciente cancele y se libere un horario anterior al suyo.',
         'Presiona Alta una sola vez y espera el aviso "Generando la cita…".',
         'Desde Acciones puedes editar, enviar WhatsApp/correo, cancelar, marcar "No asistió" o borrar.',
     ]],
     ['citasmanana', 'Citas mañana y recordatorios', 'citasmanana', [
-        'Muestra las citas del día siguiente.',
+        'Esta opción muestra las citas del día siguiente para solicitar al paciente la confirmación de su asistencia.',
         'Usa el botón WhatsApp para enviar el recordatorio con el texto de notificación configurado.',
         'El número junto a "Citas" en el menú indica citas pendientes de notificar.',
     ]],
     ['citasespera', 'Citas en espera', 'citasespera', [
-        'Lista las citas de pacientes que desean un espacio anterior.',
-        'Cuando se libere un horario, usa "Adelantar" y elige el nuevo día y hora del mismo médico.',
+        'Esta opción muestra las citas de pacientes que desean un espacio anterior a su cita actual.',
+        'Cuando se libere un horario, selecciona la cita del paciente que quiere adelantarla, usa el botón "Adelantar" y elige el nuevo día y hora del mismo médico.',
         'La cita sigue en espera hasta atenderse, cancelarse o marcarse "No asistió"; también puedes "Quitar de espera".',
     ]],
     ['pacientes', 'Pacientes e historial', 'pacientes', [
-        'Da de alta pacientes; la fecha de nacimiento se escribe como DD/MM/AAAA.',
-        'Estado y municipio son opcionales y se pueden completar después.',
+        'Da de alta, modifica o da de baja pacientes. Usa el campo de observaciones para dar seguimiento a su estado de salud.',
         'Da clic en el nombre de un paciente para ver su historial de citas.',
+        'Configura las opciones de notificación del paciente para confirmar citas por WhatsApp y/o correo electrónico.',
+        'Revisa el historial de asistencia de cada paciente.',
     ]],
-    ['configuracion', 'Horarios, días bloqueados y notificación', 'horarios', [
-        'En "Horario de atención" define los días y horas en que atiende cada médico.',
+    ['configuracion', 'Horario, días bloqueados y notificación (Configuración)', 'horarios', [
+        'En "Apariencia" modifica el aspecto de la aplicación a tu gusto entre una serie de colores y tipos de letra.',
+        'En "Horario de atención" define el horario de consultas y los periodos en los que no atiende el médico, como la hora de comida. Estos horarios se aplican al agendado desde la página pública.',
         'En "Días bloqueados" marca vacaciones o días sin consulta.',
-        'En "Texto de notificación" personaliza el mensaje de WhatsApp.',
+        'En "Texto de notificación" personaliza el mensaje de WhatsApp para los recordatorios de cita.',
         'En "Cambiar contraseña" actualiza tu contraseña (mínimo 8 caracteres con letras y números).',
     ]],
 ];
 $__reportes = ['reportes', 'Reportes', 'reportes/ingresos', [
-    'Consulta ingresos por consulta y por citas, y atención por periodo.',
-    'Filtra por fechas (y clínica o médico cuando aplique) y revisa las gráficas.',
+    'Consulta ingresos por consulta, por citas y atención por periodo.',
 ]];
 
 $AYUDA = [
@@ -69,7 +70,7 @@ $AYUDA = [
                 'Al presionar "Atendida" se registra la hora real de fin.',
             ]],
             ['padecimientos', 'Padecimientos y precios', 'padecimientos', [
-                'Da de alta los padecimientos que tratas con su precio.',
+                'En "Padecimientos" define la lista de padecimientos que trata el médico y el precio de cada uno.',
                 'Al seleccionarlos en una cita, el precio se suma automáticamente.',
             ]],
             $__reportes,
