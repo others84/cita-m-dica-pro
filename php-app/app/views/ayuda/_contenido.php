@@ -3,6 +3,14 @@
  * Textos de ayuda por rol. Cada seccion: id, titulo, ruta (pantalla), pasos.
  * 'bienvenida' son los pasos clave que se muestran en el primer acceso.
  */
+/* Pasos de la pantalla Configuración; se ordenan como el menú de cada rol. */
+$__p_cambiar = 'En "Cambiar contraseña" actualiza tu contraseña (mínimo 8 caracteres con letras y números).';
+$__p_horarios = 'En "Horario de atención" define el horario de consultas y los periodos en los que no atiende el médico, como la hora de comida. Estos horarios se aplican al agendado desde la página pública.';
+$__p_dias = 'En "Días bloqueados" marca vacaciones o días sin consulta.';
+$__p_mensajes = 'En "Texto de notificación" personaliza el mensaje de WhatsApp para los recordatorios de cita.';
+$__p_apariencia = 'En "Apariencia" modifica el aspecto de la aplicación a tu gusto entre una serie de colores y tipos de letra.';
+$__p_passwordusuarios = 'En "Contraseña de usuarios" puedes restablecer la contraseña de los médicos y asistentes de tu clínica.';
+
 $__citas = [
     ['calendario', 'Calendario de citas', 'calendario', [
         'En esta pantalla se muestra tu calendario de forma gráfica para identificar fácilmente tus horarios disponibles. Puedes agruparlo por Día, Semana o Mes con los botones superiores.',
@@ -33,16 +41,19 @@ $__citas = [
         'Configura las opciones de notificación del paciente para confirmar citas por WhatsApp y/o correo electrónico.',
         'Revisa el historial de asistencia de cada paciente.',
     ]],
-    ['configuracion', 'Horario, días bloqueados y notificación (Configuración)', 'horarios', [
-        'En "Apariencia" modifica el aspecto de la aplicación a tu gusto entre una serie de colores y tipos de letra.',
-        'En "Horario de atención" define el horario de consultas y los periodos en los que no atiende el médico, como la hora de comida. Estos horarios se aplican al agendado desde la página pública.',
-        'En "Días bloqueados" marca vacaciones o días sin consulta.',
-        'En "Texto de notificación" personaliza el mensaje de WhatsApp para los recordatorios de cita.',
-        'En "Cambiar contraseña" actualiza tu contraseña (mínimo 8 caracteres con letras y números).',
+    ['configuracion', 'Configuración', 'horarios', [
+        $__p_cambiar, $__p_horarios, $__p_dias, $__p_mensajes, $__p_apariencia,
     ]],
 ];
 $__reportes = ['reportes', 'Reportes', 'reportes/ingresos', [
     'Consulta ingresos por consulta, por citas y atención por periodo.',
+]];
+/* Configuración en el mismo orden que el menú de cada rol. */
+$__config_medico = ['configuracion', 'Configuración', 'horarios', [
+    $__p_apariencia, $__p_horarios, $__p_dias, $__p_mensajes, $__p_cambiar,
+]];
+$__config_admin = ['configuracion', 'Configuración', 'horarios', [
+    $__p_apariencia, $__p_horarios, $__p_dias, $__p_mensajes, $__p_cambiar, $__p_passwordusuarios,
 ]];
 
 $AYUDA = [
@@ -64,7 +75,8 @@ $AYUDA = [
             'En Citas, presiona "Confirmar" al iniciar la consulta y "Atendida" al terminar.',
             'Consulta tus ingresos en Reportes.',
         ],
-        'secciones' => array_merge($__citas, [
+        'secciones' => [
+            $__citas[0], $__citas[1], $__citas[2], $__citas[3], $__citas[4], $__config_medico,
             ['atencion', 'Confirmar y atender', 'citas', [
                 'Al presionar "Confirmar" se registra la hora real de inicio.',
                 'Al presionar "Atendida" se registra la hora real de fin.',
@@ -74,7 +86,7 @@ $AYUDA = [
                 'Al seleccionarlos en una cita, el precio se suma automáticamente.',
             ]],
             $__reportes,
-        ]),
+        ],
     ],
     'administrador' => [
         'nombre' => 'Administrador de clínica',
@@ -94,7 +106,7 @@ $AYUDA = [
                 'Puedes restablecer la contraseña de médicos y asistentes de tu clínica.',
                 'Tras 5 intentos fallidos de acceso, un usuario se bloquea 5 minutos y recibirás un correo.',
             ]],
-            $__citas[0], $__citas[1], $__citas[3], $__citas[5],
+            $__citas[0], $__citas[1], $__citas[3], $__config_admin,
             ['reportes', 'Reportes', 'reportes/ingresos', [
                 'Ingresos, atención, Top 10 médicos y atención por especialidad.',
             ]],
