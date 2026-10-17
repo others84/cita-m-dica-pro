@@ -19,7 +19,7 @@ class Database {
 
         $dsn = 'sqlsrv:Server=' . $serverWithPort
              . ';Database=' . $database
-             . ';Encrypt=no;TrustServerCertificate=false';
+             . ';Encrypt=yes;TrustServerCertificate=yes';
 
         try {
             self::$pdo = new PDO($dsn, $user, $pass, [
