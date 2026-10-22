@@ -1,24 +1,15 @@
 <div class="card" style="max-width:640px">
   <h2 style="margin-top:0;color:var(--c5)">Configuración de WhatsApp</h2>
-  <p style="color:var(--c4);margin-top:0">Cuenta de WhatsApp Cloud API (Meta) desde la cual el sistema enviará los códigos de verificación de la cita en línea.</p>
+  <p style="color:var(--c4);margin-top:0">Conexión con Evolution API (WhatsApp vinculado por código QR) desde la cual el sistema enviará los códigos de verificación de la cita en línea.</p>
   <form method="post" action="<?= url('opciones/whatsappGuardar') ?>" class="form-grid"><?= csrf_field() ?>
-    <label>Phone Number ID
-      <input type="text" name="phone_number_id" maxlength="60" required value="<?= htmlspecialchars((string)($cfg['phone_number_id'] ?? '')) ?>" placeholder="123456789012345">
+    <label>URL de Evolution API
+      <input type="text" name="api_url" maxlength="60" required value="<?= htmlspecialchars((string)($cfg['waba_id'] ?? 'http://127.0.0.1:8081')) ?>" placeholder="http://127.0.0.1:8081">
     </label>
-    <label>WhatsApp Business Account ID (WABA)
-      <input type="text" name="waba_id" maxlength="60" value="<?= htmlspecialchars((string)($cfg['waba_id'] ?? '')) ?>" placeholder="987654321098765">
+    <label>Nombre de la instancia
+      <input type="text" name="instancia" maxlength="60" required value="<?= htmlspecialchars((string)($cfg['phone_number_id'] ?? 'clinica')) ?>" placeholder="clinica">
     </label>
-    <label>Token de acceso permanente
-      <input type="password" name="token" maxlength="1000" autocomplete="new-password" placeholder="<?= !empty($cfg) ? 'Dejar vacío para conservar el actual' : 'EAAG...' ?>">
-    </label>
-    <label>Versión de la API
-      <input type="text" name="api_version" maxlength="10" required value="<?= htmlspecialchars((string)($cfg['api_version'] ?? 'v21.0')) ?>">
-    </label>
-    <label>Plantilla del código
-      <input type="text" name="plantilla" maxlength="120" required value="<?= htmlspecialchars((string)($cfg['plantilla'] ?? 'codigo_verificacion')) ?>">
-    </label>
-    <label>Idioma de la plantilla
-      <input type="text" name="plantilla_idioma" maxlength="20" required value="<?= htmlspecialchars((string)($cfg['plantilla_idioma'] ?? 'es_MX')) ?>">
+    <label>API Key
+      <input type="password" name="token" maxlength="1000" autocomplete="new-password" placeholder="<?= !empty($cfg) ? 'Dejar vacío para conservar la actual' : 'AUTHENTICATION_API_KEY' ?>">
     </label>
     <label>Lada del país
       <input type="text" name="lada_default" maxlength="5" required value="<?= htmlspecialchars((string)($cfg['lada_default'] ?? '52')) ?>">
@@ -29,7 +20,7 @@
         <option value="0"<?= (int)($cfg['activo'] ?? 1) === 0 ? ' selected' : '' ?>>No</option>
       </select>
     </label>
-    <p class="ayuda" style="grid-column:1/-1;color:var(--c4)">La plantilla debe estar aprobada en Meta como plantilla de autenticación y recibir el código como primer parámetro.</p>
+    <p class="ayuda" style="grid-column:1/-1;color:var(--c4)">El celular debe estar vinculado a la instancia (WhatsApp → Dispositivos vinculados) y con internet. El mensaje se envía como texto, sin plantillas.</p>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit">Guardar configuración</button>
     </div>

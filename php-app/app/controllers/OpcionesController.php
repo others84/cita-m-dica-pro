@@ -160,24 +160,23 @@ class OpcionesController extends Controller {
         $this->requireLogin(['admin_sistema']);
         require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
         try {
-            $phoneId = trim((string)$this->input('phone_number_id'));
-            $waba    = trim((string)$this->input('waba_id'));
+            // Evolution API: phone_number_id = instancia, waba_id = URL, token = API Key
+            $phoneId = trim((string)$this->input('instancia'));
+            $waba    = rtrim(trim((string)$this->input('api_url')), '/');
             $token   = trim((string)$this->input('token'));
-            $ver     = trim((string)$this->input('api_version')) ?: 'v21.0';
-            $plant   = trim((string)$this->input('plantilla'));
-            $idioma  = trim((string)$this->input('plantilla_idioma')) ?: 'es_MX';
+            $ver     = 'evo';
+            $plant   = 'texto';
+            $idioma  = 'es_MX';
             $lada    = preg_replace('/\D+/', '', (string)$this->input('lada_default')) ?: '52';
             $activo  = (int)$this->input('activo') === 1;
 
-            if (!preg_match('/^\d{5,30}$/', $phoneId)) throw new Exception('El Phone Number ID debe ser numérico.');
-            if ($waba !== '' && !preg_match('/^\d{5,30}$/', $waba)) throw new Exception('El WABA ID debe ser numérico.');
-            if (!preg_match('/^v\d+\.\d+$/', $ver)) throw new Exception('La versión de la API debe tener el formato v21.0.');
-            if ($plant === '') throw new Exception('Indica el nombre de la plantilla del código.');
+            if (!preg_match('/^[A-Za-z0-9_\-]{1,60}$/', $phoneId)) throw new Exception('El nombre de la instancia solo admite letras, números, guion y guion bajo.');
+            if (!preg_match('#^https?://[^\s]{3,52}$#', $waba)) throw new Exception('La URL de Evolution API debe iniciar con http:// o https:// (máx. 60 caracteres).');
 
             $actual = null;
             try { $actual = ConfigWhatsappModel::obtener(); } catch (Throwable $e) { $actual = null; }
             if ($token === '' && ($actual === null || trim((string)$actual['token']) === '')) {
-                throw new Exception('Captura el token de acceso permanente de Meta.');
+                throw new Exception('Captura la API Key de Evolution API.');
             }
 
             ConfigWhatsappModel::guardar($phoneId, $waba, $token, $ver, $plant, $idioma, $lada, $activo);
