@@ -21,11 +21,33 @@
       </select>
     </label>
     <p class="ayuda" style="grid-column:1/-1;color:var(--c4)">El celular debe estar vinculado a la instancia (WhatsApp → Dispositivos vinculados) y con internet. El mensaje se envía como texto, sin plantillas.</p>
+    <label style="grid-column:1/-1">Mensaje del código de verificación de la cita pública
+      <textarea name="plantilla_otp" id="plantilla-otp" rows="5" maxlength="2000" required><?= htmlspecialchars((string)($cfg['plantilla_otp'] ?? Whatsapp::PLANTILLA_OTP_DEFAULT), ENT_QUOTES, 'UTF-8') ?></textarea>
+    </label>
+    <p class="ayuda" style="grid-column:1/-1;color:var(--c4)">Variables: <code>{codigo}</code> (obligatoria) y <code>{minutos}</code> (vigencia del código). Guarda el mensaje antes de enviar una prueba.</p>
+    <div style="grid-column:1/-1">
+      <strong>Vista previa</strong>
+      <p id="preview-otp" style="white-space:pre-wrap;overflow-wrap:anywhere" aria-live="polite"></p>
+    </div>
     <div class="form-actions" style="grid-column:1/-1">
       <button class="btn" type="submit">Guardar configuración</button>
     </div>
   </form>
 </div>
+
+<script>
+(() => {
+  const campo = document.getElementById('plantilla-otp');
+  const vista = document.getElementById('preview-otp');
+  if (!campo || !vista) return;
+  const actualizar = () => {
+    campo.setCustomValidity(campo.value.includes('{codigo}') ? '' : 'Incluye {codigo} en el mensaje.');
+    vista.textContent = campo.value.split('{codigo}').join('1234').split('{minutos}').join(<?= json_encode((string)OtpCitaPublicaModel::MINUTOS_VIGENCIA) ?>);
+  };
+  campo.addEventListener('input', actualizar);
+  actualizar();
+})();
+</script>
 
 <div class="card" style="max-width:640px;margin-top:1rem">
   <h3 style="margin-top:0;color:var(--c5)">Probar envío</h3>

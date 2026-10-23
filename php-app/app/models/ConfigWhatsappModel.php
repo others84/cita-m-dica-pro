@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../core/Model.php';
 require_once __DIR__ . '/ConfigCorreoModel.php';
+require_once __DIR__ . '/../core/Whatsapp.php';
 
 /**
  * Configuracion exclusiva de Evolution API, separada de los datos de Meta.
@@ -27,11 +28,13 @@ class ConfigWhatsappModel extends Model {
     }
 
     /** API Key vacia conserva la clave guardada. */
-    public static function guardar(string $apiUrl, string $instancia, string $apiKey, string $lada, bool $activo): void {
+    public static function guardar(string $apiUrl, string $instancia, string $apiKey, string $lada, bool $activo, string $plantilla = Whatsapp::PLANTILLA_OTP_DEFAULT): void {
+        $plantilla = trim(str_replace(["\r\n", "\r"], "\n", $plantilla));
+        Whatsapp::validarPlantilla($plantilla);
         self::execute(
             'EXEC citas.spGuardaConfigWhatsappEvolution @api_url=:url, @instancia=:ins, @api_key_cifrada=:key, '
             . '@lada_default=:ld, '
-            . '@activo=:ac, @id_usuario=:iu',
+            . '@activo=:ac, @id_usuario=:iu, @plantilla_otp=:otp',
             [
                 ':url' => $apiUrl,
                 ':ins' => $instancia,
@@ -39,6 +42,7 @@ class ConfigWhatsappModel extends Model {
                 ':ld' => $lada,
                 ':ac' => $activo ? 1 : 0,
                 ':iu' => self::currentUserId(),
+                ':otp' => $plantilla,
             ]
         );
     }

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/../models/OtpCitaPublicaModel.php';
 
 /**
  * Cliente de Evolution API (WhatsApp via QR, auto-hospedado en el VPS) para
@@ -8,6 +9,31 @@ require_once __DIR__ . '/Database.php';
  * Lee api_url, instancia y api_key de CONFIG_WHATSAPP_EVOLUTION.
  */
 class Whatsapp {
+    public const PLANTILLA_OTP_DEFAULT = 'SGCO Citas: tu código de verificación es {codigo}. Es válido por {minutos} minutos. No lo compartas con nadie.';
+
+    public static function validarPlantilla(string $plantilla): void {
+        if (trim($plantilla) === '' || mb_strlen($plantilla, 'UTF-8') > 2000) {
+            throw new Exception('El mensaje del código es obligatorio (máximo 2000 caracteres).');
+        }
+        if (strpos($plantilla, '{codigo}') === false) {
+            throw new Exception('El mensaje debe incluir {codigo} para que el paciente reciba su código.');
+        }
+        $resto = str_replace(['{codigo}', '{minutos}'], '', $plantilla);
+        if (strpbrk($resto, '{}') !== false) {
+            throw new Exception('Solo se admiten las variables {codigo} y {minutos}.');
+        }
+    }
+
+    /** El texto no cambia la vigencia ni las reglas de verificación del OTP. */
+    public static function textoCodigo(array $cfg, string $codigo): string {
+        if (!preg_match('/^[0-9]{4}$/', $codigo)) throw new Exception('El código debe tener 4 dígitos.');
+        $plantilla = (string)($cfg['plantilla_otp'] ?? self::PLANTILLA_OTP_DEFAULT);
+        self::validarPlantilla($plantilla);
+        return strtr($plantilla, [
+            '{codigo}' => $codigo,
+            '{minutos}' => (string)OtpCitaPublicaModel::MINUTOS_VIGENCIA,
+        ]);
+    }
 
     public static function validarConfiguracion(string $base, string $instancia, string $apiKey, string $lada): void {
         $url = parse_url($base);
@@ -36,8 +62,7 @@ class Whatsapp {
 
     /** @param array<string,mixed> $cfg */
     public static function enviarCodigo(array $cfg, string $telefono, string $codigo): void {
-        $texto = 'SGCO Citas: tu código de verificación es ' . $codigo
-               . '. Es válido por 10 minutos. No lo compartas con nadie.';
+        $texto = self::textoCodigo($cfg, $codigo);
         self::enviarTexto($cfg, $telefono, $texto);
         Database::log('WHATSAPP codigo enviado');
     }

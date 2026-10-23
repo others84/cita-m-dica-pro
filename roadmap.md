@@ -1,4 +1,5 @@
 # Evolution API
+- [ ] Agregar texto OTP editable en Configuración de WhatsApp, con parche SQL y pruebas.
 - [x] Crear configuración SQL propia para Evolution sin reutilizar campos de Meta.
 - [x] Adaptar modelo, envío y pantalla de configuración.
 - [x] Probar PHP, cifrado y contrato del modelo; entregar archivos con instrucciones para LIVE y DEMO.
