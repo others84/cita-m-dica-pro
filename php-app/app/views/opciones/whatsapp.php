@@ -3,16 +3,16 @@
   <p style="color:var(--c4);margin-top:0">Conexión con Evolution API (WhatsApp vinculado por código QR) desde la cual el sistema enviará los códigos de verificación de la cita en línea.</p>
   <form method="post" action="<?= url('opciones/whatsappGuardar') ?>" class="form-grid"><?= csrf_field() ?>
     <label>URL de Evolution API
-      <input type="text" name="api_url" maxlength="60" required value="<?= htmlspecialchars((string)($cfg['waba_id'] ?? 'http://127.0.0.1:8081')) ?>" placeholder="http://127.0.0.1:8081">
+      <input type="url" name="api_url" maxlength="500" required value="<?= htmlspecialchars((string)($cfg['api_url'] ?? 'http://127.0.0.1:8081')) ?>" placeholder="http://127.0.0.1:8081">
     </label>
     <label>Nombre de la instancia
-      <input type="text" name="instancia" maxlength="60" required value="<?= htmlspecialchars((string)($cfg['phone_number_id'] ?? 'clinica')) ?>" placeholder="clinica">
+      <input type="text" name="instancia" maxlength="60" pattern="[A-Za-z0-9_\-]{1,60}" required value="<?= htmlspecialchars((string)($cfg['instancia'] ?? 'SGCO')) ?>" placeholder="SGCO">
     </label>
     <label>API Key
-      <input type="password" name="token" maxlength="1000" autocomplete="new-password" placeholder="<?= !empty($cfg) ? 'Dejar vacío para conservar la actual' : 'AUTHENTICATION_API_KEY' ?>">
+      <input type="password" name="api_key" maxlength="1000" autocomplete="new-password"<?= empty($cfg['tiene_api_key']) ? ' required' : '' ?> placeholder="<?= !empty($cfg['tiene_api_key']) ? 'Dejar vacío para conservar la actual' : 'AUTHENTICATION_API_KEY' ?>">
     </label>
     <label>Lada del país
-      <input type="text" name="lada_default" maxlength="5" required value="<?= htmlspecialchars((string)($cfg['lada_default'] ?? '52')) ?>">
+      <input type="text" name="lada_default" inputmode="numeric" pattern="[1-9][0-9]{0,4}" maxlength="5" required value="<?= htmlspecialchars((string)($cfg['lada_default'] ?? '52')) ?>">
     </label>
     <label>Activo
       <select name="activo">
