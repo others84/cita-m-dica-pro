@@ -169,14 +169,16 @@ class OpcionesController extends Controller {
             $apiKey  = trim((string)$this->input('api_key'));
             $lada    = trim((string)$this->input('lada_default'));
             $activo  = (int)$this->input('activo') === 1;
+            $plantilla = trim((string)$this->input('plantilla_otp'));
 
             Whatsapp::validarConfiguracion($apiUrl, $instancia, $apiKey, $lada);
+            Whatsapp::validarPlantilla($plantilla);
             $actual = ConfigWhatsappModel::obtener();
             if ($apiKey === '' && ($actual === null || trim((string)($actual['api_key'] ?? '')) === '')) {
                 throw new Exception('Captura la API Key de Evolution API.');
             }
 
-            ConfigWhatsappModel::guardar($apiUrl, $instancia, $apiKey, $lada, $activo);
+            ConfigWhatsappModel::guardar($apiUrl, $instancia, $apiKey, $lada, $activo, $plantilla);
             $this->flash('ok', 'Configuración de WhatsApp guardada.');
         } catch (Throwable $e) {
             $this->flash('error', $e->getMessage());
