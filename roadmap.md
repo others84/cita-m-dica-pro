@@ -1,4 +1,5 @@
 # Evolution API
+- [ ] Preparar script completo de SQL Server con los cambios hasta el 23 de octubre de 2026.
 - [x] Agregar texto OTP editable en Configuración de WhatsApp, con parche SQL y pruebas.
 - [x] Crear configuración SQL propia para Evolution sin reutilizar campos de Meta.
 - [x] Adaptar modelo, envío y pantalla de configuración.
