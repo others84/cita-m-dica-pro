@@ -145,41 +145,38 @@ class OpcionesController extends Controller {
         $this->redirect('opciones/avisoAcceso');
     }
 
-    /** Administrador de sistema: credenciales de WhatsApp Cloud API. */
+    /** Administrador de sistema: configuracion de Evolution API. */
     public function whatsapp(): void {
         $this->requireLogin(['admin_sistema']);
         require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
         $cfg = null;
         try { $cfg = ConfigWhatsappModel::obtener(); }
         catch (Throwable $e) { $this->flash('error', $e->getMessage()); }
-        if (is_array($cfg)) unset($cfg['token'], $cfg['token_cifrado']);
+        if (is_array($cfg)) {
+            $cfg['tiene_api_key'] = trim((string)($cfg['api_key'] ?? '')) !== '';
+            unset($cfg['api_key'], $cfg['api_key_cifrada']);
+        }
         $this->view('opciones/whatsapp', ['title' => 'Configuración de WhatsApp', 'cfg' => $cfg]);
     }
 
     public function whatsappGuardar(): void {
         $this->requireLogin(['admin_sistema']);
         require_once __DIR__ . '/../models/ConfigWhatsappModel.php';
+        require_once __DIR__ . '/../core/Whatsapp.php';
         try {
-            // Evolution API: phone_number_id = instancia, waba_id = URL, token = API Key
-            $phoneId = trim((string)$this->input('instancia'));
-            $waba    = rtrim(trim((string)$this->input('api_url')), '/');
-            $token   = trim((string)$this->input('token'));
-            $ver     = 'evo';
-            $plant   = 'texto';
-            $idioma  = 'es_MX';
-            $lada    = preg_replace('/\D+/', '', (string)$this->input('lada_default')) ?: '52';
+            $instancia = trim((string)$this->input('instancia'));
+            $apiUrl  = rtrim(trim((string)$this->input('api_url')), '/');
+            $apiKey  = trim((string)$this->input('api_key'));
+            $lada    = trim((string)$this->input('lada_default'));
             $activo  = (int)$this->input('activo') === 1;
 
-            if (!preg_match('/^[A-Za-z0-9_\-]{1,60}$/', $phoneId)) throw new Exception('El nombre de la instancia solo admite letras, números, guion y guion bajo.');
-            if (!preg_match('#^https?://[^\s]{3,52}$#', $waba)) throw new Exception('La URL de Evolution API debe iniciar con http:// o https:// (máx. 60 caracteres).');
-
-            $actual = null;
-            try { $actual = ConfigWhatsappModel::obtener(); } catch (Throwable $e) { $actual = null; }
-            if ($token === '' && ($actual === null || trim((string)$actual['token']) === '')) {
+            Whatsapp::validarConfiguracion($apiUrl, $instancia, $apiKey, $lada);
+            $actual = ConfigWhatsappModel::obtener();
+            if ($apiKey === '' && ($actual === null || trim((string)($actual['api_key'] ?? '')) === '')) {
                 throw new Exception('Captura la API Key de Evolution API.');
             }
 
-            ConfigWhatsappModel::guardar($phoneId, $waba, $token, $ver, $plant, $idioma, $lada, $activo);
+            ConfigWhatsappModel::guardar($apiUrl, $instancia, $apiKey, $lada, $activo);
             $this->flash('ok', 'Configuración de WhatsApp guardada.');
         } catch (Throwable $e) {
             $this->flash('error', $e->getMessage());
@@ -198,8 +195,9 @@ class OpcionesController extends Controller {
             }
             $cfg = ConfigWhatsappModel::obtener();
             if (!$cfg) throw new Exception('Primero guarda la configuración de WhatsApp.');
+            if ((int)$cfg['activo'] !== 1) throw new Exception('Activa la configuración de WhatsApp antes de probar.');
             Whatsapp::enviarCodigo($cfg, $destino, str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT));
-            $this->flash('ok', 'Mensaje de prueba enviado a ' . $destino . '.');
+            $this->flash('ok', 'Evolution aceptó el mensaje de prueba. Confirma que llegó al teléfono.');
         } catch (Throwable $e) {
             $this->flash('error', 'No se pudo enviar: ' . $e->getMessage());
         }

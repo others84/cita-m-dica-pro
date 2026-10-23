@@ -3,17 +3,17 @@ require_once __DIR__ . '/../core/Model.php';
 require_once __DIR__ . '/ConfigCorreoModel.php';
 
 /**
- * Credenciales de WhatsApp Cloud API (Meta). El token permanente se guarda
- * cifrado con AES-256-GCM usando APP_KEY, igual que la contrasena SMTP.
+ * Configuracion exclusiva de Evolution API, separada de los datos de Meta.
+ * La API Key se cifra con AES-256-GCM usando APP_KEY.
  */
 class ConfigWhatsappModel extends Model {
 
-    /** @return array<string,mixed>|null Config con el token ya descifrado. */
+    /** @return array<string,mixed>|null Config con la API Key ya descifrada. */
     public static function obtener(): ?array {
-        $rows = self::query('EXEC citas.spRegresaConfigWhatsapp');
+        $rows = self::query('EXEC citas.spRegresaConfigWhatsappEvolution');
         $row = $rows[0] ?? null;
         if (!$row) return null;
-        $row['token'] = ConfigCorreoModel::descifrar((string)($row['token_cifrado'] ?? ''));
+        $row['api_key'] = ConfigCorreoModel::descifrar((string)($row['api_key_cifrada'] ?? ''));
         $row['activo'] = (int)($row['activo'] ?? 0);
         return $row;
     }
@@ -22,23 +22,20 @@ class ConfigWhatsappModel extends Model {
     public static function disponible(): bool {
         try { $c = self::obtener(); } catch (Throwable $e) { return false; }
         return $c !== null && (int)$c['activo'] === 1
-            && trim((string)$c['phone_number_id']) !== '' && trim((string)$c['token']) !== '';
+            && trim((string)$c['api_url']) !== '' && trim((string)$c['instancia']) !== ''
+            && trim((string)$c['api_key']) !== '';
     }
 
-    /** $token vacio conserva el token guardado. */
-    public static function guardar(string $phoneNumberId, string $wabaId, string $token, string $apiVersion,
-                                   string $plantilla, string $idioma, string $lada, bool $activo): void {
+    /** API Key vacia conserva la clave guardada. */
+    public static function guardar(string $apiUrl, string $instancia, string $apiKey, string $lada, bool $activo): void {
         self::execute(
-            'EXEC citas.spGuardaConfigWhatsapp @phone_number_id=:pn, @waba_id=:wa, @token_cifrado=:tk, '
-            . '@api_version=:av, @plantilla=:pl, @plantilla_idioma=:pi, @lada_default=:ld, '
+            'EXEC citas.spGuardaConfigWhatsappEvolution @api_url=:url, @instancia=:ins, @api_key_cifrada=:key, '
+            . '@lada_default=:ld, '
             . '@activo=:ac, @id_usuario=:iu',
             [
-                ':pn' => $phoneNumberId,
-                ':wa' => $wabaId === '' ? null : $wabaId,
-                ':tk' => $token === '' ? '' : ConfigCorreoModel::cifrar($token),
-                ':av' => $apiVersion,
-                ':pl' => $plantilla,
-                ':pi' => $idioma,
+                ':url' => $apiUrl,
+                ':ins' => $instancia,
+                ':key' => $apiKey === '' ? '' : ConfigCorreoModel::cifrar($apiKey),
                 ':ld' => $lada,
                 ':ac' => $activo ? 1 : 0,
                 ':iu' => self::currentUserId(),
