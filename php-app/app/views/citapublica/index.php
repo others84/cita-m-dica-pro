@@ -194,7 +194,7 @@ if(t)d.setAttribute('data-tema',t); if(f)d.setAttribute('data-fuente',f); if(e)d
     <input type="hidden" name="id_CATALOGO_ESPECIALIDAD" value="<?= $idEspecialidad ?: '' ?>">
 
   <div id="pasos-restantes" hidden>
-    <section class="card">
+    <section class="card" id="datos-paciente">
       <p class="paso-num">Paso 4 de 5</p>
       <h2>Tus datos</h2>
       <?php if ($soloLectura): ?>
@@ -422,8 +422,14 @@ window.DIAS_BLOQUEADOS = <?= json_encode(array_values($diasBloqueados ?? []), JS
     f.value = fecha(s); hi.value = hora(s); hf.value = hora(e);
     mostrarPasosRestantes();
     resumen();
-    var box = document.getElementById('resumen-cita');
-    (box || document.getElementById('form-cita')).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Una paciente nueva debe empezar por sus datos, no por la confirmacion.
+    var soloLectura = <?= json_encode($soloLectura) ?>;
+    var destino = document.getElementById(soloLectura ? 'resumen-cita' : 'datos-paciente');
+    if (destino) {
+      requestAnimationFrame(function () {
+        destino.scrollIntoView({ behavior: 'smooth', block: soloLectura ? 'center' : 'start' });
+      });
+    }
   }
 
 
