@@ -60,6 +60,10 @@ class MedicosController extends Controller {
         $rows = $this->listarMedicos($fClinica);
         $editRow = null;
         if ($editId) foreach ($rows as $r) if ((int)$r['id_USUARIOS'] === $editId) { $editRow = $r; break; }
+        if ($editRow) {
+            try { $editRow = array_merge($editRow, UsuarioModel::rfcCedula($editId)); }
+            catch (Throwable $e) { $editRow['rfc'] = $editRow['rfc'] ?? ''; $editRow['cedula'] = $editRow['cedula'] ?? ''; }
+        }
 
         // Clinicas asignadas por medico (se muestran en la tabla inferior).
         $clinicasPorMedico = [];
@@ -189,6 +193,16 @@ class MedicosController extends Controller {
         $usuario = trim((string)$this->input('usuario', ''));
         $email   = trim((string)$this->input('email', ''));
         $pass    = (string)$this->input('password', '');
+        $rfc     = strtoupper(trim((string)$this->input('rfc', '')));
+        $cedula  = trim((string)$this->input('cedula', ''));
+        if ($rfc !== '' && !preg_match('/^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/', $rfc)) {
+            $this->flash('error', 'El RFC no tiene un formato valido (12 o 13 caracteres).');
+            $this->redirect('medicos');
+        }
+        if (mb_strlen($cedula) > 20) {
+            $this->flash('error', 'La cedula profesional no puede exceder 20 caracteres.');
+            $this->redirect('medicos');
+        }
         $idRol   = $this->idRolMedico();
         if ($idClinica <= 0 || $nombre === '' || ($id === null && $usuario === '')) {
             Database::log('MEDICO GUARDAR datos incompletos id_CLINICA=' . $idClinica . " nombre='" . $nombre . "' campos=[" . implode(',', array_keys($_POST)) . ']');
@@ -202,10 +216,12 @@ class MedicosController extends Controller {
             if ($id) {
                 UsuarioModel::cambio($id, $idRol, $idClinica, $nombre, $email);
                 if ($pass !== '') UsuarioModel::cambioPassword($id, $pass);
+                UsuarioModel::guardarRfcCedula($id, $rfc, $cedula);
                 $this->flash('ok','Actualizado.');
             } else {
                 $this->validaCupoClinica($idClinica, $idRol);
-                UsuarioModel::alta($idRol, $idClinica, $usuario, $pass, $nombre, $email);
+                $idNuevo = UsuarioModel::alta($idRol, $idClinica, $usuario, $pass, $nombre, $email);
+                if ($rfc !== '' || $cedula !== '') UsuarioModel::guardarRfcCedula((int)$idNuevo, $rfc, $cedula);
                 $usr = $_SESSION['user']['nombre_completo'] ?? ($_SESSION['user']['usuario'] ?? '?');
                 Database::log("MEDICO ALTA usuario='{$usuario}' nombre='{$nombre}' clinica_id={$idClinica} agregado por='{$usr}'");
                 $this->flash('ok','Medico registrado y asignado a la clinica.');

@@ -1,6 +1,6 @@
 <div class="card">
   <p>Estas plantillas se copian a cada clínica nueva. Cambiarlas aquí <b>no</b> modifica los documentos que ya tienen las clínicas; para eso use el botón "Contrato y aviso" en la lista de clínicas.</p>
-  <p style="color:var(--c4)">Variables disponibles: @@CLINICA, @@DIRECCION, @@EMAIL_CLINICA, @@TELEFONO_CLINICA, @@FECHA, @@USUARIO, @@NOMBRE_USUARIO, @@ROL.</p>
+  <p style="color:var(--c4)">Variables disponibles: @@CLINICA, @@DIRECCION, @@EMAIL_CLINICA, @@TELEFONO_CLINICA, @@FECHA, @@USUARIO, @@NOMBRE_USUARIO, @@ROL, @@RFC_MEDICO, @@CEDULA (estas dos solo se llenan cuando firma un medico).</p>
 </div>
 <?php foreach (DocumentoLegalModel::TIPOS as $tipo => $label): $p = $plantillas[$tipo] ?? null; ?>
 <div class="card">
