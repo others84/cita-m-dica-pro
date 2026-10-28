@@ -6,3 +6,4 @@
 - [x] Adaptar modelo, envío y pantalla de configuración.
 - [x] Probar PHP, cifrado y contrato del modelo; entregar archivos con instrucciones para LIVE y DEMO.
 - [ ] Verificar SQL y recepción real de OTP: requiere ejecutar el paquete en el VPS del usuario.
+- [x] Variables @@RFC_MEDICO y @@CEDULA en contratos: columnas rfc/cedula en USUARIOS, captura en catalogo de medicos y sustitucion al firmar. Sintaxis PHP validada; pendiente aplicar 2026-10-28_medico_rfc_cedula.sql en LIVE/DEMO.
