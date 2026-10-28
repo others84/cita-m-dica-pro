@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../models/DocumentoLegalModel.php';
 require_once __DIR__ . '/../models/ClinicaModel.php';
+require_once __DIR__ . '/../models/UsuarioModel.php';
 
 class ContratosController extends Controller {
 
@@ -128,11 +129,21 @@ class ContratosController extends Controller {
 
     private static function variables(array $d, array $u): array {
         $roles = ['administrador' => 'Administrador de clinica', 'medico' => 'Medico', 'asistente' => 'Asistente'];
+        $rfc = ''; $cedula = '';
+        if (($u['rol'] ?? '') === 'medico') {
+            try {
+                $rc = UsuarioModel::rfcCedula((int)($u['id_USUARIOS'] ?? 0));
+                $rfc = $rc['rfc']; $cedula = $rc['cedula'];
+            } catch (Throwable $e) {
+                Database::log('CONTRATOS rfc/cedula ERR: ' . $e->getMessage());
+            }
+        }
         return [
             'CLINICA' => $d['clinica'] ?? '', 'DIRECCION' => $d['direccion'] ?? '',
             'EMAIL_CLINICA' => $d['email_clinica'] ?? '', 'TELEFONO_CLINICA' => $d['telefono_clinica'] ?? '',
             'FECHA' => date('d/m/Y'), 'USUARIO' => $u['usuario'] ?? '',
             'NOMBRE_USUARIO' => $u['nombre'] ?? '', 'ROL' => $roles[$u['rol']] ?? ($u['rol_nombre'] ?? ''),
+            'RFC_MEDICO' => $rfc, 'CEDULA' => $cedula,
         ];
     }
 

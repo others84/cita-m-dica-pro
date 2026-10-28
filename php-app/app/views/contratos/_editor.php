@@ -2,7 +2,7 @@
 /**
  * Editor visual HTML. Variables: $edId (string), $edHtml (string), $edAction, $edTipo, $edBoton.
  */
-$vars = ['@@CLINICA','@@DIRECCION','@@EMAIL_CLINICA','@@TELEFONO_CLINICA','@@FECHA','@@USUARIO','@@NOMBRE_USUARIO','@@ROL'];
+$vars = ['@@CLINICA','@@DIRECCION','@@EMAIL_CLINICA','@@TELEFONO_CLINICA','@@FECHA','@@USUARIO','@@NOMBRE_USUARIO','@@ROL','@@RFC_MEDICO','@@CEDULA'];
 ?>
 <form method="post" action="<?= url($edAction) ?>" class="legal-editor-form" data-editor="<?= htmlspecialchars($edId) ?>">
   <?= csrf_field() ?>

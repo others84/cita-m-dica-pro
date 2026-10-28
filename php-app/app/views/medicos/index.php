@@ -19,6 +19,12 @@
       <input name="nombre_completo" required maxlength="150" value="<?= htmlspecialchars($editRow['nombre_completo'] ?? '') ?>">
     </label>
     <label>Email <input type="email" name="email" value="<?= htmlspecialchars($editRow['email'] ?? '') ?>"></label>
+    <label>RFC
+      <input name="rfc" maxlength="13" style="text-transform:uppercase" value="<?= htmlspecialchars($editRow['rfc'] ?? '') ?>" placeholder="XAXX010101000">
+    </label>
+    <label>Cedula profesional
+      <input name="cedula" maxlength="20" value="<?= htmlspecialchars($editRow['cedula'] ?? '') ?>">
+    </label>
     <label>Password <?= $editId ? '(dejar vacio para no cambiar)' : '' ?>
       <input type="password" name="password" <?= $editId?'':'required' ?> minlength="8" pattern="(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])(?=.*\d).{8,}" title="Mínimo 8 caracteres, con al menos una letra y un número">
     </label>
