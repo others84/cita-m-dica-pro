@@ -98,6 +98,19 @@ class UsuarioModel extends Model {
         self::execute('EXEC citas.spDesactivaUsuario @id_USUARIOS=:id, @id_usuario=:u', [':id' => $id, ':u' => self::currentUserId()]);
     }
 
+    /** Guarda RFC y cedula profesional de un medico (valida el perfil en SQL). */
+    public static function guardarRfcCedula(int $id, string $rfc, string $cedula): void {
+        self::execute('EXEC citas.spGuardaRfcCedulaMedico @id_USUARIOS=:id, @rfc=:r, @cedula=:c, @id_usuario=:u',
+            [':id' => $id, ':r' => $rfc, ':c' => $cedula, ':u' => self::currentUserId()]);
+    }
+
+    /** RFC y cedula de un usuario; ['rfc'=>'','cedula'=>''] si no existe. */
+    public static function rfcCedula(int $id): array {
+        $rows = self::query('EXEC citas.spRegresaRfcCedulaMedico @id_USUARIOS=:id', [':id' => $id]);
+        $r = $rows[0] ?? [];
+        return ['rfc' => (string)($r['rfc'] ?? ''), 'cedula' => (string)($r['cedula'] ?? '')];
+    }
+
     /**
      * Usuario GENERICO (rol asistente) usado por la pagina publica de citas.
      * Devuelve ['id_USUARIOS'=>int,'usuario'=>string,'clinicas'=>int[]] o null.
